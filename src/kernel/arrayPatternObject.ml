@@ -1,7 +1,10 @@
 
-class arrayPatternObject lst =
+class arrayPatternObject (lst: (AbstractExpressionObject.abstractExpressionObject AbstractPatternObject.abstractPatternObject) list)  =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] AbstractPatternObject.abstractPatternObject 
+
+  method getIds() = 
+    (List.fold_left (fun acc pattern -> acc@(pattern#getIds())) [] lst)
     
   method matchToExpression env expr = 
     let exprEval = expr#eval env in 

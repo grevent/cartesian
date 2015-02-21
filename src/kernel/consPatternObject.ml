@@ -2,6 +2,9 @@
 class consPatternObject car cdr =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] AbstractPatternObject.abstractPatternObject
+
+  method getIds() = 
+    (car#getIds())@(cdr#getIds())
     
   method matchToExpression env expr =
     let exprEval = expr#eval env in

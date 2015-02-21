@@ -12,6 +12,9 @@ object
     else
       false
 
+  method getIds () = 
+    id::(pattern#getIds())
+
   method toString() = 
     (pattern#toString())^" as "^id
 

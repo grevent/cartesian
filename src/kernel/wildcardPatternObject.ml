@@ -8,5 +8,8 @@ object
 
   method toString() = 
     "_"
+
+  method getIds() = 
+    []
 	
 end;;

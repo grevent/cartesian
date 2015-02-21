@@ -6,6 +6,10 @@ object(self)
   method eval env =
     (self :> AbstractExpressionObject.abstractExpressionObject)
 
+  method preEval env idList = 
+    (new arrayWrapperExpressionObject (Array.map (fun x -> x#preEval env idList) ar)
+     :> AbstractExpressionObject.abstractExpressionObject)
+
   method isArray() = true
     
   method returnArray() = ar

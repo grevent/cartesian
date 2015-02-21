@@ -14,6 +14,9 @@ object
     else
       false
 
+  method getIds() = 
+    []
+
   method toString() = 
     "\""^st^"\""
 	

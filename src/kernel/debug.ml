@@ -2,7 +2,8 @@
 let debugOn = true;;
 let lexDebugOn = false;;
 let synDebugOn = false;;
-let funDebugOn = true;;
+let funDebugOn = false;;
+let patternDebugOn = true;;
 
 let genericDebug str = 
   if debugOn then
@@ -30,6 +31,14 @@ let synDebug str =
 
 let funEvalDebug str =   
   if funDebugOn then
+    begin
+      Printf.printf "FUN: %s" str;
+      print_newline();
+    end;
+;;
+
+let patternDebug str =   
+  if patternDebugOn then
     begin
       Printf.printf "FUN: %s" str;
       print_newline();

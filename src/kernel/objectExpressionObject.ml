@@ -20,4 +20,12 @@ object(self)
       acc^attribute^
 	(List.fold_left (fun acc pattern -> acc^(pattern#toString())^" ") "" patterns)^"= "^(expr#toString())) "" defs)^" }"
 
+  method preEval env idList = 
+    let idsWithAtt = List.fold_left (fun acc (id,_,_) -> acc@[id]) idList defs in
+    let pDefs = List.map (fun (id,params,expr) -> 
+      let ids = List.fold_left (fun acc param -> acc@(param#getIds())) idsWithAtt params in
+      (id,params,expr#preEval env ids) ) defs 
+    in
+    ((new objectExpressionObject pDefs) :> AbstractExpressionObject.abstractExpressionObject)
+
 end;;

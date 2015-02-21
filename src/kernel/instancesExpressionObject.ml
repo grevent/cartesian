@@ -2,7 +2,7 @@
 exception UseCaseNotPrototyped
   
 class instancesExpressionObject useCases =
-object
+object(self)
   inherit AbstractExpressionObject.abstractExpressionObject
     
   method eval env = 
@@ -18,7 +18,12 @@ object
       | _ -> let useCase = (List.nth useCases (Random.int (List.length useCases))) in
 	     useCase#returnValue();)
 
+  method preEval env idList = 
+    self#eval env
+
   method toString() = 
     (List.fold_left (fun acc uc -> acc^": "^(uc#returnUC())^" "^uc#toString()) "" useCases)
+
+      
 
 end;;

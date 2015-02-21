@@ -18,7 +18,8 @@ object(self)
   inherit RuntimeObject.runtimeObject
     
   method virtual eval: abstractExpressionObject Env.env -> abstractExpressionObject
-  
+  method virtual preEval: abstractExpressionObject Env.env -> string list -> abstractExpressionObject
+
   method isString() = false
   method isFloat() = false
   method isInt() = false
@@ -41,7 +42,7 @@ object(self)
   method returnBoolean(): bool = raise (CanNotConvertToBoolean (self#toString()))
   method returnObject(): abstractExpressionObject ObjectObject.objectObject = raise (CanNotConvertToObject (self#toString()))
   method returnAction(): abstractExpressionObject AbstractActionObject.abstractActionObject = raise (CanNotConvertToAction (self#toString()))
-  method returnFunction(): abstractExpressionObject FunctionObject.functionObject = raise (CanNotConvertToFunction (self#toString()))
+  method returnFunction (env: abstractExpressionObject Env.env): abstractExpressionObject FunctionObject.functionObject = raise (CanNotConvertToFunction (self#toString()))
   
   method copy() = 
     (self :> abstractExpressionObject)

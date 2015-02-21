@@ -49,7 +49,9 @@ class addActionHelper x =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
   
-  method evalAction obj = new ActionExpressionObject.actionExpressionObject [x; (obj#returnAction())];
+  method evalAction obj = 
+    new ActionExpressionObject.actionExpressionObject [x; (obj#returnAction())];
+
   method evalNOD obj = obj 
 end;;
 

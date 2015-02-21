@@ -11,6 +11,9 @@ object
     else
       false
 
+  method getIds() = 
+    (List.fold_left (fun acc x -> (x#getIds())@acc) [] lst)
+
   method toString() = 
     (List.fold_left (fun acc el -> (if (String.compare "" acc) == 0 then "" else acc^" ")^(el#toString())) "" lst)
 	

@@ -3,6 +3,10 @@ class attributeAccessExpressionObject (exprObj: AbstractExpressionObject.abstrac
 object
   inherit AbstractExpressionObject.abstractExpressionObject 
     
+  method preEval env idList = 
+    ((new attributeAccessExpressionObject (exprObj#preEval env idList) id)
+     :> AbstractExpressionObject.abstractExpressionObject)
+
   method eval env = 
     let expr = exprObj#eval env in
     let obj = expr#returnObject() in 

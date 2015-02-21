@@ -1,15 +1,27 @@
 
+let preEval lambdas env idList = 
+  (List.map (fun (patterns,expr) -> 
+    let patternIds = List.fold_left (fun acc pattern -> acc@(pattern#getIds())) idList patterns in
+    (patterns,(expr#preEval env patternIds)) ) lambdas)
+;;
+    
 class functionExpressionObject lambdaExprs =
 object(self)
   inherit AbstractExpressionObject.abstractExpressionObject
     
   method eval env =
-    (self :> AbstractExpressionObject.abstractExpressionObject)
-
-  method isFunction () = true
+    let preLambdas = (preEval lambdaExprs env []) in 
+    ((new functionExpressionObject preLambdas) :> AbstractExpressionObject.abstractExpressionObject)    
     
-  method returnFunction() =
-    new FunctionObject.functionObject lambdaExprs 
+  method preEval env idList =
+    let preLambdas = (preEval lambdaExprs env idList) in 
+    ((new functionExpressionObject preLambdas) :> AbstractExpressionObject.abstractExpressionObject)    
+
+  method isFunction () = 
+    true
+    
+  method returnFunction env =
+    new FunctionObject.functionObject (preEval lambdaExprs env [])
 
   method toString() = 
     "lambda "^

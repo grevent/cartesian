@@ -23,5 +23,9 @@ object
   method toString() = 
     "( "^(exprObject#toString())^(List.fold_left (fun acc uc -> acc^": "^(uc#toString())) "" useCases)^")"
 
+  method preEval env idList = 
+    ((new prototypesExpressionObject (exprObject#preEval env idList) useCases) 
+     :> AbstractExpressionObject.abstractExpressionObject )
+    
 end;;
   

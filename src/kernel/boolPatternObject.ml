@@ -2,6 +2,8 @@
 class boolPatternObject bl =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] AbstractPatternObject.abstractPatternObject 
+
+  method getIds() = [] 
     
   method matchToExpression env expr = 
     let exprEval = expr#eval env in

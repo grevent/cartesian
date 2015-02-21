@@ -16,4 +16,7 @@ object(self)
   method toString() = 
     (obj#toString())
 
+  method preEval env idList = 
+    (self :> (AbstractExpressionObject.abstractExpressionObject))
+
 end;;

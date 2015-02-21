@@ -25,15 +25,28 @@ object
   inherit [AbstractExpressionObject.abstractExpressionObject] AbstractPatternObject.abstractPatternObject 
     
   method matchToExpression env expr = 
-    let exprEval = expr#eval env in
+    Debug.patternDebug (Printf.sprintf "ID %s with %s" id (expr#toString()));
+
+       let exprEval = 
+	 try 
+	   expr#eval env 
+	 with
+	   exc -> 
+	     Debug.patternDebug (Printf.sprintf "Expr returned Exception %s" (Printexc.to_string exc));
+	     raise exc
+       in
+       Debug.patternDebug (Printf.sprintf "Expr evaluated to %s" (exprEval#toString()));
     
     try 
       let idExpr = (env#getOnLevel id) in
       let pattern = exprToPattern idExpr in 
       pattern#matchToExpression env exprEval
-    with _ -> 
+    with Env.IdNotDefined _ -> 
       env#add id exprEval;
       true
+
+  method getIds () = 
+    [ id ]
 
   method toString() = 
     id

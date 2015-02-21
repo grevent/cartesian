@@ -59,7 +59,6 @@ rule lexer =
     | "," { Debug.lexDebug "VIRG"; Syntax.VIRG }
     | "_" { Debug.lexDebug "SOULIGNE"; Syntax.SOULIGNE }
     | "as" { Debug.lexDebug "AS"; Syntax.AS }
-    | "where" { Debug.lexDebug "WHERE"; Syntax.WHERE }
     | "[|" { Debug.lexDebug "CROOPIPE"; Syntax.CROOPIPE }
     | "|]" { Debug.lexDebug "PIPECROF"; Syntax.PIPECROF }
     | "nod" { Debug.lexDebug "NOD"; Syntax.NOD }

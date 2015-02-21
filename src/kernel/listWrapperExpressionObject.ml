@@ -4,7 +4,12 @@ object(self)
   inherit AbstractExpressionObject.abstractExpressionObject
     
   method eval env = 
-    (self :> AbstractExpressionObject.abstractExpressionObject)
+    ((new listWrapperExpressionObject (List.map (fun x -> x#eval env) lst))
+     :> AbstractExpressionObject.abstractExpressionObject)
+
+  method preEval env idList = 
+    ((new listWrapperExpressionObject (List.map (fun x -> x#preEval env idList) lst))
+     :> AbstractExpressionObject.abstractExpressionObject)
       
   method isList() = true
     

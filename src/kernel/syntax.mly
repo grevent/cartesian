@@ -4,7 +4,7 @@
 
 %token PLUS MINUS MUL MOD DIV PUISS CROO CROF PIPE ACOO ACOF LAMBDA FLECHD FLECHG LET IN DEUXDEUXPOINTS
 %token DEFINE EGAL DEUXPOINTS PT PARO PARF MATCH WITH AND WHILE DO FOR NOT LOGICALOR
-%token LOGICALAND PTVIRG VIRG SOULIGNE AS WHERE CROOPIPE PIPECROF NOD RAISE TRY CONTEXT PTPTPT EOL IF THEN ELSE
+%token LOGICALAND PTVIRG VIRG SOULIGNE AS CROOPIPE PIPECROF NOD RAISE TRY CONTEXT PTPTPT EOL IF THEN ELSE
 %token INF SUP EGALEGAL NOTEGAL INFEGAL SUPEGAL 
 %token <string> ID
 %token <int> INTVALUE
@@ -68,10 +68,10 @@ expr: NOT expr { new FunctionCallExpressionObject.functionCallExpressionObject (
 expr: LAMBDA matchExprs { new FunctionExpressionObject.functionExpressionObject $2 }
 expr: LET assigns IN exprProtected { new LetExpressionObject.letExpressionObject $2 $4 }
 expr: MATCH expr WITH matchExprs { new MatchExpressionObject.matchExpressionObject $2 $4 }
-expr: exprProtected { $1 }
 expr: expr PT ID { new AttributeAccessExpressionObject.attributeAccessExpressionObject $1 $3 }
 expr: IF expr THEN expr ELSE exprProtected { new FunctionCallExpressionObject.functionCallExpressionObject (new IdExpressionObject.idExpressionObject "_if") [$2; $4; $6] }
 expr: expr PT CROO expr CROF { new FunctionCallExpressionObject.functionCallExpressionObject (new IdExpressionObject.idExpressionObject "_get") [$1; $4] }
+expr: exprProtected { $1 }
 
 exprProtected: PARO expr exprProtectedList PARF { new FunctionCallExpressionObject.functionCallExpressionObject $2 $3 }
 exprProtected: PARO prototypeDefinition PARF { new InstancesExpressionObject.instancesExpressionObject $2 }
@@ -93,7 +93,7 @@ exprProtected: PARO expr PARF { $2 }
 prototypeDefinition: DEUXPOINTS ID prototypeExpression prototypeDefinition { ($3 $2)::$4 }
 prototypeDefinition: DEUXPOINTS ID prototypeExpression { [$3 $2] }
 
-lambdaExpr: patterns FLECHD exprProtected {($1,$3) }
+lambdaExpr: patterns FLECHD exprProtected { ($1,$3) }
 
 matchExprs: lambdaExpr PIPE matchExprs { $1::$3 }
 matchExprs: lambdaExpr { [ $1 ] }
@@ -141,7 +141,6 @@ patternProtected: CROO patternListPtVirg CROF { new ListPatternObject.listPatter
 patternProtected: CROO CROF { new ListPatternObject.listPatternObject [] }
 patternProtected: CROOPIPE patternListPtVirg PIPECROF {  new ArrayPatternObject.arrayPatternObject $2 }
 patternProtected: patternProtected AS ID { new RenamingPatternObject.renamingPatternObject $1 $3 }
-patternProtected: patternProtected WHERE exprProtected { new WherePatternObject.wherePatternObject $1 $3 }
 patternProtected: SOULIGNE { new WildcardPatternObject.wildcardPatternObject }
 patternProtected: PARO pattern PARF { $2 }
 patternProtected: ID { new IdPatternObject.idPatternObject $1 }

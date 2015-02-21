@@ -23,6 +23,16 @@ object
     env#removeLevel();
     result
 
+  method preEval env idList = 
+    let pExprObj = exprObj#preEval env idList in
+    let pMatchs = List.map (fun (patterns,expr) -> 
+      let ids = List.fold_left (fun acc pattern -> acc@pattern#getIds()) idList patterns in
+      let pExpr = expr#preEval env ids in
+      (patterns,pExpr)) matchs
+    in
+    ((new matchExpressionObject pExprObj pMatchs) :> 
+	AbstractExpressionObject.abstractExpressionObject)
+
   method toString() = 
     "match "^(exprObj#toString())^" with "^
       (List.fold_left (fun acc (patterns,expr) -> (if (String.compare acc "" == 0) then "" else acc^"| ")^(
