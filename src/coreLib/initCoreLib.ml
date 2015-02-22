@@ -18,6 +18,5 @@ let init obj =
   obj#addAttribute "_not" (new NativeFunctionObject.nativeFunctionObject (new LogicalNotNativeObject.logicalNotNativeObject)); 
   obj#addAttribute "_if" (new NativeFunctionObject.nativeFunctionObject (new IfNativeObject.ifNativeObject)); 
   obj#addAttribute "_get" (new NativeFunctionObject.nativeFunctionObject (new GetNativeObject.getNativeObject));
-  obj#addAttribute "abs" (new NativeFunctionObject.nativeFunctionObject (new AbsNativeObject.absNativeObject));
   
   ignore 0

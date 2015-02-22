@@ -78,6 +78,6 @@ rule lexer =
     | "false" { Debug.lexDebug "BOOLVALUE=false"; Syntax.BOOLVALUE false }
     | ('_'('+'|'-'|'*'|'/'|'^'|'@'|':'':'|'|''|'|('&''&')|'~'|'=''='|'!''='|'<'|'>'|'<''='|'>''='|':'':')) as pIdent { Debug.lexDebug (Printf.sprintf "ID='%s'" (Lexing.lexeme lexbuf)); Syntax.ID pIdent }
     | "_" { Debug.lexDebug "SOULIGNE";  Syntax.SOULIGNE }
-    | ['a'-'z''A'-'Z''_']['a'-'z''A'-'Z''_''0'-'9']* as ident { Debug.lexDebug (Printf.sprintf "ID='%s'" (Lexing.lexeme lexbuf)); Syntax.ID ident }
+    | ['a'-'z''A'-'Z''_''?']['a'-'z''A'-'Z''_''0'-'9''?']* as ident { Debug.lexDebug (Printf.sprintf "ID='%s'" (Lexing.lexeme lexbuf)); Syntax.ID ident }
     | _ as c { Debug.lexDebug (Printf.sprintf "Error reading '%c'" c); raise LexicalError }
     | eof { Debug.lexDebug "EOF"; raise Eof }

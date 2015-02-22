@@ -10,6 +10,7 @@ let _ =
     let rootObject = new ObjectObject.objectObject in
 
     InitCoreLib.init rootObject;
+    InitStandardLib.init rootObject;
     
     let buffer = Lexing.from_channel stdin in 
     

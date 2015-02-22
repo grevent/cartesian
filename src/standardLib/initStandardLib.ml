@@ -1,23 +1,28 @@
 
 let init obj =
+  obj#addAttribute "bool?" (new NativeFunctionObject.nativeFunctionObject (new BoolNativeObject.boolNativeObject)); 
+  obj#addAttribute "string?" (new NativeFunctionObject.nativeFunctionObject (new StringNativeObject.stringNativeObject));
+  obj#addAttribute "float?" (new NativeFunctionObject.nativeFunctionObject (new FloatNativeObject.floatNativeObject));
+  obj#addAttribute "int?" (new NativeFunctionObject.nativeFunctionObject (new IntNativeObject.intNativeObject));  
+  obj#addAttribute "number?" (new NativeFunctionObject.nativeFunctionObject (new NumberNativeObject.numberNativeObject));
+  obj#addAttribute "char?" (new NativeFunctionObject.nativeFunctionObject (new CharNativeObject.charNativeObject)); 
+  obj#addAttribute "object?" (new NativeFunctionObject.nativeFunctionObject (new ObjectNativeObject.objectNativeObject));  
+  obj#addAttribute "function?" (new NativeFunctionObject.nativeFunctionObject (new FunctionNativeObject.functionNativeObject));  
+  obj#addAttribute "list?" (new NativeFunctionObject.nativeFunctionObject (new ListNativeObject.listNativeObject));
+  obj#addAttribute "array?" (new NativeFunctionObject.nativeFunctionObject (new ArrayNativeObject.arrayNativeObject));
+  obj#addAttribute "iterable?" (new NativeFunctionObject.nativeFunctionObject (new IterableNativeObject.iterableNativeObject));
+  obj#addAttribute "comparable?" (new NativeFunctionObject.nativeFunctionObject (new ComparableNativeObject.comparableNativeObject));
+  obj#addAttribute "action?" (new NativeFunctionObject.nativeFunctionObject (new ActionNativeObject.actionNativeObject));
+  obj#addAttribute "nod?" (new NativeFunctionObject.nativeFunctionObject (new NodNativeObject.nodNativeObject));
+  obj#addAttribute "abs" (new NativeFunctionObject.nativeFunctionObject (new AbsNativeObject.absNativeObject));  
+  obj#addAttribute "neg" (new NativeFunctionObject.nativeFunctionObject (new NegNativeObject.negNativeObject));  
+  obj#addAttribute "cos" (new NativeFunctionObject.nativeFunctionObject (new CosNativeObject.cosNativeObject));  
+  obj#addAttribute "sin" (new NativeFunctionObject.nativeFunctionObject (new SinNativeObject.sinNativeObject));  
+  obj#addAttribute "tan" (new NativeFunctionObject.nativeFunctionObject (new TanNativeObject.tanNativeObject));  
+  obj#addAttribute "compare" (new NativeFunctionObject.nativeFunctionObject (new CompareNativeObject.compareNativeObject));
+  obj#addAttribute "min" (new NativeFunctionObject.nativeFunctionObject (new MinNativeObject.minNativeObject));
+  obj#addAttribute "max" (new NativeFunctionObject.nativeFunctionObject (new MaxNativeObject.maxNativeObject));
+
   
 
-(*  obj#addAttribute "_+" (new NativeFunctionObject.nativeFunctionObject (new AddNativeObject.addNativeObject));
-  obj#addAttribute "_-" (new NativeFunctionObject.nativeFunctionObject (new SubNativeObject.subNativeObject));
-  obj#addAttribute "_<" (new NativeFunctionObject.nativeFunctionObject (new InfNativeObject.infNativeObject));
-  obj#addAttribute "_>" (new NativeFunctionObject.nativeFunctionObject (new SupNativeObject.supNativeObject));
-  obj#addAttribute "_<=" (new NativeFunctionObject.nativeFunctionObject (new InfEgalNativeObject.infEgalNativeObject));
-  obj#addAttribute "_>=" (new NativeFunctionObject.nativeFunctionObject (new SupEgalNativeObject.supEgalNativeObject));
-  obj#addAttribute "_==" (new NativeFunctionObject.nativeFunctionObject (new EgalEgalNativeObject.egalEgalNativeObject));
-  obj#addAttribute "_!=" (new NativeFunctionObject.nativeFunctionObject (new NotEgalNativeObject.notEgalNativeObject));
-  obj#addAttribute "_*" (new NativeFunctionObject.nativeFunctionObject (new MulNativeObject.mulNativeObject));
-  obj#addAttribute "_/" (new NativeFunctionObject.nativeFunctionObject (new DivNativeObject.divNativeObject));
-  obj#addAttribute "_^" (new NativeFunctionObject.nativeFunctionObject (new PuissNativeObject.puissNativeObject)); 
-  obj#addAttribute "_||" (new NativeFunctionObject.nativeFunctionObject (new LogicalOrNativeObject.logicalOrNativeObject)); 
-  obj#addAttribute "_&&" (new NativeFunctionObject.nativeFunctionObject (new LogicalAndNativeObject.logicalAndNativeObject)); 
-  obj#addAttribute "_::" (new NativeFunctionObject.nativeFunctionObject (new ConsNativeObject.consNativeObject)); 
-  obj#addAttribute "_not" (new NativeFunctionObject.nativeFunctionObject (new LogicalNotNativeObject.logicalNotNativeObject)); 
-  obj#addAttribute "_if" (new NativeFunctionObject.nativeFunctionObject (new IfNativeObject.ifNativeObject)); 
-  obj#addAttribute "_get" (new NativeFunctionObject.nativeFunctionObject (new GetNativeObject.getNativeObject)); *)
-  
-  ignore 0
+
