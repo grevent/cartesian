@@ -9,9 +9,9 @@ object(self)
   method evalObj obj = self#evalDefault obj
   method evalList obj = self#evalDefault obj
   method evalArray obj = self#evalDefault obj
-  method evalFunction obj = self#evalFunction obj
-  method evalAction obj = self#evalAction obj
-  method evalNOD obj = self#evalFunction obj
+  method evalFunction obj = self#evalDefault obj
+  method evalAction obj = self#evalDefault obj
+  method evalNOD obj = self#evalDefault obj
 
   method evalDefault (obj: AbstractExpressionObject.abstractExpressionObject) = default
   method evalDefaultWOEval (env: AbstractExpressionObject.abstractExpressionObject Env.env) (obj: AbstractExpressionObject.abstractExpressionObject) = default

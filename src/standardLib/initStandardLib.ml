@@ -1,15 +1,22 @@
 
 let init obj =
   obj#addAttribute "bool?" (new NativeFunctionObject.nativeFunctionObject (new BoolNativeObject.boolNativeObject)); 
+  obj#addAttribute "toBool" (new NativeFunctionObject.nativeFunctionObject (new ToBoolNativeObject.toBoolNativeObject)); 
   obj#addAttribute "string?" (new NativeFunctionObject.nativeFunctionObject (new StringNativeObject.stringNativeObject));
+  obj#addAttribute "toString" (new NativeFunctionObject.nativeFunctionObject (new ToStringNativeObject.toStringNativeObject)); 
   obj#addAttribute "float?" (new NativeFunctionObject.nativeFunctionObject (new FloatNativeObject.floatNativeObject));
+  obj#addAttribute "toFloat" (new NativeFunctionObject.nativeFunctionObject (new ToFloatNativeObject.toFloatNativeObject)); 
   obj#addAttribute "int?" (new NativeFunctionObject.nativeFunctionObject (new IntNativeObject.intNativeObject));  
+  obj#addAttribute "toInt" (new NativeFunctionObject.nativeFunctionObject (new ToIntNativeObject.toIntNativeObject)); 
   obj#addAttribute "number?" (new NativeFunctionObject.nativeFunctionObject (new NumberNativeObject.numberNativeObject));
   obj#addAttribute "char?" (new NativeFunctionObject.nativeFunctionObject (new CharNativeObject.charNativeObject)); 
-  obj#addAttribute "object?" (new NativeFunctionObject.nativeFunctionObject (new ObjectNativeObject.objectNativeObject));  
+  obj#addAttribute "toChar" (new NativeFunctionObject.nativeFunctionObject (new ToCharNativeObject.toCharNativeObject)); 
+  obj#addAttribute "object?" (new NativeFunctionObject.nativeFunctionObject (new ObjectNativeObject.objectNativeObject));
   obj#addAttribute "function?" (new NativeFunctionObject.nativeFunctionObject (new FunctionNativeObject.functionNativeObject));  
   obj#addAttribute "list?" (new NativeFunctionObject.nativeFunctionObject (new ListNativeObject.listNativeObject));
+  obj#addAttribute "toList" (new NativeFunctionObject.nativeFunctionObject (new ToListNativeObject.toListNativeObject)); 
   obj#addAttribute "array?" (new NativeFunctionObject.nativeFunctionObject (new ArrayNativeObject.arrayNativeObject));
+  obj#addAttribute "toArray" (new NativeFunctionObject.nativeFunctionObject (new ToArrayNativeObject.toArrayNativeObject)); 
   obj#addAttribute "iterable?" (new NativeFunctionObject.nativeFunctionObject (new IterableNativeObject.iterableNativeObject));
   obj#addAttribute "comparable?" (new NativeFunctionObject.nativeFunctionObject (new ComparableNativeObject.comparableNativeObject));
   obj#addAttribute "action?" (new NativeFunctionObject.nativeFunctionObject (new ActionNativeObject.actionNativeObject));
@@ -27,7 +34,10 @@ let init obj =
   obj#addAttribute "sin" (new NativeFunctionObject.nativeFunctionObject (new SinNativeObject.sinNativeObject));  
   obj#addAttribute "asin" (new NativeFunctionObject.nativeFunctionObject (new AsinNativeObject.asinNativeObject));  
   obj#addAttribute "tan" (new NativeFunctionObject.nativeFunctionObject (new TanNativeObject.tanNativeObject));  
-  obj#addAttribute "atan" (new NativeFunctionObject.nativeFunctionObject (new AtanNativeObject.atanNativeObject));  
+  obj#addAttribute "atan" (new NativeFunctionObject.nativeFunctionObject (new AtanNativeObject.atanNativeObject));
+  obj#addAttribute "cosh" (new NativeFunctionObject.nativeFunctionObject (new CoshNativeObject.coshNativeObject));  
+  obj#addAttribute "sinh" (new NativeFunctionObject.nativeFunctionObject (new SinhNativeObject.sinhNativeObject));  
+  obj#addAttribute "tanh" (new NativeFunctionObject.nativeFunctionObject (new TanhNativeObject.tanhNativeObject));  
   obj#addAttribute "compare" (new NativeFunctionObject.nativeFunctionObject (new CompareNativeObject.compareNativeObject));
   obj#addAttribute "min" (new NativeFunctionObject.nativeFunctionObject (new MinNativeObject.minNativeObject));
   obj#addAttribute "max" (new NativeFunctionObject.nativeFunctionObject (new MaxNativeObject.maxNativeObject));
@@ -38,6 +48,10 @@ let init obj =
   obj#addAttribute "lsr" (new NativeFunctionObject.nativeFunctionObject (new LsrNativeObject.lsrNativeObject));
   obj#addAttribute "lsl" (new NativeFunctionObject.nativeFunctionObject (new LslNativeObject.lslNativeObject));
   obj#addAttribute "asr" (new NativeFunctionObject.nativeFunctionObject (new AsrNativeObject.asrNativeObject));
-  
-
-
+  obj#addAttribute "ceil" (new NativeFunctionObject.nativeFunctionObject (new CeilNativeObject.ceilNativeObject));  
+  obj#addAttribute "floor" (new NativeFunctionObject.nativeFunctionObject (new FloorNativeObject.floorNativeObject));  
+  obj#addAttribute "infinity" (new InfinityValueObject.infinityValueObject);
+  obj#addAttribute "neg_infinity" (new NegInfinityValueObject.negInfinityValueObject);
+  obj#addAttribute "max_float" (new MaxFloatValueObject.maxFloatValueObject);
+  obj#addAttribute "min_float" (new MinFloatValueObject.minFloatValueObject);
+  obj#addAttribute "epsilon" (new EpsilonValueObject.epsilonValueObject);

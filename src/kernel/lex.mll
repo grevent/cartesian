@@ -70,7 +70,7 @@ rule lexer =
     | ('+'|'-')?['0'-'9']+ as integer { Debug.lexDebug (Printf.sprintf "INTVALUE='%s'" (Lexing.lexeme lexbuf)); Syntax.INTVALUE (int_of_string integer) }
     | ('+'|'-')?['0'-'9']+'.'['0'-'9']*(('e'|'E')['0'-'9']+)? as floating { Debug.lexDebug (Printf.sprintf "FLOATVALUE='%s'" (Lexing.lexeme lexbuf));  Syntax.FLOATVALUE (float_of_string floating) }
     | ('+'|'-')?['0'-'9']*'.'['0'-'9']+(('e'|'E')['0'-'9']+)? as floating { Debug.lexDebug (Printf.sprintf "FLOATVALUE='%s'" (Lexing.lexeme lexbuf));  Syntax.FLOATVALUE (float_of_string floating) }
-    | ''' (allchar as character) ''' { Debug.lexDebug (Printf.sprintf "CHARVALUE='%s'" (Lexing.lexeme lexbuf)); Syntax.CHARVALUE (String.get character 1) }
+    | ''' (allchar as character) ''' { Debug.lexDebug (Printf.sprintf "CHARVALUE=%s" (Lexing.lexeme lexbuf)); Syntax.CHARVALUE (String.get character 0) }
     | "\"" allchar* "\"" as str { 
       let stripped_str = (String.sub str 1 (String.length str - 2)) in
       Debug.lexDebug (Printf.sprintf "STRINGVALUE='%s'" (Lexing.lexeme lexbuf));  Syntax.STRINGVALUE stripped_str }

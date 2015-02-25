@@ -1,5 +1,5 @@
 
-let debugOn = true;;
+let debugOn = false;;
 let lexDebugOn = false;;
 let synDebugOn = false;;
 let funDebugOn = false;;
