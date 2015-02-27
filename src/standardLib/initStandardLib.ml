@@ -55,3 +55,9 @@ let init obj =
   obj#addAttribute "max_float" (new MaxFloatValueObject.maxFloatValueObject);
   obj#addAttribute "min_float" (new MinFloatValueObject.minFloatValueObject);
   obj#addAttribute "epsilon" (new EpsilonValueObject.epsilonValueObject);
+  obj#addAttribute "print" (new NativeFunctionObject.nativeFunctionObject (new PrintNativeObject.printNativeObject));
+  obj#addAttribute "newline" (new NewlineNativeObject.newlineNativeObject);
+  obj#addAttribute "newErr" (new NewErrNativeObject.newErrNativeObject);
+  obj#addAttribute "prErr" (new NativeFunctionObject.nativeFunctionObject (new PrErrNativeObject.prErrNativeObject));
+    
+  
