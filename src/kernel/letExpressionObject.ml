@@ -20,13 +20,14 @@ object
 
   method preEval env idList = 
     let ids = List.fold_left (fun acc (pattern,expr) -> acc@(pattern#getIds())) idList assigns in
-    let pAssigns = List.fold_left 
-      (fun acc (pattern,expr) -> 
-	((pattern,(expr#preEval env ids))::acc) )
-      [] assigns
+    let pAssigns = List.map
+      (fun (pattern,expr) -> 
+	let (_,nextExpr) = expr#preEval env ids in
+	(pattern,nextExpr) )
+      assigns
     in
-    ((new letExpressionObject pAssigns (exprObject#preEval env ids))
-     :> AbstractExpressionObject.abstractExpressionObject)
+    let (_,finalExpr) = exprObject#preEval env ids in 
+    (idList,((new letExpressionObject pAssigns finalExpr) :> AbstractExpressionObject.abstractExpressionObject))
       
   method toString() = 
     "let "^(List.fold_left (fun acc (pattern,expr) -> (if (String.compare "" acc) == 0 then "" else acc^" and ")^(pattern#toString())^" = "^(expr#toString())) "" assigns)^" in "^(exprObject#toString())

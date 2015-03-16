@@ -9,6 +9,7 @@ object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
 
   method evalInt obj = (new StringExpressionObject.stringExpressionObject (obj#toString()))
+  method evalId obj = (new StringExpressionObject.stringExpressionObject (obj#returnId()))
   method evalFloat obj = (new StringExpressionObject.stringExpressionObject (obj#toString()))
   method evalList obj = (new StringExpressionObject.stringExpressionObject (obj#toString()))
   method evalBool obj = (new StringExpressionObject.stringExpressionObject (obj#toString()))

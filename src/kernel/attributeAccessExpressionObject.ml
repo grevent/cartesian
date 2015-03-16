@@ -4,16 +4,17 @@ object
   inherit AbstractExpressionObject.abstractExpressionObject 
     
   method preEval env idList = 
-    ((new attributeAccessExpressionObject (exprObj#preEval env idList) id)
-     :> AbstractExpressionObject.abstractExpressionObject)
-
+    let (idsNew,exprNew) = exprObj#preEval env idList in
+    (idsNew,((new attributeAccessExpressionObject exprNew id)
+	     :> AbstractExpressionObject.abstractExpressionObject))
+      
   method eval env = 
     let expr = exprObj#eval env in
     let obj = expr#returnObject() in 
     let attr = obj#getAttribute id in
 
     if attr#isAction() then
-      (new ActionExpressionObject.actionExpressionObject [(new ContextActionObject.contextActionObject expr attr)])
+      (new ActionExpressionObject.actionExpressionObject [(new ActionWrapperExpr.actionWrapperExpr (new ContextActionObject.contextActionObject expr attr))])
     else
       attr
 

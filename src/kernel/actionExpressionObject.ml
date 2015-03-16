@@ -1,18 +1,21 @@
 
-class actionExpressionObject actions =
+class actionExpressionObject (actions : AbstractExpressionObject.abstractExpressionObject list) =
 object(self)
   inherit AbstractExpressionObject.abstractExpressionObject
     
   method eval env =
-    (self :> AbstractExpressionObject.abstractExpressionObject)
-
-  method preEval env idList = 
-    (self :> AbstractExpressionObject.abstractExpressionObject)
+    ((new actionExpressionObject (List.map (fun x -> x#eval env) actions))
+     :> AbstractExpressionObject.abstractExpressionObject)
       
-  method isAction() = true
-    
+  method preEval env idList = 
+    AbstractExpressionObject.listPreEval env idList actions (fun x -> new actionExpressionObject x)
+      
+  method isAction() = 
+    true
+      
   method returnAction() = 
-    new ActionsObject.actionsObject actions
+    (new ActionsObject.actionsObject 
+       (List.map (fun x -> x#returnAction()) actions) )
 
   method toString() = 
     "{ "^(List.fold_left (fun acc action -> acc^(action#toString())^"; ") "" actions)^" }"

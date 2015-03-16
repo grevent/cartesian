@@ -2,8 +2,9 @@
 let debugOn = false;;
 let lexDebugOn = false;;
 let synDebugOn = false;;
-let funDebugOn = false;;
+let funDebugOn = true;;
 let patternDebugOn = true;;
+let actionDebugOn = true;;
 
 let genericDebug str = 
   if debugOn then
@@ -45,3 +46,10 @@ let patternDebug str =
     end;
 ;;
 
+let actionExecDebug str = 
+  if actionDebugOn then
+    begin
+      Printf.printf "ACT: %s" str;
+      print_newline();
+    end;
+;;

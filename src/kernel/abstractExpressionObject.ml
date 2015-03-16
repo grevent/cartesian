@@ -18,7 +18,7 @@ object(self)
   inherit RuntimeObject.runtimeObject
     
   method virtual eval: abstractExpressionObject Env.env -> abstractExpressionObject
-  method virtual preEval: abstractExpressionObject Env.env -> string list -> abstractExpressionObject
+  method virtual preEval: abstractExpressionObject Env.env -> string list -> ((string list)*abstractExpressionObject)
 
   method isString() = false
   method isFloat() = false
@@ -31,7 +31,9 @@ object(self)
   method isAction() = false
   method isNOD() = false
   method isBool() = false
+  method isId() = false
 
+  method returnId() : string = raise (CanNotConvertToBool (self#toString()))
   method returnBool() : bool = raise (CanNotConvertToBool (self#toString()))
   method returnString() : string = raise (CanNotConvertToString (self#toString()))
   method returnFloat() : float = raise (CanNotConvertToFloat (self#toString()))
@@ -49,4 +51,23 @@ object(self)
 
 end;;
 
+let listPreEval env idStart lst newFn = 
+  let (nextIdList,nextLst) = (List.fold_left 
+				(fun (currentIdList,currentLst) x -> 
+				  let (tmpIdList,tmpX) = x#preEval env currentIdList in
+				  (tmpIdList,(currentLst@[tmpX])) )
+				(idStart,[])
+				lst ) in
+  (nextIdList, 
+   ((newFn nextLst) :> abstractExpressionObject) )
     
+let arrayPreEval env idStart ar newFn = 
+  let (nextIdList,nextLst) = (List.fold_left 
+				(fun (currentIdList,currentLst) x -> 
+				  let (tmpIdList,tmpX) = x#preEval env currentIdList in
+				  (tmpIdList,(currentLst@[tmpX])) )
+				(idStart,[])
+				(Array.to_list ar) ) in
+  (nextIdList, 
+   ((newFn (Array.of_list nextLst)) :> abstractExpressionObject) )
+  

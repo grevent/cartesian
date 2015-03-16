@@ -23,8 +23,15 @@ object
       new NodExpressionObject.nodExpressionObject
 
   method preEval env idList = 
-    ((new functionCallExpressionObject (functObj#preEval env idList) (List.map (fun x -> x#preEval env idList) params)) :> AbstractExpressionObject.abstractExpressionObject)
-	
+    let (idList1,newFunction) = functObj#preEval env idList in 
+    let (idList2,newParams) = List.fold_left (fun (idListAcc,paramsAcc) param -> 
+      let (resultIdList,paramPreEvaluated) = param#preEval env idListAcc in
+      (resultIdList,paramsAcc@[paramPreEvaluated]) )
+      (idList1,[]) 
+      params 
+    in
+    (idList2,((new functionCallExpressionObject newFunction newParams) :> AbstractExpressionObject.abstractExpressionObject)) 
+
   method toString() = 
     "("^(functObj#toString())^" "^(List.fold_left (fun acc param -> acc^(if (String.compare acc "") == 0 then "" else " ")^(param#toString())) "" params)^")"
 	

@@ -6,7 +6,8 @@ object(self)
   method isFunction() = true
   method returnFunction env = implementation
   method eval env = (self :> AbstractExpressionObject.abstractExpressionObject)
-  method preEval env idList = (self :> AbstractExpressionObject.abstractExpressionObject)
+  method preEval env idList = 
+    (idList,(self :> AbstractExpressionObject.abstractExpressionObject))
 
   method toString() = (implementation#toString())
 

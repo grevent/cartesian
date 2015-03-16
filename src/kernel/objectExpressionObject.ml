@@ -24,8 +24,9 @@ object(self)
     let idsWithAtt = List.fold_left (fun acc (id,_,_) -> acc@[id]) idList defs in
     let pDefs = List.map (fun (id,params,expr) -> 
       let ids = List.fold_left (fun acc param -> acc@(param#getIds())) idsWithAtt params in
-      (id,params,expr#preEval env ids) ) defs 
+      let (_,pExpr) = expr#preEval env ids in
+      (id,params,pExpr) ) defs
     in
-    ((new objectExpressionObject pDefs) :> AbstractExpressionObject.abstractExpressionObject)
+    (idList,((new objectExpressionObject pDefs) :> AbstractExpressionObject.abstractExpressionObject))
 
 end;;

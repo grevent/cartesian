@@ -1,6 +1,8 @@
 
 exception MoreThanOnePattern
 
+open BasicTools
+
 class tryActionObject objLst matchLst =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] AbstractActionObject.abstractActionObject
@@ -15,6 +17,23 @@ object
 	let result = expr#eval env in
 	(result#returnAction())#exec parents;
 
+  method preExec env idList = 
+    let (_,newObjs) = statefullListMap 
+      (fun state x -> (x#preExec env state) ) 
+      idList 
+      objLst
+    in
+    let (_,newMatchLst) = statefullListMap 
+      (fun state (patterns,expr) -> 
+	let ids = (List.fold_left (fun acc pattern -> acc@(pattern#getIds())) state patterns) in
+	let (_,newExpr) = expr#preEval env ids in
+	(state,(patterns,newExpr)) )
+      idList
+      matchLst
+    in
+    (idList,((new tryActionObject newObjs newMatchLst) :> 
+	(AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)))
+      
   method toString() = 
     "try "^
       (List.fold_left (fun acc obj -> acc^(obj#toString())^"; ") "" objLst)^" match "^
@@ -22,8 +41,8 @@ object
 	 (fun acc (patterns,expr) -> 
 	   (match patterns with
 	     [pattern] -> (if (String.compare acc "" == 0) then "" else (acc^"| "))^(pattern#toString())^" -> "^(expr#toString())
-	     | _ -> raise MoreThanOnePattern))
+	   | _ -> raise MoreThanOnePattern))
 	 "" 
 	 matchLst)
-	
+      
 end;;

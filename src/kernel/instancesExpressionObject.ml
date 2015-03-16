@@ -19,7 +19,7 @@ object(self)
 	     useCase#returnValue();)
 
   method preEval env idList = 
-    self#eval env
+    (idList,self#eval env)
 
   method toString() = 
     (List.fold_left (fun acc uc -> acc^": "^(uc#returnUC())^" "^uc#toString()) "" useCases)

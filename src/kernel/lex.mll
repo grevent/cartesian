@@ -16,7 +16,6 @@ rule lexer =
   parse 
     [' ' '\t'] { Debug.lexDebug "SPACE -> Ignoring"; lexer lexbuf } 
 | ['\r' '\n'] { Debug.lexDebug "EOL"; Syntax.EOL }
-    | "define" { Debug.lexDebug "DEFINE"; Syntax.DEFINE } 
     | "+" { Debug.lexDebug "PLUS"; Syntax.PLUS }
     | "-" { Debug.lexDebug "MINUS"; Syntax.MINUS }
     | "*" { Debug.lexDebug "MUL"; Syntax.MUL }
@@ -39,10 +38,11 @@ rule lexer =
     | "let" { Debug.lexDebug "LET"; Syntax.LET }
     | "in" { Debug.lexDebug "IN"; Syntax.IN }
     | "::" { Debug.lexDebug "DEUXDEUXPOINTS"; Syntax.DEUXDEUXPOINTS }
-    | "define" { Debug.lexDebug "DEFINE"; Syntax.DEFINE }
     | "=" { Debug.lexDebug "EGAL"; Syntax.EGAL }
     | ":" { Debug.lexDebug "DEUXPOINTS"; Syntax.DEUXPOINTS }
     | "." { Debug.lexDebug "PT"; Syntax.PT }
+    | "'" { Debug.lexDebug "QUOTE"; Syntax.QUOTE }
+    | ":=" { Debug.lexDebug ":="; Syntax.DEUXPOINTSEGAL }
     | "(" { Debug.lexDebug "PARO"; Syntax.PARO }
     | ")" { Debug.lexDebug "PARF"; Syntax.PARF }
     | "match" { Debug.lexDebug "MATCH"; Syntax.MATCH }

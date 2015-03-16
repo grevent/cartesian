@@ -24,8 +24,10 @@ object
     "( "^(exprObject#toString())^(List.fold_left (fun acc uc -> acc^": "^(uc#toString())) "" useCases)^")"
 
   method preEval env idList = 
-    ((new prototypesExpressionObject (exprObject#preEval env idList) useCases) 
-     :> AbstractExpressionObject.abstractExpressionObject )
+    let (newIds,newExpr) = exprObject#preEval env idList in
     
+    (newIds,((new prototypesExpressionObject newExpr useCases) 
+	     :> AbstractExpressionObject.abstractExpressionObject))
+      
 end;;
   

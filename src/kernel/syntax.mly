@@ -3,9 +3,9 @@
 %}
 
 %token PLUS MINUS MUL MOD DIV PUISS CROO CROF PIPE ACOO ACOF LAMBDA FLECHD FLECHG LET IN DEUXDEUXPOINTS
-%token DEFINE EGAL DEUXPOINTS PT PARO PARF MATCH WITH AND WHILE DO FOR NOT LOGICALOR
+%token EGAL DEUXPOINTS PT PARO PARF MATCH WITH AND WHILE DO FOR NOT LOGICALOR
 %token LOGICALAND PTVIRG VIRG SOULIGNE AS CROOPIPE PIPECROF NOD RAISE TRY CONTEXT PTPTPT EOL IF THEN ELSE
-%token INF SUP EGALEGAL NOTEGAL INFEGAL SUPEGAL 
+%token INF SUP EGALEGAL NOTEGAL INFEGAL SUPEGAL QUOTE DEUXPOINTSEGAL
 %token <string> ID
 %token <int> INTVALUE
 %token <float> FLOATVALUE
@@ -35,14 +35,16 @@ phrase: actionListPtVirg EOL { new ActionsObject.actionsObject $1 }
 comment: COMMENT { $1 }
 comment: { "" }
 
-action: ID FLECHG expr { new AssignActionObject.assignActionObject $1 $3 }
+action: ID FLECHG expr exprProtectedList { new IdModificationActionObject.idModificationActionObject $1 $3 $4 (* action: ID FLECHG expr { new AssignActionObject.assignActionObject $1 $3 } *) }
+action: ID FLECHG expr { new IdModificationActionObject.idModificationActionObject $1 $3 [] (* action: ID FLECHG expr { new AssignActionObject.assignActionObject $1 $3 } *) }
+action: ID DEUXPOINTSEGAL expr { new AssignActionObject.assignActionObject $1 $3 }
 action: WHILE expr DO action { new WhileActionObject.whileActionObject $2 $4 }
 action: FOR ID IN expr DO action { new ForActionObject.forActionObject $2 $4 $6 }
 action: DO action WHILE expr { new DoActionObject.doActionObject $2 $4 }
 action: RAISE expr { new RaiseActionObject.raiseActionObject $2 }
 action: expr { new ExprActionObject.exprActionObject $1 }
 action: TRY actionListPtVirg WITH matchExprs { new TryActionObject.tryActionObject $2 $4 }
-action: DEFINE ID patterns EGAL expr { new DefineActionObject.defineActionObject $2 $3 $5 }
+action: ID patterns DEUXPOINTS expr { new DefineActionObject.defineActionObject $1 $2 $4 }
 action: CONTEXT exprProtected expr { new ContextActionObject.contextActionObject $2 $3 }
 
 actionListPtVirg: action PTVIRG comment actionListPtVirg { $1#attachComment $3; $1::$4 }
@@ -82,7 +84,9 @@ exprProtected: CHARVALUE { new CharExpressionObject.charExpressionObject $1 }
 exprProtected: STRINGVALUE { new StringExpressionObject.stringExpressionObject $1 }
 exprProtected: BOOLVALUE { new BoolExpressionObject.boolExpressionObject $1 }
 exprProtected: ID { new IdExpressionObject.idExpressionObject $1 }
-exprProtected: ACOO actionListPtVirg ACOF { new ActionExpressionObject.actionExpressionObject $2 }
+exprProtected: QUOTE ID { new QuotedIdExpressionObject.quotedIdExpressionObject $2 }
+exprProtected: ACOO actionListPtVirg ACOF { new ActionExpressionObject.actionExpressionObject 
+					      (List.map (fun x -> (new ActionWrapperExpr.actionWrapperExpr x)) $2) }
 exprProtected: ACOO objectDefinitions ACOF { new ObjectExpressionObject.objectExpressionObject $2 }
 exprProtected: CROOPIPE exprListPtVirg PIPECROF { new ArrayExpressionObject.arrayExpressionObject $2 }
 exprProtected: CROO exprListPtVirg CROF { new ListExpressionObject.listExpressionObject $2 }

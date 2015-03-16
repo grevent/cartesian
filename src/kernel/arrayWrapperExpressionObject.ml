@@ -7,12 +7,12 @@ object(self)
     (self :> AbstractExpressionObject.abstractExpressionObject)
 
   method preEval env idList = 
-    (new arrayWrapperExpressionObject (Array.map (fun x -> x#preEval env idList) ar)
-     :> AbstractExpressionObject.abstractExpressionObject)
+    AbstractExpressionObject.arrayPreEval env idList ar (fun x -> new arrayWrapperExpressionObject x)
 
   method isArray() = true
     
-  method returnArray() = ar
+  method returnArray() = 
+    ar
 
   method toString() = 
     "[| "^(Array.fold_left (fun acc expr -> acc^(if (String.compare acc "" == 0) then "" else "; ")^(expr#toString())) "" ar)^" |]"

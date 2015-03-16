@@ -8,7 +8,7 @@ object(self)
     new ListWrapperExpressionObject.listWrapperExpressionObject resultList
 
   method preEval env idList = 
-    new ListWrapperExpressionObject.listWrapperExpressionObject (List.map (fun x -> x#preEval env idList) lst)
+    AbstractExpressionObject.listPreEval env idList lst (fun x -> new listExpressionObject x)
       
   method toString() = 
     "["^(List.fold_left (fun acc el -> acc^(el#toString())^"; ") "" lst)^"]"

@@ -8,9 +8,7 @@ object(self)
     new ArrayWrapperExpressionObject.arrayWrapperExpressionObject resultArray
 
   method preEval env idList = 
-    (new ArrayWrapperExpressionObject.arrayWrapperExpressionObject (Array.map (fun x -> x#preEval env idList) (Array.of_list exprs))
-     :> AbstractExpressionObject.abstractExpressionObject)
-
+    AbstractExpressionObject.listPreEval env idList exprs (fun x -> new arrayExpressionObject x)
 
   method toString() = 
     "[| "^(List.fold_left (fun acc expr -> acc^(if (String.compare acc "" == 0) then "" else "; ")^(expr#toString())) "" exprs)^" |]"      

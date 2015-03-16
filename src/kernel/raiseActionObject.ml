@@ -8,6 +8,12 @@ object
   method exec parents = 
     raise (CartesianInternalException (exprObj#eval (Env.newEnv parents)));
 
+  method preExec env idList =
+    let (_,newExpr) = exprObj#preEval env idList in
+    
+    (idList,((new raiseActionObject newExpr)
+	     :> (AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)))
+      
   method toString() = 
     "raise "^(exprObj#toString())
 					  

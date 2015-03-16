@@ -28,7 +28,17 @@ object
     else
       raise RuntimeObject.NotAListNorAVector
 
+  method preExec env idList = 
+    let (_,newExpr) = exprObj#preEval env (id::idList) in
+    let (_,newAction) = actionObj#preExec env (id::idList) in
+    
+    (idList,((new forActionObject 
+		id 
+		newExpr
+		newAction)
+	     :> (AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)))
+
   method toString() = 
-    "for "^id^" in "^(exprObj#toString())^" DO "^(actionObj#toString())
+    "for "^id^" in "^(exprObj#toString())^" do "^(actionObj#toString())
     
 end;;

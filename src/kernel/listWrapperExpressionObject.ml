@@ -1,5 +1,5 @@
 
-class listWrapperExpressionObject lst = 
+class listWrapperExpressionObject (lst: AbstractExpressionObject.abstractExpressionObject list) = 
 object(self)
   inherit AbstractExpressionObject.abstractExpressionObject
     
@@ -8,12 +8,12 @@ object(self)
      :> AbstractExpressionObject.abstractExpressionObject)
 
   method preEval env idList = 
-    ((new listWrapperExpressionObject (List.map (fun x -> x#preEval env idList) lst))
-     :> AbstractExpressionObject.abstractExpressionObject)
+    AbstractExpressionObject.listPreEval env idList lst (fun x -> new listWrapperExpressionObject x)
       
   method isList() = true
     
-  method returnList() = lst
+  method returnList() = 
+    lst
 
   method toString() = 
     "["^(List.fold_left (fun acc el -> acc^(el#toString())^"; ") "" lst)^"]"

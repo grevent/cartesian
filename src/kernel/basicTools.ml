@@ -27,3 +27,12 @@ let rec functional_for i0 iend istep fn startVl =
   else
     startVl
 ;;
+
+let rec statefullListMap f state0 lst = 
+  match lst with
+    [] -> (state0,[])
+  | el::suite -> 
+    let (state1,y) = (f state0 el) in
+    let (staten,yList) = (statefullListMap f state1 suite) in
+    (staten,(y::yList))
+;;

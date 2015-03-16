@@ -50,7 +50,10 @@ object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
   
   method evalAction obj = 
-    new ActionExpressionObject.actionExpressionObject [x; (obj#returnAction())];
+    new ActionExpressionObject.actionExpressionObject [
+      x; 
+      obj
+    ];
 
   method evalNOD obj = obj 
 end;;
@@ -72,7 +75,7 @@ object
   method evalString obj = (new addStringHelper (obj#returnString()))
   method evalBool obj = (new addBoolHelper (obj#returnBool()))
   method evalList obj = (new addListHelper (obj#returnList()))
-  method evalAction obj = (new addActionHelper (obj#returnAction()))
+  method evalAction obj = (new addActionHelper obj)
   method evalNOD obj = (new addNodHelper obj)
 end;;
 

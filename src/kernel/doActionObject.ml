@@ -9,6 +9,13 @@ object
       actionObj#exec parents;
     done;
 
+  method preExec env idList = 
+    let (_,newAction) = actionObj#preExec env idList in
+    let (_,newExpr) = exprObj#preEval env idList in
+    
+    (idList,((new doActionObject newAction newExpr)
+	     :> (AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)))
+
   method toString() = 
     "do "^(actionObj#toString())^" while "^(exprObj#toString())
 

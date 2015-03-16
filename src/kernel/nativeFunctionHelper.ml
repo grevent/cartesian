@@ -12,6 +12,7 @@ object(self)
   method evalFunction obj = self#evalDefault obj
   method evalAction obj = self#evalDefault obj
   method evalNOD obj = self#evalDefault obj
+  method evalId obj = self#evalDefault obj
 
   method evalDefault (obj: AbstractExpressionObject.abstractExpressionObject) = default
   method evalDefaultWOEval (env: AbstractExpressionObject.abstractExpressionObject Env.env) (obj: AbstractExpressionObject.abstractExpressionObject) = default
@@ -47,6 +48,8 @@ object(self)
 	  self#evalAction el
 	else if (el#isFunction()) then
 	  self#evalFunction el
+	else if (el#isId()) then
+	  self#evalId el
 	else if (el#isNOD()) then
 	  self#evalNOD el
 	else

@@ -7,6 +7,8 @@ let init obj =
   obj#addAttribute "float?" (new NativeFunctionObject.nativeFunctionObject (new FloatNativeObject.floatNativeObject));
   obj#addAttribute "toFloat" (new NativeFunctionObject.nativeFunctionObject (new ToFloatNativeObject.toFloatNativeObject)); 
   obj#addAttribute "int?" (new NativeFunctionObject.nativeFunctionObject (new IntNativeObject.intNativeObject));  
+  obj#addAttribute "id?" (new NativeFunctionObject.nativeFunctionObject (new IdNativeObject.idNativeObject));  
+  obj#addAttribute "toId" (new NativeFunctionObject.nativeFunctionObject (new ToIdNativeObject.toIdNativeObject));  
   obj#addAttribute "toInt" (new NativeFunctionObject.nativeFunctionObject (new ToIntNativeObject.toIntNativeObject)); 
   obj#addAttribute "number?" (new NativeFunctionObject.nativeFunctionObject (new NumberNativeObject.numberNativeObject));
   obj#addAttribute "char?" (new NativeFunctionObject.nativeFunctionObject (new CharNativeObject.charNativeObject)); 

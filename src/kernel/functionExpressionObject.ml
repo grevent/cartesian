@@ -2,7 +2,8 @@
 let preEval lambdas env idList = 
   (List.map (fun (patterns,expr) -> 
     let patternIds = List.fold_left (fun acc pattern -> acc@(pattern#getIds())) idList patterns in
-    (patterns,(expr#preEval env patternIds)) ) lambdas)
+    let (newIds,newExpr) = expr#preEval env patternIds in
+    (patterns,newExpr) ) lambdas)
 ;;
     
 class functionExpressionObject lambdaExprs =
@@ -15,7 +16,8 @@ object(self)
     
   method preEval env idList =
     let preLambdas = (preEval lambdaExprs env idList) in 
-    ((new functionExpressionObject preLambdas) :> AbstractExpressionObject.abstractExpressionObject)    
+    (idList,
+     ((new functionExpressionObject preLambdas) :> AbstractExpressionObject.abstractExpressionObject))
 
   method isFunction () = 
     true
@@ -28,7 +30,7 @@ object(self)
       (List.fold_left (fun acc (patterns,expr) -> 
 	acc^(if (String.compare acc "") == 0 then "" else "| ")^
 	  (List.fold_left (fun acc pattern -> acc^(if (String.compare acc "") == 0 then "" else " ")^(pattern#toString())) "" patterns)
-	^(expr#toString())) "" lambdaExprs)
+	^" "^(expr#toString())) "" lambdaExprs)
 
 
 end;;

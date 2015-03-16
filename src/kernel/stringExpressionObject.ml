@@ -11,7 +11,7 @@ object(self)
     (self :> AbstractExpressionObject.abstractExpressionObject)
 
   method preEval env idList =
-    (self :> AbstractExpressionObject.abstractExpressionObject)
+    (idList,(self :> AbstractExpressionObject.abstractExpressionObject))
 
   method toString() = 
     "\""^vl^"\""

@@ -1,11 +1,11 @@
 
-class charExpressionObject vl =
+class quotedIdExpressionObject vl =
 object(self)
   inherit AbstractExpressionObject.abstractExpressionObject
     
-  method isChar() = true
+  method isId() = true
     
-  method returnChar() = vl
+  method returnId() = vl
     
   method eval env =
     (self :> AbstractExpressionObject.abstractExpressionObject)
@@ -14,6 +14,6 @@ object(self)
     (idList,(self :> AbstractExpressionObject.abstractExpressionObject))
 
   method toString() = 
-    "'"^(Char.escaped vl)^"'"
+    "'"^vl
 
 end;;
