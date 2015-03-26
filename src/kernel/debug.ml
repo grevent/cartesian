@@ -1,55 +1,42 @@
 
-let debugOn = false;;
+let debugOn = true;;
 let lexDebugOn = false;;
 let synDebugOn = false;;
-let funDebugOn = true;;
-let patternDebugOn = true;;
-let actionDebugOn = true;;
+let stdDebugOn = true;;
+let debugMethods = [];;
+  (* ["eval"; "preEval"; "exec"; "preExec"; "removeLevel"; "addLevel"; "apply"; "matchToExpression"; "add"];; *)
 
 let genericDebug str = 
   if debugOn then
     begin
-      Printf.printf "DBG: %s" str;
-      print_newline();
+      Printf.eprintf "DBG: %s" str;
+      prerr_newline();
     end;
 ;;
 
 let lexDebug str = 
   if lexDebugOn then
     begin
-      Printf.printf "LEX: %s" str;
-      print_newline();
+      Printf.eprintf "LEX: %s" str;
+      prerr_newline();
     end;
 ;;
 
 let synDebug str = 
   if synDebugOn then
     begin
-      Printf.printf "SYN: %s" str;
-      print_newline();
+      Printf.eprintf "SYN: %s" str;
+      prerr_newline();
     end;
 ;;
 
-let funEvalDebug str =   
-  if funDebugOn then
-    begin
-      Printf.printf "FUN: %s" str;
-      print_newline();
-    end;
+let stdDebug objStr mthd inout objXml = 
+  if stdDebugOn then
+    if (List.exists (fun x -> (String.compare x mthd) == 0) debugMethods) || ((List.length debugMethods) == 0) then
+      begin
+	Printf.eprintf "%s: %s %s %s" mthd objStr inout objXml;
+	prerr_newline();
+      end;
 ;;
 
-let patternDebug str =   
-  if patternDebugOn then
-    begin
-      Printf.printf "FUN: %s" str;
-      print_newline();
-    end;
-;;
-
-let actionExecDebug str = 
-  if actionDebugOn then
-    begin
-      Printf.printf "ACT: %s" str;
-      print_newline();
-    end;
-;;
+  

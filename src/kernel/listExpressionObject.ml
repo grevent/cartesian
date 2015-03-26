@@ -13,4 +13,10 @@ object(self)
   method toString() = 
     "["^(List.fold_left (fun acc el -> acc^(el#toString())^"; ") "" lst)^"]"
 
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | n -> 
+      "<listExpressionObject>"^(List.fold_left (fun acc x -> acc^(x#toString())) "" lst)^"</listExpressionObject>"
+
 end;;

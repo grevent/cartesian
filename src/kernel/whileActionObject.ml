@@ -17,5 +17,11 @@ object
 
   method toString() = 
     "while "^(exprObj#toString())^" do "^(actionObj#toString())
+
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | x -> 
+    "<whileActionObject>"^(exprObj#toXml(x-1))^(actionObj#toXml(x-1))^"</whileActionObject>"
       
 end;;

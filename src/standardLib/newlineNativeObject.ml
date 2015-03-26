@@ -16,6 +16,11 @@ object(self)
   method toString() = 
     "newline"
 
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | _ -> "<newlineAction/>"
+
 end;;
 
 class newlineNativeObject =

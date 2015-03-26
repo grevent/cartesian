@@ -8,4 +8,5 @@ object
     
   method virtual toString: unit -> string
   method virtual apply: 'expression Env.env -> 'expression list -> 'expression
+  method virtual preEval: 'expression Env.env -> string list -> (string list * 'expression abstractFunctionObject)
 end;;

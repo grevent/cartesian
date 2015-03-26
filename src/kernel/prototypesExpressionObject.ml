@@ -28,6 +28,14 @@ object
     
     (newIds,((new prototypesExpressionObject newExpr useCases) 
 	     :> AbstractExpressionObject.abstractExpressionObject))
+
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | n -> 
+      "<prototypesExpressionObject>"^(exprObject#toXml(n-1))^
+	(List.fold_left (fun acc x -> acc^(x#toXml(n-1))) "" useCases)^
+	"</prototypesExpressionObject>"
       
 end;;
   

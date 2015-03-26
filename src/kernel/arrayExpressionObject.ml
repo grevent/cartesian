@@ -12,5 +12,12 @@ object(self)
 
   method toString() = 
     "[| "^(List.fold_left (fun acc expr -> acc^(if (String.compare acc "" == 0) then "" else "; ")^(expr#toString())) "" exprs)^" |]"      
-    
+   
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | x -> "<arrayExpressionObject>"^
+	(List.fold_left (fun acc expr -> acc^(expr#toXml(x-1))) "" exprs)^
+	"<arrayExpressionObject/>"
+ 
 end;;

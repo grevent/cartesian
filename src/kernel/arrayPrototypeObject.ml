@@ -21,5 +21,16 @@ object
 	 ar )
   ^" |]"
 
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | 1 -> "<arrayPrototypeObject>...</arrayPrototypeObject>"
+    | n -> 
+      "<arrayPrototypeObject><useCase>"^
+	uc^
+	"</useCase>"^
+	(Array.fold_left (fun acc x -> acc^(x#toXml(n-2))) "" ar)^
+	"</arrayPrototypeObject>"
+      
 
 end;;

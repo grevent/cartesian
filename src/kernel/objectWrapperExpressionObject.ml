@@ -19,4 +19,10 @@ object(self)
   method preEval env idList = 
     (idList,(self :> (AbstractExpressionObject.abstractExpressionObject)))
 
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | x -> 
+      "<objectWrapperExpressionObject>"^(obj#toXml(x-1))^"</objectWrapperExpressionObject>"
+
 end;;

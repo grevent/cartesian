@@ -44,5 +44,17 @@ object
 	   | _ -> raise MoreThanOnePattern))
 	 "" 
 	 matchLst)
+
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | 1 -> "<tryActionObject><actions>...</actions><matchs>...</matchs></tryActionObject>"
+    | n -> 
+      "<tryActionObject><actions>"^
+	(List.fold_left (fun acc x -> acc^(x#toXml(n-2))) "" objLst)^"</actions><matchs>"^
+	(List.fold_left (fun acc (patterns,expr) -> acc^
+	  (List.fold_left (fun acc pattern -> acc^(pattern#toXml(n-2))) "" patterns)^
+	  (expr#toXml(n-2))) "" matchLst)^
+	"</matchs></tryActionObject>"
       
 end;;

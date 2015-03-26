@@ -17,4 +17,11 @@ object(self)
   method toString() = 
     "[| "^(Array.fold_left (fun acc expr -> acc^(if (String.compare acc "" == 0) then "" else "; ")^(expr#toString())) "" ar)^" |]"
 
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | x -> "<arrayWrapperExpressionObject>"^
+      (Array.fold_left (fun acc expr -> acc^(expr#toXml(x-1))) "" ar)
+      ^"</arrayWrapperExpressionObject>"
+
 end;;

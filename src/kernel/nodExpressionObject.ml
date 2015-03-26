@@ -15,4 +15,9 @@ object(self)
   method toString() = 
     "nod"
 
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | x -> "<nodExpressionObject/>"
+
 end;;

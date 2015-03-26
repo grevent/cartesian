@@ -11,5 +11,10 @@ object
 
   method getIds() = 
     []
+
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | x -> "<wildcardPatternObject/>"
 	
 end;;

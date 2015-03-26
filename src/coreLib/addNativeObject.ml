@@ -82,4 +82,9 @@ end;;
 class addNativeObject = 
 object
   inherit NativeFunction2Object.nativeFunction2Object "_+" (new addHelper)
+    
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | _ -> "<addNativeObject/>"
 end;;

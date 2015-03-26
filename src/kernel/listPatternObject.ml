@@ -16,5 +16,11 @@ object
 
   method toString() = 
     (List.fold_left (fun acc el -> (if (String.compare "" acc) == 0 then "" else acc^" ")^(el#toString())) "" lst)
+
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | n -> 
+      "<listPatternObject>"^(List.fold_left (fun acc x -> acc^(x#toXml(n-1))) "" lst)^"</listPatternObject>"
 	
 end;;

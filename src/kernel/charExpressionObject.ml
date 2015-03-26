@@ -16,4 +16,10 @@ object(self)
   method toString() = 
     "'"^(Char.escaped vl)^"'"
 
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | n -> 
+      "<charExpressionObject>"^(self#toString())^"<charExpressionObject/>"
+
 end;;

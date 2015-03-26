@@ -16,4 +16,10 @@ object(self)
   method toString() = 
     if vl then "true" else "false"
 
+  method toXml n = 
+    match n with
+      0-> "..."
+    | n -> 
+      "<boolExpressionObject>"^(self#toString())^"</boolExpressionObject>"
+
 end;;

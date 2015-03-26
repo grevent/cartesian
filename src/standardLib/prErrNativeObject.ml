@@ -16,6 +16,11 @@ object(self)
   method toString() = 
     ("prerr "^str)
 
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | n -> "<prErrAction>"^str^"</prErrAction>"
+
 end;;
 
 class prErrHelper =

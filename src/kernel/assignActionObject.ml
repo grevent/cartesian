@@ -16,5 +16,11 @@ object
 
   method toString() = 
     id^" <- "^(exprObj#toString())
+
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | 1 -> "<assignActionObject>...</assignActionObject>"
+    | x -> "<assignActionObject><id>"^id^"</id>"^(exprObj#toXml(x-2))^"</assignActionObject>"
     
 end;;

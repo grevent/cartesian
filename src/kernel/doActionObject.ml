@@ -19,4 +19,13 @@ object
   method toString() = 
     "do "^(actionObj#toString())^" while "^(exprObj#toString())
 
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | n -> 
+      "<doActionObject>"^
+	(actionObj#toXml(n-1))^
+	(exprObj#toXml(n-1))^
+	"</doActionObject>"
+
 end;;

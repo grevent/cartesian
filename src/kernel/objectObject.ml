@@ -12,6 +12,14 @@ object(self)
       (List.fold_left (fun acc (id,expr) -> acc^id^"= "^(expr#toString())^"; ") "" attributes)^
       "}"
 
+  method toXml x =
+    match x with
+      0 -> "..."
+    | x -> 
+      "<objectObject>"^
+	(List.fold_left (fun acc (id,expr) -> acc^"<id>"^id^"</id>"^(expr#toXml(x-1))) "" attributes)^
+	"</objectObject>"
+
   method getAttributes() = 
     attributes
     

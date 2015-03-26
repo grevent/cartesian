@@ -29,4 +29,14 @@ object(self)
     in
     (idList,((new objectExpressionObject pDefs) :> AbstractExpressionObject.abstractExpressionObject))
 
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | x -> 
+      "<objectExpressionObject>"^
+	(List.fold_left (fun acc (id,patterns,expr) -> acc^"<id>"^id^"</id>"^
+	  (List.fold_left (fun acc pattern -> acc^(pattern#toXml(x-1))) "" patterns)^
+	  (expr#toXml(x-1))) "" defs)^
+	"</objectExpressionObject>"
+
 end;;

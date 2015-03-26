@@ -16,6 +16,11 @@ object(self)
   method toString() = 
     "newErr"
       
+  method toXml x = 
+    match x with 
+      0 -> "..."
+    | _ -> "<newErrAction/>"
+
 end;;
 
 class newErrNativeObject = 

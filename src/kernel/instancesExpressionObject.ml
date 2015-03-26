@@ -24,6 +24,12 @@ object(self)
   method toString() = 
     (List.fold_left (fun acc uc -> acc^": "^(uc#returnUC())^" "^uc#toString()) "" useCases)
 
-      
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | n -> 
+      "<instancesExpressionObject>"^
+	(List.fold_left (fun acc uc -> acc^(uc#toXml(n-1))) "" useCases)^
+	"</instancesExpressionObject>"
 
 end;;

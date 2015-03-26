@@ -20,5 +20,12 @@ object
 
   method toString() = 
     (exprObj#toString())^"."^id
+
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | 1 -> "<attributeAccessExpressionObject>...</attributeAccessExpressionObject>"
+    | n -> 
+      "<attributeAccessExpressionObject>"^(exprObj#toXml(n-2))^"<id>"^id^"</id></attributeAccessExpressionObject>"
   
 end;;

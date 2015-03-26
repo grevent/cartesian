@@ -24,4 +24,10 @@ object
   method toString() = 
     (car#toString())^"::"^(cdr#toString())
 
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | n -> 
+      "<consPatternObject>"^(car#toXml(n-1))^(cdr#toXml(n-1))^"</consPatternObject>"
+
 end;;

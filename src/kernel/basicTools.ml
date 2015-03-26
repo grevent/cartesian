@@ -36,3 +36,10 @@ let rec statefullListMap f state0 lst =
     let (staten,yList) = (statefullListMap f state1 suite) in
     (staten,(y::yList))
 ;;
+
+let preEval lambdas env idList = 
+  (List.map (fun (patterns,expr) -> 
+    let patternIds = List.fold_left (fun acc pattern -> acc@(pattern#getIds())) idList patterns in
+    let (newIds,newExpr) = expr#preEval env patternIds in
+    (patterns,newExpr) ) lambdas)
+;;

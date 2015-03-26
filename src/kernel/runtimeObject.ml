@@ -10,6 +10,7 @@ object(self)
   val mutable comment = ""
 
   method virtual toString: unit -> string
+  method virtual toXml: int -> string
 
   method attachComment st = comment <- st
 

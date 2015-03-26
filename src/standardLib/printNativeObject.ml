@@ -16,6 +16,11 @@ object(self)
   method toString() = 
     ("print "^str)
 
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | x -> "<printAction>"^str^"</printAction>"
+
 end;;
 
 class printHelper =

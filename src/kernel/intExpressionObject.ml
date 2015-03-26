@@ -16,4 +16,10 @@ object(self)
   method toString() = 
     (Printf.sprintf "%d" vl)
 
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | n -> 
+      "<intExpressionObject>"^(self#toString())^"</intExpressionObject>"
+
 end;;

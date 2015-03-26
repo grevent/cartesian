@@ -39,4 +39,14 @@ object
 	(List.fold_left (fun acc pattern -> (if (String.compare acc "" == 0) then "" else acc^" ")^(pattern#toString())) "" patterns)^
 	  "->"^(expr#toString()))) "" matchs)
 
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | n -> 
+      "<matchExpressionObject>"^
+	(exprObj#toXml(n-1))^ 
+	(List.fold_left (fun acc (patterns,expr) -> 
+	  acc^(List.fold_left (fun acc pattern -> acc^(pattern#toXml(n-1))) "" patterns)^(expr#toXml(n-1))) "" matchs)^
+	"</matchExpressionObject>"
+
 end;;

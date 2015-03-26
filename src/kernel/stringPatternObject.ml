@@ -19,5 +19,11 @@ object
 
   method toString() = 
     "\""^st^"\""
+
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | x -> 
+      "<stringPatternObject>"^st^"</stringPatternObject>"
 	
 end;;

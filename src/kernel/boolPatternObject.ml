@@ -18,5 +18,11 @@ object
 
   method toString() = 
     if bl then "true" else "false"
+
+  method toXml x =
+    match x with
+      0 -> "..."
+    | n -> 
+      "<boolPatternObject>"^(if bl then "true" else "false")^"</boolPatternObject>"
 	
 end;;

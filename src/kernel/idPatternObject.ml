@@ -21,28 +21,29 @@ let rec exprToPattern expr =
 ;;
 
 class idPatternObject id = 
-object
+object(self)
   inherit [AbstractExpressionObject.abstractExpressionObject] AbstractPatternObject.abstractPatternObject 
     
   method matchToExpression env expr = 
-    Debug.patternDebug (Printf.sprintf "ID %s with %s" id (expr#toString()));
-
-       let exprEval = 
-	 try 
-	   expr#eval env 
-	 with
-	   exc -> 
-	     Debug.patternDebug (Printf.sprintf "Expr returned Exception %s" (Printexc.to_string exc));
-	     raise exc
-       in
-       Debug.patternDebug (Printf.sprintf "Expr evaluated to %s" (exprEval#toString()));
+    Debug.stdDebug (self#toXml 3) "matchToExpression" "<-" "";
+    let exprEval = 
+      try 
+	expr#eval env 
+      with
+	exc -> 
+	  raise exc
+    in
     
     try 
       let idExpr = (env#getOnLevel id) in
       let pattern = exprToPattern idExpr in 
-      pattern#matchToExpression env exprEval
+      let result = pattern#matchToExpression env exprEval in
+      
+      Debug.stdDebug (self#toXml 3) "matchToExpression" "->" (if result then "true" else "false");
+      result
     with Env.IdNotDefined _ -> 
       env#add id exprEval;
+      Debug.stdDebug (self#toXml 3) "matchToExpression" "->" "true";
       true
 
   method getIds () = 
@@ -50,5 +51,10 @@ object
 
   method toString() = 
     id
+
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | n -> "<idPatternObject>"^id^"</idPatternObject>"
 	
 end;;

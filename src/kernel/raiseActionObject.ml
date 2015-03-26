@@ -16,5 +16,11 @@ object
       
   method toString() = 
     "raise "^(exprObj#toString())
+
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | x -> 
+      "<raiseActionObject>"^(exprObj#toXml(x-1))^"</raiseActionObject>"
 					  
 end;;

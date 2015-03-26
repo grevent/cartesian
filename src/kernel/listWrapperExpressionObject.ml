@@ -18,4 +18,12 @@ object(self)
   method toString() = 
     "["^(List.fold_left (fun acc el -> acc^(el#toString())^"; ") "" lst)^"]"
 
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | x -> 
+      "<listWrapperExpressionObject>"^
+	(List.fold_left (fun acc el -> acc^(el#toXml(x-1))) "" lst)
+      ^"</listWrapperExpressionObject>"
+
 end;;

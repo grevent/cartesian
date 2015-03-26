@@ -8,7 +8,7 @@ type evalMode =
 ;;
 
 class ['a] env = 
-object
+object(self)
   val mutable currentLevel = []
   val mutable levels = []
   val mutable mode = Standard
@@ -23,16 +23,22 @@ object
     mode <- UseCase uc
 
   method addLevel() = 
+    Debug.stdDebug "env" "addLevel" "<-" "";
     levels <- currentLevel::levels;
     currentLevel <- [];
+    Debug.stdDebug "env" "addLevel" "->" (self#signature());
     
   method removeLevel() = 
-    match levels with
+    Debug.stdDebug "env" "removeLevel" "<-" (self#signature());
+    (match levels with
       [] -> raise NoLevels
-    | el::suite -> currentLevel <- el; levels <- suite
+    | el::suite -> currentLevel <- el; levels <- suite);
+    Debug.stdDebug "env" "removeLevel" "->" (self#signature());
       
   method add (id: string) (value: 'a) =
-    currentLevel <- (id,value)::currentLevel
+    Debug.stdDebug "env" "add" "<-" "";
+    currentLevel <- (id,value)::currentLevel;
+    Debug.stdDebug "env" "add" "->" (self#signature());
 
   method getOnLevel (id0: string) = 
     let filterResult = List.filter (fun (id,vl) -> if (compare id id0) == 0 then true else false) currentLevel in
@@ -41,6 +47,7 @@ object
     | (_,vl)::_ -> vl
 
   method get (id0: string) =
+    Debug.stdDebug "env" "get" "<-" "";
     let rec helper lst =
       match lst with
 	[] -> raise (IdNotDefined id0)
@@ -51,12 +58,14 @@ object
 	  [] -> helper suite 
 	| (_,vl)::_ -> vl
     in
-    helper (currentLevel::levels)
+    let result = helper (currentLevel::levels) in
+    Debug.stdDebug "env" "get" "->" (result#toXml(3));
+    result
     
   method toString() = 
     let modeStr = match mode with
 	Standard -> "Standard mode" 
-    | UseCase st -> "Use Case "^st
+      | UseCase st -> "Use Case "^st
     in
     let levelsStr = List.fold_left (fun acc lst -> 
       let lstStr = List.fold_left (fun acc (id,vl) -> acc^id^": "^(vl#toString())^"; ") "" lst in
@@ -64,9 +73,18 @@ object
     in
     "ENV "^modeStr^" [\n"^levelsStr^"\n]\n"
 
+  method signature() = 
+    let modeStr = match mode with
+	Standard -> "STD" 
+      | UseCase st -> "UC("^st^")"
+    in
+    let tmp = List.fold_left (fun acc lst -> (Printf.sprintf "%s %d" acc (List.length lst))) "" (currentLevel::levels) in
+    modeStr^"("^tmp^")"
+
 end;;
 
 let newEnv objs =
+  Debug.stdDebug "" "newEnv" "<-" "";
   let env = new env in
   let rec helper objs = 
     match objs with
@@ -77,5 +95,7 @@ let newEnv objs =
     | [] -> 
       env
   in
-  (helper (List.rev objs))
+  let result = (helper (List.rev objs)) in
+  Debug.stdDebug "" "newEnv" "->" (result#signature());
+  result
 ;;

@@ -26,4 +26,13 @@ object(self)
       (fn1#eval env obj2)
     | _ -> raise WrongParameterAmount
 
+  method preEval env idList = 
+    (idList,(self :> abstractExpressionObject AbstractFunctionObject.abstractFunctionObject))
+
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | x -> 
+      "<nativeFunction2Object>"^stringRepresentation^"</nativeFunction2Object>"
+    
 end;;

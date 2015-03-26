@@ -33,5 +33,8 @@ object(self)
       let fn2 = (fn1#eval env obj2) in
       fn2#eval env obj3
     | _ -> raise WrongParameterAmount
+      
+  method preEval env idList = 
+    (self :> AbstractFunctionObject.abstractFunctionObject)
 
 end;;

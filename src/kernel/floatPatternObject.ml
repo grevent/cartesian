@@ -1,6 +1,6 @@
 
 class floatPatternObject fl =
-object
+object(self)
   inherit [AbstractExpressionObject.abstractExpressionObject] AbstractPatternObject.abstractPatternObject 
     
   method matchToExpression env expr = 
@@ -19,5 +19,11 @@ object
 
   method toString() = 
     (Printf.sprintf "%f" fl)
+
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | n -> 
+      "<floatPatternObject>"^(self#toString())^"</floatPatternObject>"
 	
 end;;

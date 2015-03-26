@@ -1,6 +1,6 @@
 
 class charPatternObject ch =
-object
+object(self)
   inherit [AbstractExpressionObject.abstractExpressionObject] AbstractPatternObject.abstractPatternObject 
 
   method getIds() = []
@@ -19,5 +19,10 @@ object
   method toString() = 
     "'"^(Char.escaped ch)^"'"
 
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | n -> 
+      "<charPatternObject>"^(self#toString())^"</charPatternObject>"
 	
 end;;

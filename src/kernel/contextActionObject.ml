@@ -19,5 +19,11 @@ object
 
   method toString() = 
     "context "^(contextExpr#toString())^" "^(exprObj#toString())
+
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | n -> 
+      "<contextActionObject>"^(contextExpr#toXml(n-1))^(exprObj#toXml(n-1))^"</contextActionObject>"
 					  
 end;;

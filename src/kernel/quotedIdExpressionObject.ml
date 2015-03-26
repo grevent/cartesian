@@ -16,4 +16,10 @@ object(self)
   method toString() = 
     "'"^vl
 
+  method toXml x = 
+    match x with
+      0 -> "..."
+    | x -> 
+      "<quotedIdExpressionObject>"^vl^"</quotedIdExpressionObject>"
+
 end;;
