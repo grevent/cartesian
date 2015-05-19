@@ -1,5 +1,5 @@
 
 class epsilonValueObject =
 object
-  inherit FloatExpressionObject.floatExpressionObject epsilon_float
+  inherit NumExpressionObject.numExpressionObject epsilon_float
 end;;

@@ -6,22 +6,18 @@ object(self)
   method isFunction() = true
   method returnFunction env = implementation
   method eval env = 
-    Debug.stdDebug (self#toXml 3) "eval" "<->" (self#toXml 3);
+    Debug.debugStartMethod self "eval";
+    Debug.debugEndMethod self "eval" self;
     (self :> AbstractExpressionObject.abstractExpressionObject)
 
   method preEval env idList = 
-    Debug.stdDebug (self#toXml 3) "preEval" "<-" "";
+    Debug.debugStartMethod self "preEval";
     let (newIdList,newImplementation) = implementation#preEval env idList in
     let result = ((new nativeFunctionObject newImplementation) :> AbstractExpressionObject.abstractExpressionObject) in
-    Debug.stdDebug (self#toXml 3) "preEval" "->" (result#toXml(3));
+    Debug.debugEndMethod self "preEval" result;
     (newIdList,result)
-      
-  method toString() = (implementation#toString())
 
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | n -> 
-      "<nativeFunctionObject>"^(implementation#toXml(n-1))^"</nativeFunctionObject>"
+  method toTree() = 
+    CartesianTree.NATIVEFUNCTION 
 
 end;;

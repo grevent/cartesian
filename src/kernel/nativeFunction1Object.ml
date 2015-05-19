@@ -10,10 +10,8 @@ class nativeFunction1Object stringRepresentation (mapping: abstractExpressionObj
 object(self)
   inherit [abstractExpressionObject] abstractFunctionObject
     
-  method toString() = "native "^stringRepresentation
-    
   method apply env lst = 
-    Debug.stdDebug "nativeFunction1Object" "apply" "<-" "";
+    Debug.debugStd "nativeFunction1Object(in)" "apply";
     let result = 
       match lst with
 	[] -> (new nativeFunctionObject (self :> abstractExpressionObject abstractFunctionObject))
@@ -22,17 +20,14 @@ object(self)
 	mapping#eval env objEval
       | _ -> raise WrongParameterAmount
     in
-    Debug.stdDebug (self#toXml 3) "apply" "->" (result#toXml(3));
+    Debug.debugStd "nativeFunction1Object(out)" "apply";
     result
 
   method preEval env idList = 
-    Debug.stdDebug (self#toXml 3) "preEval" "<->" (self#toXml(3));
+    Debug.debugStd "nativeFunction1Object(in/out)" "preEval";
     (idList,(self :> abstractExpressionObject AbstractFunctionObject.abstractFunctionObject))
-	
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | x -> 
-      "<nativeFunction1Object>"^stringRepresentation^"</nativeFunction1Object>"
-      
+
+  method toTree() = 
+    CartesianTree.NATIVEFUNCTION
+
 end;;

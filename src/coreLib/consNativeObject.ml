@@ -7,7 +7,11 @@ class consDefaultHelper x =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalList obj = new ListExpressionObject.listExpressionObject (x::(obj#returnList()))
+  method evalObj obj =
+    let concreteObj = obj#returnObject() in
+    concreteObj#cons x;
+    new ObjectWrapperExpressionObject.objectWrapperExpressionObject concreteObj
+	
   method evalNOD obj = obj 
 end;;
 

@@ -8,7 +8,8 @@ class lnotHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalInt obj = new IntExpressionObject.intExpressionObject ((lnot) (obj#returnInt()))
+  method evalNum obj =
+    new NumExpressionObject.numExpressionObject (float_of_int ((lnot) (obj#returnNumAsInt())))
   method evalDefault obj = defaultValue
 end;;
 

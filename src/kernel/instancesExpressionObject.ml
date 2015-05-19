@@ -21,15 +21,7 @@ object(self)
   method preEval env idList = 
     (idList,self#eval env)
 
-  method toString() = 
-    (List.fold_left (fun acc uc -> acc^": "^(uc#returnUC())^" "^uc#toString()) "" useCases)
-
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | n -> 
-      "<instancesExpressionObject>"^
-	(List.fold_left (fun acc uc -> acc^(uc#toXml(n-1))) "" useCases)^
-	"</instancesExpressionObject>"
+  method toTree() =
+    CartesianTree.INSTANCESEXPRESSION (List.map (fun x -> x#toTree()) useCases)
 
 end;;

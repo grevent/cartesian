@@ -1,5 +1,5 @@
 
 class maxFloatValueObject =
 object
-  inherit FloatExpressionObject.floatExpressionObject max_float
+  inherit NumExpressionObject.numExpressionObject max_float
 end;;

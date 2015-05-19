@@ -3,24 +3,14 @@ open NativeFunctionHelper
   
 let defaultValue = new NodExpressionObject.nodExpressionObject;;
 
-class getListHelper lst =
+class getObjHelper x = 
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalInt obj = 
+  method evalNum obj = 
     try
-      List.nth lst (obj#returnInt())
-    with _-> 
-      defaultValue
-end;;
-
-class getArrayHelper x = 
-object
-  inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
-    
-  method evalInt obj = 
-    try 
-      x.(obj#returnInt())
+      let vl = obj#returnNumAsInt() in
+      x#getAt(vl)
     with _ -> 
       defaultValue
 end;;
@@ -37,8 +27,7 @@ class getHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject nativeFunctionHelper] nativeFunctionHelper (new getNodHelper defaultValue)
     
-  method evalArray obj = (new getArrayHelper (obj#returnArray()))
-  method evalList obj = (new getListHelper (obj#returnList()))
+  method evalObj obj = (new getObjHelper (obj#returnObject()))
   method evalNOD obj = (new getNodHelper obj)
 end;;
 

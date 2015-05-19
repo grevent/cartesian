@@ -3,20 +3,16 @@ class listExpressionObject lst =
 object(self)
   inherit AbstractExpressionObject.abstractExpressionObject
     
-  method eval env = 
-    let resultList = List.map (fun x -> x#eval env) lst in
-    new ListWrapperExpressionObject.listWrapperExpressionObject resultList
+  method eval env =
+    let obj = new ObjectObject.objectObject [] in
+
+    List.iter (fun x -> (obj#add (x#eval env))) lst;
+    new ObjectWrapperExpressionObject.objectWrapperExpressionObject obj
 
   method preEval env idList = 
     AbstractExpressionObject.listPreEval env idList lst (fun x -> new listExpressionObject x)
-      
-  method toString() = 
-    "["^(List.fold_left (fun acc el -> acc^(el#toString())^"; ") "" lst)^"]"
 
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | n -> 
-      "<listExpressionObject>"^(List.fold_left (fun acc x -> acc^(x#toString())) "" lst)^"</listExpressionObject>"
+  method toTree() = 
+    CartesianTree.LISTEXPRESSION (List.map (fun x -> x#toTree()) lst)
 
 end;;

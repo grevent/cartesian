@@ -19,23 +19,15 @@ object
 	  result
 	else
 	  raise UseCaseNotVerified)
-	
-  method toString() = 
-    "( "^(exprObject#toString())^(List.fold_left (fun acc uc -> acc^": "^(uc#toString())) "" useCases)^")"
 
+  method toTree() = 
+    CartesianTree.PROTOTYPESEXPRESSION (exprObject#toTree(),(List.map (fun uc -> uc#toTree()) useCases))
+      
   method preEval env idList = 
     let (newIds,newExpr) = exprObject#preEval env idList in
     
     (newIds,((new prototypesExpressionObject newExpr useCases) 
 	     :> AbstractExpressionObject.abstractExpressionObject))
-
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | n -> 
-      "<prototypesExpressionObject>"^(exprObject#toXml(n-1))^
-	(List.fold_left (fun acc x -> acc^(x#toXml(n-1))) "" useCases)^
-	"</prototypesExpressionObject>"
       
 end;;
   

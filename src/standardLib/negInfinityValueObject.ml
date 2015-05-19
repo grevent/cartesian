@@ -1,5 +1,5 @@
 
 class negInfinityValueObject =
 object
-  inherit FloatExpressionObject.floatExpressionObject neg_infinity
+  inherit NumExpressionObject.numExpressionObject neg_infinity
 end;;

@@ -7,7 +7,8 @@ class landIntHelper x =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalInt obj = new IntExpressionObject.intExpressionObject ((land) x (obj#returnInt()))
+  method evalNum obj =
+    new NumExpressionObject.numExpressionObject (float_of_int ((land) x (obj#returnNumAsInt())))
   method evalNOD obj = obj
 end;;
 
@@ -23,7 +24,7 @@ class landHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject nativeFunctionHelper] nativeFunctionHelper (new landNodHelper defaultValue)
     
-  method evalInt obj = (new landIntHelper (obj#returnInt()))
+  method evalNum obj = (new landIntHelper (obj#returnNumAsInt()))
   method evalNOD obj = (new landNodHelper obj)
 end;;
 

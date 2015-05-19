@@ -8,16 +8,9 @@ class toStringHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
 
-  method evalInt obj = (new StringExpressionObject.stringExpressionObject (obj#toString()))
+  method evalNum obj = (new StringExpressionObject.stringExpressionObject (Printf.sprintf "%f" (obj#returnNum())));
   method evalId obj = (new StringExpressionObject.stringExpressionObject (obj#returnId()))
-  method evalFloat obj = (new StringExpressionObject.stringExpressionObject (obj#toString()))
-  method evalList obj = (new StringExpressionObject.stringExpressionObject (obj#toString()))
-  method evalBool obj = (new StringExpressionObject.stringExpressionObject (obj#toString()))
-  method evalChar obj = (new StringExpressionObject.stringExpressionObject (obj#toString()))
-  method evalObj obj = (new StringExpressionObject.stringExpressionObject (obj#toString()))
-  method evalFunction obj = (new StringExpressionObject.stringExpressionObject (obj#toString()))
-  method evalArray obj = (new StringExpressionObject.stringExpressionObject (obj#toString()))
-  method evalAction obj = (new StringExpressionObject.stringExpressionObject (obj#toString()))
+  method evalBool obj = (new StringExpressionObject.stringExpressionObject (if (obj#returnBool()) then "true" else "false"))
   method evalString obj = obj
 end;;
 

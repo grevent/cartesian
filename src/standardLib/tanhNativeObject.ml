@@ -7,8 +7,7 @@ class tanhHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalInt obj = new FloatExpressionObject.floatExpressionObject (tanh (float_of_int (obj#returnInt())))
-  method evalFloat obj = new FloatExpressionObject.floatExpressionObject (tanh (obj#returnFloat()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (tanh (obj#returnNum()))
 end;;
 
 class tanhNativeObject = 

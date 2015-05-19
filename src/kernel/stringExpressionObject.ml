@@ -13,13 +13,7 @@ object(self)
   method preEval env idList =
     (idList,(self :> AbstractExpressionObject.abstractExpressionObject))
 
-  method toString() = 
-    "\""^vl^"\""
-
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | x -> 
-      "<stringExpressionObject>"^(self#toString())^"</stringExpressionObject>"
+  method toTree() = 
+    CartesianTree.STRINGEXPRESSION vl      
 
 end;;

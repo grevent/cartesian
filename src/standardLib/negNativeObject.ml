@@ -7,8 +7,7 @@ class negHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalInt obj = new IntExpressionObject.intExpressionObject (~- (obj#returnInt()))
-  method evalFloat obj = new FloatExpressionObject.floatExpressionObject (~-. (obj#returnFloat()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (~-. (obj#returnNum()))
 end;;
 
 class negNativeObject = 

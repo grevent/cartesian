@@ -28,17 +28,9 @@ object
     in
     let (_,finalExpr) = exprObject#preEval env ids in 
     (idList,((new letExpressionObject pAssigns finalExpr) :> AbstractExpressionObject.abstractExpressionObject))
-      
-  method toString() = 
-    "let "^(List.fold_left (fun acc (pattern,expr) -> (if (String.compare "" acc) == 0 then "" else acc^" and ")^(pattern#toString())^" = "^(expr#toString())) "" assigns)^" in "^(exprObject#toString())
 
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | n -> 
-      "<letExpressionObject>"^
-	(List.fold_left (fun acc (pattern,expr) -> acc^(pattern#toXml(n-1))^(expr#toXml(n-1))) "" assigns)^
-	(exprObject#toXml(n-1))^
-	"</letExpressionObject>"
+  method toTree() =
+    CartesianTree.LETEXPRESSION
+      ((List.map (fun (pattern,expr) -> (pattern#toTree(),expr#toTree())) assigns),(exprObject#toTree()))
       
 end;;

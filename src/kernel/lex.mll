@@ -29,12 +29,17 @@ rule lexer =
     | ">=" { Debug.lexDebug "INFEGAL"; Syntax.SUPEGAL }
     | "[" { Debug.lexDebug "CROO"; Syntax.CROO }
     | "]" { Debug.lexDebug "CROF"; Syntax.CROF }
+    | "[|" { Debug.lexDebug "CROOPIPE"; Syntax.CROOPIPE }
+    | "|]" { Debug.lexDebug "PIPECROF"; Syntax.PIPECROF }
     | "|" { Debug.lexDebug "PIPE"; Syntax.PIPE }
     | "{" { Debug.lexDebug "ACOO"; Syntax.ACOO }
     | "}" { Debug.lexDebug "ACOF"; Syntax.ACOF }
     | "lambda" { Debug.lexDebug "LAMBDA"; Syntax.LAMBDA }
     | "->" { Debug.lexDebug "FLECHD"; Syntax.FLECHD }
     | "<-" { Debug.lexDebug "FLECHG"; Syntax.FLECHG }
+    | "==>" { Debug.lexDebug "SEND"; Syntax.SEND }
+    | "!=>" { Debug.lexDebug "STARTSEND"; Syntax.STARTSEND }
+    | "<==" { Debug.lexDebug "RECEIVE"; Syntax.RECEIVE }
     | "let" { Debug.lexDebug "LET"; Syntax.LET }
     | "in" { Debug.lexDebug "IN"; Syntax.IN }
     | "::" { Debug.lexDebug "DEUXDEUXPOINTS"; Syntax.DEUXDEUXPOINTS }
@@ -42,12 +47,12 @@ rule lexer =
     | ":" { Debug.lexDebug "DEUXPOINTS"; Syntax.DEUXPOINTS }
     | "." { Debug.lexDebug "PT"; Syntax.PT }
     | "'" { Debug.lexDebug "QUOTE"; Syntax.QUOTE }
-    | ":=" { Debug.lexDebug ":="; Syntax.DEUXPOINTSEGAL }
     | "(" { Debug.lexDebug "PARO"; Syntax.PARO }
     | ")" { Debug.lexDebug "PARF"; Syntax.PARF }
     | "match" { Debug.lexDebug "MATCH"; Syntax.MATCH }
     | "with" { Debug.lexDebug "WITH"; Syntax.WITH }
     | "and" { Debug.lexDebug "AND"; Syntax.AND }
+    | "mod" { Debug.lexDebug "MOD"; Syntax.MOD }
     | "while" { Debug.lexDebug "WHILE"; Syntax.WHILE }
     | "do" { Debug.lexDebug "DO"; Syntax.DO }
     | "for" { Debug.lexDebug "FOR"; Syntax.FOR }
@@ -59,18 +64,16 @@ rule lexer =
     | "," { Debug.lexDebug "VIRG"; Syntax.VIRG }
     | "_" { Debug.lexDebug "SOULIGNE"; Syntax.SOULIGNE }
     | "as" { Debug.lexDebug "AS"; Syntax.AS }
-    | "[|" { Debug.lexDebug "CROOPIPE"; Syntax.CROOPIPE }
-    | "|]" { Debug.lexDebug "PIPECROF"; Syntax.PIPECROF }
     | "nod" { Debug.lexDebug "NOD"; Syntax.NOD }
     | "if" { Debug.lexDebug "IF"; Syntax.IF }
     | "then" { Debug.lexDebug "IF"; Syntax.THEN }
-    | "else" { Debug.lexDebug "IF"; Syntax.ELSE }
+    | "else" { Debug.lexDebug "ELSE"; Syntax.ELSE }
     | "raise" { Debug.lexDebug "RAISE"; Syntax.RAISE }
     | "try" { Debug.lexDebug "TRY"; Syntax.TRY }
+    | "//" { Debug.lexDebug "THREAD"; Syntax.THREAD }
     | ('+'|'-')?['0'-'9']+ as integer { Debug.lexDebug (Printf.sprintf "INTVALUE='%s'" (Lexing.lexeme lexbuf)); Syntax.INTVALUE (int_of_string integer) }
     | ('+'|'-')?['0'-'9']+'.'['0'-'9']*(('e'|'E')['0'-'9']+)? as floating { Debug.lexDebug (Printf.sprintf "FLOATVALUE='%s'" (Lexing.lexeme lexbuf));  Syntax.FLOATVALUE (float_of_string floating) }
     | ('+'|'-')?['0'-'9']*'.'['0'-'9']+(('e'|'E')['0'-'9']+)? as floating { Debug.lexDebug (Printf.sprintf "FLOATVALUE='%s'" (Lexing.lexeme lexbuf));  Syntax.FLOATVALUE (float_of_string floating) }
-    | ''' (allchar as character) ''' { Debug.lexDebug (Printf.sprintf "CHARVALUE=%s" (Lexing.lexeme lexbuf)); Syntax.CHARVALUE (String.get character 0) }
     | "\"" allchar* "\"" as str { 
       let stripped_str = (String.sub str 1 (String.length str - 2)) in
       Debug.lexDebug (Printf.sprintf "STRINGVALUE='%s'" (Lexing.lexeme lexbuf));  Syntax.STRINGVALUE stripped_str }

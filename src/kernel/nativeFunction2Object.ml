@@ -11,8 +11,6 @@ class nativeFunction2Object stringRepresentation (mapping: (abstractExpressionOb
 object(self)
   inherit [abstractExpressionObject] abstractFunctionObject
     
-  method toString() = "native "^stringRepresentation
-    
   method apply env lst = 
     match lst with
       [] -> (new nativeFunctionObject (self :> abstractExpressionObject abstractFunctionObject))
@@ -29,10 +27,7 @@ object(self)
   method preEval env idList = 
     (idList,(self :> abstractExpressionObject AbstractFunctionObject.abstractFunctionObject))
 
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | x -> 
-      "<nativeFunction2Object>"^stringRepresentation^"</nativeFunction2Object>"
+  method toTree() = 
+    CartesianTree.NATIVEFUNCTION
     
 end;;

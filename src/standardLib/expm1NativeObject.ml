@@ -1,4 +1,5 @@
 
+
 open NativeFunctionHelper
   
 let defaultValue = new NodExpressionObject.nodExpressionObject;;
@@ -7,8 +8,7 @@ class expm1Helper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalInt obj = new FloatExpressionObject.floatExpressionObject (expm1 (float_of_int (obj#returnInt())))
-  method evalFloat obj = new FloatExpressionObject.floatExpressionObject (expm1 (obj#returnFloat()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (expm1 (obj#returnNum()))
 end;;
 
 class expm1NativeObject = 

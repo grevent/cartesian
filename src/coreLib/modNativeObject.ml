@@ -3,11 +3,11 @@ open NativeFunctionHelper
   
 let defaultValue = new NodExpressionObject.nodExpressionObject;;
 
-class modIntHelper x = 
+class modNumHelper x = 
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalInt obj = new IntExpressionObject.intExpressionObject (x mod (obj#returnInt()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (mod_float x (obj#returnNum()))
   method evalNOD obj = obj
 end;;
 
@@ -23,7 +23,7 @@ class modHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject nativeFunctionHelper] nativeFunctionHelper (new modNodHelper defaultValue)
     
-  method evalInt obj = (new modIntHelper (obj#returnInt()))
+  method evalNum obj = (new modNumHelper (obj#returnNum()))
   method evalNOD obj = (new modNodHelper obj)
 end;;
 

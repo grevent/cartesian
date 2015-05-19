@@ -7,15 +7,8 @@ object(self)
     
   method verifyValue vl = (vl#isString()) && (compare s (vl#returnString()) == 0)
 
-  method toString() = 
-    "\""^s^"\""
-      
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | 1 -> "<stringPrototypeObject>...</stringPrototypeObject>"
-    | x -> 
-      "<stringPrototypeObject><uc>"^uc^"</uc><val>"^(self#toString())^"</val></stringPrototypeObject>"
-    
+  method toRepresentation() = 
+    CartesianRepresentation.STRINGPROTOTYPE (uc,s)
+
 end;;
       

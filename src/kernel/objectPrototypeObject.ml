@@ -14,17 +14,8 @@ object
     let obj = vl#returnObject() in
     (List.fold_left (fun acc (attr,proto) -> if (proto#verifyValue (obj#getAttribute attr)) then acc else false) true lst)
 
-  method toString() = 
-    "{ "^(List.fold_left (fun acc (attribute,expr) -> 
-      acc^attribute^"= "^(expr#toString())) "" lst)^" }"
-
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | 1 -> "<objectPrototypeObject>...</objectPrototypeObject>"
-    | x -> 
-      "<objectPrototypeObject><uc>"^uc^"</uc>"^
-	(List.fold_left (fun acc (id,expr) -> "<id>"^id^"</id>"^(expr#toXml(x-2))) "" lst)^
-	"</objectPrototypeObject>"
+  method toTree() = 
+    CartesianTree.OBJECTPROTOTYPE (uc,
+				   (List.map (fun (id,expr) -> (id,expr#toTree())) lst))
       
 end;;

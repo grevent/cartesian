@@ -7,8 +7,7 @@ class sqrHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalInt obj = new FloatExpressionObject.floatExpressionObject (sqrt (float_of_int (obj#returnInt())))
-  method evalFloat obj = new FloatExpressionObject.floatExpressionObject (sqrt  (obj#returnFloat()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (sqrt  (obj#returnNum()))
 end;;
 
 class sqrNativeObject = 

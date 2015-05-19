@@ -43,3 +43,26 @@ let preEval lambdas env idList =
     let (newIds,newExpr) = expr#preEval env patternIds in
     (patterns,newExpr) ) lambdas)
 ;;
+
+let rec listIterator fn insertElement = function
+(el1::el2::suite) -> (fn el1)^insertElement^(listIterator fn insertElement (el2::suite))
+  | [el] -> (fn el)
+  | [] -> ""
+;;
+
+let array2iterIJ fn ar =
+  for i = 0 to (Array.length ar) - 1 do
+    for j = 0 to (Array.length ar.(i)) - 1 do
+      fn i j ar.(i).(j)
+    done;
+  done;
+;;
+  
+let array2mapIJ fn ar =
+  Array.init
+    (Array.length ar)
+    (fun i -> (Array.init
+		 (Array.length ar.(i))
+		 (fun j -> fn i j ar.(i).(j)) ) )
+;;
+

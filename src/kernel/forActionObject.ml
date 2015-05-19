@@ -38,13 +38,7 @@ object
 		newAction)
 	     :> (AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)))
 
-  method toString() = 
-    "for "^id^" in "^(exprObj#toString())^" do "^(actionObj#toString())
+  method toTree() =
+    CartesianTree.FORACTION (id,(exprObj#toTree()),actionObj#toTree())
 
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | 1 -> "<forActionObject>...</forActionObject>"
-    | n -> "<forActionObject><id>"^id^"</id>"^(exprObj#toXml(n-1))^(actionObj#toXml(n-1))^"</forActionObject>"
-    
 end;;

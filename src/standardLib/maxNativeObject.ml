@@ -3,30 +3,12 @@ open NativeFunctionHelper
   
 let defaultValue = new NodExpressionObject.nodExpressionObject;;
 
-class maxFloatHelper fl =
+class maxNumHelper fl =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalFloat obj = new FloatExpressionObject.floatExpressionObject (max fl (obj#returnFloat()))
-  method evalInt obj = new FloatExpressionObject.floatExpressionObject (max fl (float_of_int (obj#returnInt())))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (max fl (obj#returnNum()))
   method evalNOD obj = obj 
-end;;
-
-class maxIntHelper x = 
-object
-  inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
-    
-  method evalFloat obj = new FloatExpressionObject.floatExpressionObject (max (float_of_int x) (obj#returnFloat()))
-  method evalInt obj = new IntExpressionObject.intExpressionObject (max x (obj#returnInt()))
-  method evalNOD obj = obj
-end;;
-
-class maxCharHelper x = 
-object
-  inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
-    
-  method evalChar obj = new CharExpressionObject.charExpressionObject (max x (obj#returnChar()))
-  method evalNOD obj = obj
 end;;
 
 class maxStringHelper x = 
@@ -49,9 +31,7 @@ class maxHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject nativeFunctionHelper] nativeFunctionHelper (new maxNodHelper defaultValue)
     
-  method evalFloat obj = (new maxFloatHelper (obj#returnFloat()))
-  method evalInt obj = (new maxIntHelper (obj#returnInt()))
-  method evalChar obj = (new maxCharHelper (obj#returnChar()))
+  method evalNum obj = (new maxNumHelper (obj#returnNum()))
   method evalString obj = (new maxStringHelper (obj#returnString()))
   method evalNOD obj = (new maxNodHelper obj)
 end;;

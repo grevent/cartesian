@@ -30,13 +30,42 @@ let synDebug str =
     end;
 ;;
 
-let stdDebug objStr mthd inout objXml = 
+let debugStartMethod obj mthd =
   if stdDebugOn then
     if (List.exists (fun x -> (String.compare x mthd) == 0) debugMethods) || ((List.length debugMethods) == 0) then
       begin
-	Printf.eprintf "%s: %s %s %s" mthd objStr inout objXml;
+	Printf.eprintf ">%s: %s" mthd (obj#toXml());
 	prerr_newline();
       end;
 ;;
+
+let debugEndMethod obj mthd objR =
+  if stdDebugOn then
+    if (List.exists (fun x -> (String.compare x mthd) == 0) debugMethods) || ((List.length debugMethods) == 0) then
+      begin
+	Printf.eprintf "<%s: %s = %s" mthd (obj#toXml()) (objR#toXml());
+	prerr_newline();
+      end;
+;;
+
+let debugEnd0Method obj mthd =
+  if stdDebugOn then
+    if (List.exists (fun x -> (String.compare x mthd) == 0) debugMethods) || ((List.length debugMethods) == 0) then
+      begin
+	Printf.eprintf "<%s: %s" mthd (obj#toXml());
+	prerr_newline();
+      end;
+;;
+
+  
+let debugStd objName mthd = 
+  if stdDebugOn then
+    if (List.exists (fun x -> (String.compare x mthd) == 0) debugMethods) || ((List.length debugMethods) == 0) then
+      begin
+	Printf.eprintf "!%s: %s" mthd objName;
+	prerr_newline();
+      end;
+;;
+  
 
   

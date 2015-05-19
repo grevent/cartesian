@@ -33,28 +33,8 @@ object
     in
     (idList,((new tryActionObject newObjs newMatchLst) :> 
 	(AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)))
-      
-  method toString() = 
-    "try "^
-      (List.fold_left (fun acc obj -> acc^(obj#toString())^"; ") "" objLst)^" match "^
-      (List.fold_left 
-	 (fun acc (patterns,expr) -> 
-	   (match patterns with
-	     [pattern] -> (if (String.compare acc "" == 0) then "" else (acc^"| "))^(pattern#toString())^" -> "^(expr#toString())
-	   | _ -> raise MoreThanOnePattern))
-	 "" 
-	 matchLst)
 
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | 1 -> "<tryActionObject><actions>...</actions><matchs>...</matchs></tryActionObject>"
-    | n -> 
-      "<tryActionObject><actions>"^
-	(List.fold_left (fun acc x -> acc^(x#toXml(n-2))) "" objLst)^"</actions><matchs>"^
-	(List.fold_left (fun acc (patterns,expr) -> acc^
-	  (List.fold_left (fun acc pattern -> acc^(pattern#toXml(n-2))) "" patterns)^
-	  (expr#toXml(n-2))) "" matchLst)^
-	"</matchs></tryActionObject>"
-      
+  method toRepresentation() = 
+    CartesianRepresentation.TRYACTION ((List.map (fun x -> x#toRepresentation()) objLst),(List.map (fun x -> x#toRepresentation()) matchLst))
+
 end;;

@@ -7,8 +7,7 @@ class cosHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalInt obj = new FloatExpressionObject.floatExpressionObject (cos (float_of_int (obj#returnInt())))
-  method evalFloat obj = new FloatExpressionObject.floatExpressionObject (cos (obj#returnFloat()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (cos (obj#returnNum()))
 end;;
 
 class cosNativeObject = 

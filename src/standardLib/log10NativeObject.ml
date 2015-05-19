@@ -7,8 +7,7 @@ class log10Helper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalInt obj = new FloatExpressionObject.floatExpressionObject (log10 (float_of_int (obj#returnInt())))
-  method evalFloat obj = new FloatExpressionObject.floatExpressionObject (log10 (obj#returnFloat()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (log10 (obj#returnNum()))
 end;;
 
 class log10NativeObject = 

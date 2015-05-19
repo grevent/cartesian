@@ -17,13 +17,7 @@ object
   method getIds() = 
     []
 
-  method toString() = 
-    "\""^st^"\""
-
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | x -> 
-      "<stringPatternObject>"^st^"</stringPatternObject>"
+  method toTree() = 
+    CartesianTree.STRINGPATTERN st
 	
 end;;

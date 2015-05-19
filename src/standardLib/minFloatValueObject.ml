@@ -1,5 +1,5 @@
 
 class minFloatValueObject =
 object
-  inherit FloatExpressionObject.floatExpressionObject min_float
+  inherit NumExpressionObject.numExpressionObject min_float
 end;;

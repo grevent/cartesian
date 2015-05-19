@@ -17,13 +17,7 @@ object
     (idList,((new contextActionObject context1 expr2)
 	     :> (AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)))
 
-  method toString() = 
-    "context "^(contextExpr#toString())^" "^(exprObj#toString())
-
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | n -> 
-      "<contextActionObject>"^(contextExpr#toXml(n-1))^(exprObj#toXml(n-1))^"</contextActionObject>"
+  method toTree() = 
+    CartesianTree.CONTEXTACTION (contextExpr#toTree(),exprObj#toTree())
 					  
 end;;

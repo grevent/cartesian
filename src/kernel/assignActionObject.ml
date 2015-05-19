@@ -14,13 +14,7 @@ object
      ((new assignActionObject id nextObj)
       :> (AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)))
 
-  method toString() = 
-    id^" <- "^(exprObj#toString())
-
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | 1 -> "<assignActionObject>...</assignActionObject>"
-    | x -> "<assignActionObject><id>"^id^"</id>"^(exprObj#toXml(x-2))^"</assignActionObject>"
+  method toTree() = 
+    CartesianTree.ASSIGNACTION (id,(exprObj#toTree()))
     
 end;;

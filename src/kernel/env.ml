@@ -23,22 +23,22 @@ object(self)
     mode <- UseCase uc
 
   method addLevel() = 
-    Debug.stdDebug "env" "addLevel" "<-" "";
+    Debug.debugStartMethod self "addLevel";
     levels <- currentLevel::levels;
     currentLevel <- [];
-    Debug.stdDebug "env" "addLevel" "->" (self#signature());
+    Debug.debugEndMethod self "addLevel" self;
     
   method removeLevel() = 
-    Debug.stdDebug "env" "removeLevel" "<-" (self#signature());
+    Debug.debugStartMethod self "removeLevel";
     (match levels with
       [] -> raise NoLevels
     | el::suite -> currentLevel <- el; levels <- suite);
-    Debug.stdDebug "env" "removeLevel" "->" (self#signature());
+    Debug.debugEndMethod self "removeLevel" self;
       
   method add (id: string) (value: 'a) =
-    Debug.stdDebug "env" "add" "<-" "";
+    Debug.debugStartMethod self "add";
     currentLevel <- (id,value)::currentLevel;
-    Debug.stdDebug "env" "add" "->" (self#signature());
+    Debug.debugEndMethod self "add" self;
 
   method getOnLevel (id0: string) = 
     let filterResult = List.filter (fun (id,vl) -> if (compare id id0) == 0 then true else false) currentLevel in
@@ -47,7 +47,7 @@ object(self)
     | (_,vl)::_ -> vl
 
   method get (id0: string) =
-    Debug.stdDebug "env" "get" "<-" "";
+    Debug.debugStartMethod self "get";
     let rec helper lst =
       match lst with
 	[] -> raise (IdNotDefined id0)
@@ -59,7 +59,7 @@ object(self)
 	| (_,vl)::_ -> vl
     in
     let result = helper (currentLevel::levels) in
-    Debug.stdDebug "env" "get" "->" (result#toXml(3));
+    Debug.debugEndMethod self "get" self;
     result
     
   method toString() = 
@@ -81,10 +81,12 @@ object(self)
     let tmp = List.fold_left (fun acc lst -> (Printf.sprintf "%s %d" acc (List.length lst))) "" (currentLevel::levels) in
     modeStr^"("^tmp^")"
 
+  method toXml() = 
+    "<env/>"
+
 end;;
 
 let newEnv objs =
-  Debug.stdDebug "" "newEnv" "<-" "";
   let env = new env in
   let rec helper objs = 
     match objs with
@@ -96,6 +98,5 @@ let newEnv objs =
       env
   in
   let result = (helper (List.rev objs)) in
-  Debug.stdDebug "" "newEnv" "->" (result#signature());
   result
 ;;

@@ -1,27 +1,20 @@
 
-class arrayPatternObject (lst: (AbstractExpressionObject.abstractExpressionObject AbstractPatternObject.abstractPatternObject) list)  =
+class arrayPatternObject lst =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] AbstractPatternObject.abstractPatternObject 
-
-  method getIds() = 
-    (List.fold_left (fun acc pattern -> acc@(pattern#getIds())) [] lst)
     
   method matchToExpression env expr = 
-    let exprEval = expr#eval env in 
-    
-    if exprEval#isArray() then
-      (BasicTools.array_fold_left2 (fun acc x y -> if (x#matchToExpression env y) then acc else false) true (Array.of_list lst) (exprEval#returnArray()))
+    let exprEval = expr#eval env in
+
+    if exprEval#isObject() then
+      (List.fold_left2 (fun acc x y -> if (x#matchToExpression env y) then acc else false) true lst (exprEval#returnObjectAsList()))
     else
       false
 
-  method toString() = 
-    "[| "^(List.fold_left (fun acc pattern -> acc^(if (String.compare acc "" == 0) then "" else "; ")^(pattern#toString())) "" lst)^" |]"
+  method getIds() = 
+    (List.fold_left (fun acc x -> (x#getIds())@acc) [] lst)
 
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | x -> "<arrayPatternObject>"^
-      (List.fold_left (fun acc pattern -> acc^(pattern#toXml(x-1))) "" lst)^
-      "</arrayPatternObject>"
-	
+  method toTree() =
+    CartesianTree.LISTPATTERN (List.map (fun x -> x#toTree()) lst)
+
 end;;

@@ -7,10 +7,9 @@ class acosHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalInt obj = new FloatExpressionObject.floatExpressionObject (acos (float_of_int (obj#returnInt())))
-  method evalFloat obj = new FloatExpressionObject.floatExpressionObject (acos (obj#returnFloat()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (acos (obj#returnNum()))
 end;;
-
+  
 class acosNativeObject = 
 object
   inherit NativeFunction1Object.nativeFunction1Object "acos" (new acosHelper)

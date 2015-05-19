@@ -12,12 +12,7 @@ object(self)
   method preEval env idList = 
     (idList,(self :> AbstractExpressionObject.abstractExpressionObject))
 
-  method toString() = 
-    "nod"
-
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | x -> "<nodExpressionObject/>"
+  method toTree() = 
+    CartesianTree.NODEXPRESSION
 
 end;;

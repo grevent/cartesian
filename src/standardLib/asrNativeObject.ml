@@ -3,11 +3,11 @@ open NativeFunctionHelper
   
 let defaultValue = new NodExpressionObject.nodExpressionObject;;
 
-class asrIntHelper x = 
+class asrNumHelper x = 
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalInt obj = new IntExpressionObject.intExpressionObject ((asr) x (obj#returnInt()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (float_of_int ((asr) x (obj#returnNumAsInt())))
   method evalNOD obj = obj
 end;;
 
@@ -23,7 +23,7 @@ class asrHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject nativeFunctionHelper] nativeFunctionHelper (new asrNodHelper defaultValue)
 
-  method evalInt obj = (new asrIntHelper (obj#returnInt()))
+  method evalNum obj = (new asrNumHelper (obj#returnNumAsInt()))
   method evalNOD obj = (new asrNodHelper obj)
 end;;
 

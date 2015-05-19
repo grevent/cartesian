@@ -7,8 +7,7 @@ class atanHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalInt obj = new FloatExpressionObject.floatExpressionObject (atan (float_of_int (obj#returnInt())))
-  method evalFloat obj = new FloatExpressionObject.floatExpressionObject (atan (obj#returnFloat()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (atan (obj#returnNum()))
 end;;
 
 class atanNativeObject = 

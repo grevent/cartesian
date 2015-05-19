@@ -3,22 +3,12 @@ open NativeFunctionHelper
   
 let defaultValue = new NodExpressionObject.nodExpressionObject;;
 
-class infFloatHelper fl =
+class infNumHelper fl =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalFloat obj = new BoolExpressionObject.boolExpressionObject (fl < (obj#returnFloat()))
-  method evalInt obj = new BoolExpressionObject.boolExpressionObject (fl < (float_of_int (obj#returnInt())))
+  method evalNum obj = new BoolExpressionObject.boolExpressionObject (fl < (obj#returnNum()))
   method evalNOD obj = obj 
-end;;
-
-class infIntHelper x = 
-object
-  inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
-    
-  method evalFloat obj = new BoolExpressionObject.boolExpressionObject ((float_of_int x) < (obj#returnFloat()))
-  method evalInt obj = new BoolExpressionObject.boolExpressionObject (x < (obj#returnInt()))
-  method evalNOD obj = obj
 end;;
 
 class infStringHelper x = 
@@ -41,8 +31,7 @@ class infHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject nativeFunctionHelper] nativeFunctionHelper (new infNodHelper defaultValue)
     
-  method evalFloat obj = (new infFloatHelper (obj#returnFloat()))
-  method evalInt obj = (new infIntHelper (obj#returnInt()))
+  method evalNum obj = (new infNumHelper (obj#returnNum()))
   method evalString obj = (new infStringHelper (obj#returnString()))
   method evalNOD obj = (new infNodHelper obj)
 end;;

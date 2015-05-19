@@ -15,10 +15,9 @@ object(self)
     
     new ObjectWrapperExpressionObject.objectWrapperExpressionObject obj
 
-  method toString() = 
-    "{ "^(List.fold_left (fun acc (attribute,patterns,expr) -> 
-      acc^attribute^
-	(List.fold_left (fun acc pattern -> acc^(pattern#toString())^" ") "" patterns)^"= "^(expr#toString())) "" defs)^" }"
+  method toTree() = 
+    CartesianTree.OBJECTEXPRESSION 
+      (List.map (fun (id,patterns,expr) -> (id,(List.map (fun x -> x#toTree()) patterns),expr#toTree())) defs)
 
   method preEval env idList = 
     let idsWithAtt = List.fold_left (fun acc (id,_,_) -> acc@[id]) idList defs in
@@ -28,15 +27,5 @@ object(self)
       (id,params,pExpr) ) defs
     in
     (idList,((new objectExpressionObject pDefs) :> AbstractExpressionObject.abstractExpressionObject))
-
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | x -> 
-      "<objectExpressionObject>"^
-	(List.fold_left (fun acc (id,patterns,expr) -> acc^"<id>"^id^"</id>"^
-	  (List.fold_left (fun acc pattern -> acc^(pattern#toXml(x-1))) "" patterns)^
-	  (expr#toXml(x-1))) "" defs)^
-	"</objectExpressionObject>"
 
 end;;

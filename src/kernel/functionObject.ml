@@ -5,15 +5,8 @@ class ['expression] functionObject (lambdas: (('expression AbstractPatternObject
 object(self)
   inherit ['expression] AbstractFunctionObject.abstractFunctionObject
     
-  method toString() = 
-    "lambda "^
-      (List.fold_left (fun acc (patterns,expr) -> 
-	acc^(if (String.compare acc "") == 0 then "" else "| ")^
-	  (List.fold_left (fun acc pattern -> acc^(if (String.compare acc "") == 0 then "" else " ")^(pattern#toString())) "" patterns)^" -> "
-	^(expr#toString())) "" lambdas)
-      
   method apply (env: 'expression Env.env) (lst: 'expression list) = 
-    Debug.stdDebug (self#toXml 3) "apply" "<-" "";
+    Debug.debugStartMethod self "apply";
     let rec helper lambdaList = match lambdaList with
 	[] -> 
 	  raise (NoPatternForFunctionEval ((self#toString()),(List.map (fun x -> x#toString()) lst)))
@@ -29,22 +22,17 @@ object(self)
     in
     let exprToEval = helper lambdas in
     let exprResult = exprToEval#eval env in
-    Debug.stdDebug (self#toXml 3) "apply" "->" (exprResult#toXml 3);
+    Debug.debugEndMethod self "apply" exprResult;
     exprResult
-
+      
   method preEval env idList = 
-    Debug.stdDebug (self#toXml 3) "preEval" "<-" "";
+    Debug.debugStartMethod self "preEval";
     let newLambdas = BasicTools.preEval lambdas env idList in
     let result = (new functionObject newLambdas) in
-    Debug.stdDebug (self#toXml 3) "preEval" "->" (result#toXml 3);
+    Debug.debugEndMethod self "preEval" result;
     (idList,result)
 
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | x -> 
-      "<functionObject>"^
-	(List.fold_left (fun acc (patterns,expr) -> acc^(List.fold_left (fun acc pattern -> acc^(pattern#toXml(x-1))) "" patterns)^(expr#toXml(x-1))) "" lambdas)^
-	"<functionObject/>"
-      
+  method toTree() = 
+    CartesianTree.FUNCTION (List.map (fun (patterns,expr) -> (List.map (fun x -> x#toTree()) patterns),(expr#toTree())) lambdas)
+
 end;;

@@ -3,26 +3,21 @@ class exprActionObject exprObj =
 object(self)
   inherit [AbstractExpressionObject.abstractExpressionObject] AbstractActionObject.abstractActionObject
     
-  method exec parents = 
-    Debug.stdDebug (self#toXml 3) "exec" "<-" "";
+  method exec parents =
+    Debug.debugStartMethod self "exec";
     let env = Env.newEnv parents in
     ((exprObj#eval env)#returnAction())#exec parents;
-    Debug.stdDebug (self#toXml 3) "exec" "->" "";
+    Debug.debugEndMethod self "exec" self;
 
-  method preExec env idList = 
-    Debug.stdDebug (self#toXml 3) "preExec" "<-" "";
+  method preExec env idList =
+    Debug.debugStartMethod self "preExec";
     let (newIdList,newExprObj) = exprObj#preEval env idList in
     let result = ((new exprActionObject newExprObj)
 		  :> (AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)) in
-    Debug.stdDebug (self#toXml 3) "preExec" "->" (result#toXml 3);
+    Debug.debugEndMethod self "preExec" result;
     (newIdList,result)
 
-  method toString() = 
-    exprObj#toString()
-
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | n -> "<exprActionObject>"^(exprObj#toXml(n-1))^"</exprActionObject>"
+  method toTree() =
+    CartesianTree.EXPRACTION (exprObj#toTree())
 					  
 end;;

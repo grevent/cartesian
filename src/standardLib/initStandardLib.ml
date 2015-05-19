@@ -4,21 +4,13 @@ let init obj =
   obj#addAttribute "toBool" (new NativeFunctionObject.nativeFunctionObject (new ToBoolNativeObject.toBoolNativeObject)); 
   obj#addAttribute "string?" (new NativeFunctionObject.nativeFunctionObject (new StringNativeObject.stringNativeObject));
   obj#addAttribute "toString" (new NativeFunctionObject.nativeFunctionObject (new ToStringNativeObject.toStringNativeObject)); 
-  obj#addAttribute "float?" (new NativeFunctionObject.nativeFunctionObject (new FloatNativeObject.floatNativeObject));
-  obj#addAttribute "toFloat" (new NativeFunctionObject.nativeFunctionObject (new ToFloatNativeObject.toFloatNativeObject)); 
+  obj#addAttribute "num?" (new NativeFunctionObject.nativeFunctionObject (new NumNativeObject.numNativeObject));
+  obj#addAttribute "toNum" (new NativeFunctionObject.nativeFunctionObject (new ToNumNativeObject.toNumNativeObject)); 
   obj#addAttribute "int?" (new NativeFunctionObject.nativeFunctionObject (new IntNativeObject.intNativeObject));  
   obj#addAttribute "id?" (new NativeFunctionObject.nativeFunctionObject (new IdNativeObject.idNativeObject));  
   obj#addAttribute "toId" (new NativeFunctionObject.nativeFunctionObject (new ToIdNativeObject.toIdNativeObject));  
-  obj#addAttribute "toInt" (new NativeFunctionObject.nativeFunctionObject (new ToIntNativeObject.toIntNativeObject)); 
-  obj#addAttribute "number?" (new NativeFunctionObject.nativeFunctionObject (new NumberNativeObject.numberNativeObject));
-  obj#addAttribute "char?" (new NativeFunctionObject.nativeFunctionObject (new CharNativeObject.charNativeObject)); 
-  obj#addAttribute "toChar" (new NativeFunctionObject.nativeFunctionObject (new ToCharNativeObject.toCharNativeObject)); 
   obj#addAttribute "object?" (new NativeFunctionObject.nativeFunctionObject (new ObjectNativeObject.objectNativeObject));
   obj#addAttribute "function?" (new NativeFunctionObject.nativeFunctionObject (new FunctionNativeObject.functionNativeObject));  
-  obj#addAttribute "list?" (new NativeFunctionObject.nativeFunctionObject (new ListNativeObject.listNativeObject));
-  obj#addAttribute "toList" (new NativeFunctionObject.nativeFunctionObject (new ToListNativeObject.toListNativeObject)); 
-  obj#addAttribute "array?" (new NativeFunctionObject.nativeFunctionObject (new ArrayNativeObject.arrayNativeObject));
-  obj#addAttribute "toArray" (new NativeFunctionObject.nativeFunctionObject (new ToArrayNativeObject.toArrayNativeObject)); 
   obj#addAttribute "iterable?" (new NativeFunctionObject.nativeFunctionObject (new IterableNativeObject.iterableNativeObject));
   obj#addAttribute "comparable?" (new NativeFunctionObject.nativeFunctionObject (new ComparableNativeObject.comparableNativeObject));
   obj#addAttribute "action?" (new NativeFunctionObject.nativeFunctionObject (new ActionNativeObject.actionNativeObject));
@@ -57,9 +49,5 @@ let init obj =
   obj#addAttribute "max_float" (new MaxFloatValueObject.maxFloatValueObject);
   obj#addAttribute "min_float" (new MinFloatValueObject.minFloatValueObject);
   obj#addAttribute "epsilon" (new EpsilonValueObject.epsilonValueObject);
-  obj#addAttribute "print" (new NativeFunctionObject.nativeFunctionObject (new PrintNativeObject.printNativeObject));
-  obj#addAttribute "newline" (new NewlineNativeObject.newlineNativeObject);
-  obj#addAttribute "newErr" (new NewErrNativeObject.newErrNativeObject);
-  obj#addAttribute "prErr" (new NativeFunctionObject.nativeFunctionObject (new PrErrNativeObject.prErrNativeObject));
     
   

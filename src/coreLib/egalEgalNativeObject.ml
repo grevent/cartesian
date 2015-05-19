@@ -3,22 +3,12 @@ open NativeFunctionHelper
   
 let defaultValue = new NodExpressionObject.nodExpressionObject;;
 
-class egalEgalFloatHelper fl =
+class egalEgalNumHelper fl =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalFloat obj = new BoolExpressionObject.boolExpressionObject (fl == (obj#returnFloat()))
-  method evalInt obj = new BoolExpressionObject.boolExpressionObject (fl == (float_of_int (obj#returnInt())))
+  method evalNum obj = new BoolExpressionObject.boolExpressionObject (fl == (obj#returnNum()))
   method evalNOD obj = obj 
-end;;
-
-class egalEgalIntHelper x = 
-object
-  inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
-    
-  method evalFloat obj = new BoolExpressionObject.boolExpressionObject ((float_of_int x) == (obj#returnFloat()))
-  method evalInt obj = new BoolExpressionObject.boolExpressionObject (x == (obj#returnInt()))
-  method evalNOD obj = obj
 end;;
 
 class egalEgalStringHelper x = 
@@ -41,8 +31,7 @@ class egalEgalHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject nativeFunctionHelper] nativeFunctionHelper (new egalEgalNodHelper defaultValue)
     
-  method evalFloat obj = (new egalEgalFloatHelper (obj#returnFloat()))
-  method evalInt obj = (new egalEgalIntHelper (obj#returnInt()))
+  method evalNum obj = (new egalEgalNumHelper (obj#returnNum()))
   method evalString obj = (new egalEgalStringHelper (obj#returnString()))
   method evalNOD obj = (new egalEgalNodHelper obj)
 end;;

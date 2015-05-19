@@ -7,8 +7,7 @@ class floorHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalInt obj = new IntExpressionObject.intExpressionObject (obj#returnInt())
-  method evalFloat obj = new IntExpressionObject.intExpressionObject (int_of_float (floor (obj#returnFloat())))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (floor (obj#returnNum()))
 end;;
 
 class floorNativeObject = 

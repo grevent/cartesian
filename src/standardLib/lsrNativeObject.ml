@@ -7,14 +7,14 @@ class lsrIntHelper x =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalInt obj = new IntExpressionObject.intExpressionObject ((lsr) x (obj#returnInt()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (float_of_int ((lsr) x (obj#returnNumAsInt())))
   method evalNOD obj = obj
 end;;
-
+  
 class lsrNodHelper x =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
-    
+							      
   method noEval() = true
   method evalDefaultWOEval obj env = x
 end;;
@@ -23,7 +23,7 @@ class lsrHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject nativeFunctionHelper] nativeFunctionHelper (new lsrNodHelper defaultValue)
     
-  method evalInt obj = (new lsrIntHelper (obj#returnInt()))
+  method evalNum obj = (new lsrIntHelper (obj#returnNumAsInt()))
   method evalNOD obj = (new lsrNodHelper obj)
 end;;
 

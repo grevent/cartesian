@@ -4,15 +4,15 @@ open NativeFunctionHelper
   
 let defaultValue = new NodExpressionObject.nodExpressionObject;;
 
-class floatHelper =
+class numHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalFloat obj = new BoolExpressionObject.boolExpressionObject true
+  method evalNum obj = new BoolExpressionObject.boolExpressionObject true
   method evalDefault obj = new BoolExpressionObject.boolExpressionObject false
 end;;
 
-class floatNativeObject = 
+class numNativeObject = 
 object
-  inherit NativeFunction1Object.nativeFunction1Object "float?" (new floatHelper)
+  inherit NativeFunction1Object.nativeFunction1Object "num?" (new numHelper)
 end;;

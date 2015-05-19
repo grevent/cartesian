@@ -5,8 +5,8 @@ class functionCallExpressionObject (functObj: AbstractExpressionObject.abstractE
 object(self)
   inherit AbstractExpressionObject.abstractExpressionObject
     
-  method eval env = 
-    Debug.stdDebug (self#toXml 3) "eval" "<-" "";
+  method eval env =
+    Debug.debugStartMethod self "eval";
     let funct = functObj#eval env in
     let result = if funct#isFunction() then
 	begin
@@ -20,11 +20,11 @@ object(self)
       else
 	new NodExpressionObject.nodExpressionObject
     in
-    Debug.stdDebug (self#toXml 3) "eval" "->" (result#toXml 3);
+    Debug.debugEndMethod self "eval" result;
     result
 
-  method preEval env idList = 
-    Debug.stdDebug (self#toXml 3) "preEval" "<-" "";
+  method preEval env idList =
+    Debug.debugStartMethod self "preEval";
     let (idList1,newFunction) = functObj#preEval env idList in 
     let (idList2,newParams) = List.fold_left (fun (idListAcc,paramsAcc) param -> 
       let (resultIdList,paramPreEvaluated) = param#preEval env idListAcc in
@@ -33,16 +33,10 @@ object(self)
       params 
     in
     let result = ((new functionCallExpressionObject newFunction newParams) :> AbstractExpressionObject.abstractExpressionObject) in
-    Debug.stdDebug (self#toXml 3) "preEval" "->" (result#toXml 3);
+    Debug.debugEndMethod self "preEval" result;
     (idList2,result)
 
-  method toString() = 
-    "("^(functObj#toString())^" "^(List.fold_left (fun acc param -> acc^(if (String.compare acc "") == 0 then "" else " ")^(param#toString())) "" params)^")"
-
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | n -> 
-      "<functionCallExpressionObject>"^(functObj#toXml(n-1))^(List.fold_left (fun acc param -> acc^(param#toXml(n-1))) "" params)^"</functionCallExpressionObject>"
+  method toTree() =
+    CartesianTree.FUNCTIONCALLEXPRESSION (functObj#toTree(),(List.map (fun x -> x#toTree()) params))
 	
 end

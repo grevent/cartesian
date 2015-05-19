@@ -1,5 +1,5 @@
 
 class infinityValueObject =
 object
-  inherit FloatExpressionObject.floatExpressionObject infinity
+  inherit NumExpressionObject.numExpressionObject infinity
 end;;

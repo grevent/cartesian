@@ -7,8 +7,7 @@ class absHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalInt obj = new IntExpressionObject.intExpressionObject (abs (obj#returnInt()))
-  method evalFloat obj = new FloatExpressionObject.floatExpressionObject (abs_float (obj#returnFloat()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (abs_float (obj#returnNum()))
 end;;
 
 class absNativeObject = 

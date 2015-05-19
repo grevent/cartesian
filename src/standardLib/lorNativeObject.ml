@@ -3,11 +3,15 @@ open NativeFunctionHelper
   
 let defaultValue = new NodExpressionObject.nodExpressionObject;;
 
-class lorIntHelper x = 
+class lorNumHelper x = 
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalInt obj = new IntExpressionObject.intExpressionObject ((lor) x (obj#returnInt()))
+  method evalNum obj =
+    if (mod_float x 1.0) > 0.0 then
+      raise (AbstractExpressionObject.CanNotConvertToInt (Printf.sprintf "%f" x))
+    else
+      new NumExpressionObject.numExpressionObject (float_of_int ((lor) (int_of_float x) (obj#returnNumAsInt())));
   method evalNOD obj = obj
 end;;
 
@@ -23,7 +27,7 @@ class lorHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject nativeFunctionHelper] nativeFunctionHelper (new lorNodHelper defaultValue)
     
-  method evalInt obj = (new lorIntHelper (obj#returnInt()))
+  method evalNum obj = (new lorNumHelper (obj#returnNum()))
   method evalNOD obj = (new lorNodHelper obj)
 end;;
 

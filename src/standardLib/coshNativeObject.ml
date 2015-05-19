@@ -7,8 +7,7 @@ class coshHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalInt obj = new FloatExpressionObject.floatExpressionObject (cosh (float_of_int (obj#returnInt())))
-  method evalFloat obj = new FloatExpressionObject.floatExpressionObject (cosh (obj#returnFloat()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (cosh (obj#returnNum()))
 end;;
 
 class coshNativeObject = 

@@ -4,36 +4,31 @@ object(self)
   inherit AbstractExpressionObject.abstractExpressionObject 
     
   method eval env = 
-    Debug.stdDebug (self#toXml 3) "eval" "<-" "";
+    Debug.debugStartMethod self "eval";
     let result = env#get id in
-    Debug.stdDebug (self#toXml 3) "eval" "->" (result#toXml 3);
+    Debug.debugEndMethod self "eval" result;
     result
 
   method preEval env idList = 
-    Debug.stdDebug (self#toXml 3) "preEval" "<-" "";
+    Debug.debugStartMethod self "preEval";
     Debug.genericDebug (env#toString());
     if (List.exists (fun x -> (String.compare x id) == 0) idList) then
       begin    
-	Debug.stdDebug (self#toXml 3) "preEval" "->" (self#toXml 3);
+	Debug.debugEndMethod self "preEval" self;
 	(idList,(self :> AbstractExpressionObject.abstractExpressionObject))
       end
     else 
       begin
 	(try
 	   let result = (env#get id) in
-	   Debug.stdDebug (self#toXml 3) "preEval" "->" (result#toXml 3);
+	   Debug.debugEndMethod self "preEval" result;
 	   (idList,result)
 	 with Env.IdNotDefined _ ->       
-	   Debug.stdDebug (self#toXml 3) "preEval" "->" (self#toXml 3);
+	   Debug.debugEndMethod self "preEval" self;
 	   (idList,(self :> AbstractExpressionObject.abstractExpressionObject)))
       end
 
-  method toString() = 
-    id
-
-  method toXml x = 
-    match x with
-      0 -> "..."
-    | n -> "<idExpressionObject>"^id^"</idExpressionObject>"
+  method toTree() = 
+    CartesianTree.IDEXPRESSION id
       
 end
