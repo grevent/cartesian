@@ -1,7 +1,9 @@
 
 exception NoMatch
 
-class matchExpressionObject exprObj matchs =
+class matchExpressionObject
+	(exprObj: AbstractExpressionObject.abstractExpressionObject)
+	(matchs: ((AbstractExpressionObject.abstractExpressionObject AbstractPatternObject.abstractPatternObject list)*(AbstractExpressionObject.abstractExpressionObject)) list) =
 object
   inherit AbstractExpressionObject.abstractExpressionObject
     
@@ -19,9 +21,10 @@ object
       | _ -> 
 	raise NoMatch
     in
+    env#addLevel();
     let result = helper matchs in
     env#removeLevel();
-    result
+    result#eval env;
 
   method preEval env idList = 
     let (pIdList,pExprObj) = exprObj#preEval env idList in
@@ -34,6 +37,7 @@ object
 		AbstractExpressionObject.abstractExpressionObject))
 
   method toTree() =
-    CartesianTree.MATCHEXPRESSION (exprObj#toTree(),(List.map (fun ([pattern],expr) -> (pattern#toTree(),expr#toTree())) matchs))
+    CartesianTree.MATCHEXPRESSION ((exprObj#toTree()),
+				   (List.map (fun ([pattern],expr) -> ([(pattern#toTree())],(expr#toTree()))) matchs) )
 
 end;;

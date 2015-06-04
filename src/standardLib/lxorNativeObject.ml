@@ -7,7 +7,9 @@ class lxorIntHelper x =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalNum obj = new NumExpressionObject.numExpressionObject (float_of_int ((lxor) x (obj#returnNumAsInt())))
+  method evalNum obj =
+    new NumExpressionObject.numExpressionObject ((float_of_int ((lxor) x (obj#returnNumAsInt()))),0.0)
+	
   method evalNOD obj = obj
 end;;
 
@@ -18,7 +20,7 @@ object
   method noEval() = true
   method evalDefaultWOEval obj env = x
 end;;
-
+  
 class lxorHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject nativeFunctionHelper] nativeFunctionHelper (new lxorNodHelper defaultValue)

@@ -7,7 +7,9 @@ class ceilHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalNum obj = new NumExpressionObject.numExpressionObject (ceil (obj#returnNum()))
+  method evalNum obj =
+    let (re,im) = obj#returnNum() in
+    new NumExpressionObject.numExpressionObject ((ceil re),(ceil im))
 end;;
 
 class ceilNativeObject = 

@@ -7,7 +7,9 @@ class lsrIntHelper x =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalNum obj = new NumExpressionObject.numExpressionObject (float_of_int ((lsr) x (obj#returnNumAsInt())))
+  method evalNum obj =
+    new NumExpressionObject.numExpressionObject ((float_of_int ((lsr) x (obj#returnNumAsInt()))),0.0)
+	
   method evalNOD obj = obj
 end;;
   

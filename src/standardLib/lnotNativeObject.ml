@@ -9,7 +9,7 @@ object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
   method evalNum obj =
-    new NumExpressionObject.numExpressionObject (float_of_int ((lnot) (obj#returnNumAsInt())))
+    new NumExpressionObject.numExpressionObject ((float_of_int ((lnot) (obj#returnNumAsInt()))),0.0)
   method evalDefault obj = defaultValue
 end;;
 

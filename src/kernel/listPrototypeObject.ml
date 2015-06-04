@@ -3,12 +3,14 @@ class listPrototypeObject uc lst =
 object
   inherit AbstractPrototypeObject.abstractPrototypeObject uc
     
-  method returnValue() = 
-    new ListWrapperExpressionObject.listWrapperExpressionObject (List.map (fun x -> x#returnValue()) lst)
-      
+  method returnValue() =
+    let obj = new ObjectObject.objectObject [] in
+    List.iter (fun x -> (obj#add (x#returnValue()))) lst;
+    new ObjectWrapperExpressionObject.objectWrapperExpressionObject obj;
+    
   method verifyValue vl = 
-    if vl#isList() then
-      (List.fold_left2 (fun acc x y -> if (x#verifyValue y) then acc else false) true lst (vl#returnList()))
+    if vl#isObject() then
+      (List.fold_left2 (fun acc x y -> if (x#verifyValue y) then acc else false) true lst (vl#returnObjectAsList()))
     else
       false
 

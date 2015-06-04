@@ -3,7 +3,7 @@ class defineActionObject id patterns expr =
 object(self)
   inherit [AbstractExpressionObject.abstractExpressionObject] AbstractActionObject.abstractActionObject
     
-  method exec parents =
+  method exec session parents =
     Debug.debugStartMethod self "exec";
     (match parents with
        parent::_ -> 

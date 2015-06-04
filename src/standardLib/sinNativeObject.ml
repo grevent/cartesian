@@ -7,7 +7,7 @@ class sinHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalNum obj = new NumExpressionObject.numExpressionObject (sin (obj#returnNum()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (ComplexTools._sin (obj#returnNum()))
 end;;
 
 class sinNativeObject = 

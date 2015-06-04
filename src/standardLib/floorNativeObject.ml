@@ -7,7 +7,9 @@ class floorHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalNum obj = new NumExpressionObject.numExpressionObject (floor (obj#returnNum()))
+  method evalNum obj =
+    let (re,im) = obj#returnNum() in 
+    new NumExpressionObject.numExpressionObject (floor re,floor im)
 end;;
 
 class floorNativeObject = 

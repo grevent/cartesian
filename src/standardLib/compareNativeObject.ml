@@ -7,7 +7,7 @@ class compareNumHelper fl =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalNum obj = new NumExpressionObject.numExpressionObject (float_of_int (compare fl (obj#returnNum())))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (float_of_int (compare fl (obj#returnNum())),0.0)
   method evalNOD obj = obj 
 end;;
 
@@ -15,10 +15,10 @@ class compareStringHelper x =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
 
-  method evalString obj = new NumExpressionObject.numExpressionObject (float_of_int (String.compare x (obj#returnString())))
+  method evalString obj = new NumExpressionObject.numExpressionObject (float_of_int (String.compare x (obj#returnString())),0.0)
   method evalNOD obj = obj 
 end;;
-
+  
 class compareNodHelper x =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
@@ -26,7 +26,7 @@ object
   method noEval() = true
   method evalDefaultWOEval obj env = x
 end;;
-    
+
 class compareHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject nativeFunctionHelper] nativeFunctionHelper (new compareNodHelper defaultValue)

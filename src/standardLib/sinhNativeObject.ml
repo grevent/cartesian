@@ -7,7 +7,7 @@ class sinhHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalNum obj = new NumExpressionObject.numExpressionObject (sinh (obj#returnNum()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (ComplexTools._sinh (obj#returnNum()))
 end;;
 
 class sinhNativeObject = 

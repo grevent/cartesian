@@ -3,10 +3,10 @@ class doActionObject actionObj exprObj =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] AbstractActionObject.abstractActionObject
 
-  method exec parents =
-    actionObj#exec parents;
+  method exec session parents =
+    actionObj#exec session parents;
     while (exprObj#eval (Env.newEnv parents))#returnBoolean() do
-      actionObj#exec parents;
+      actionObj#exec session parents;
     done;
 
   method preExec env idList = 

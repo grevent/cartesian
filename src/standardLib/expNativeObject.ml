@@ -7,7 +7,7 @@ class expHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalNum obj = new NumExpressionObject.numExpressionObject (exp (obj#returnNum()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (ComplexTools._exp (obj#returnNum()))
 end;;
 
 class expNativeObject = 

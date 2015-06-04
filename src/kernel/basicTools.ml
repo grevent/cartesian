@@ -5,7 +5,7 @@ let array_fold_left2 fn acc0 ar1 ar2 =
       let acc = ref acc0 in
       
       for i = 0 to (Array.length ar1) - 1 do
-	acc := fn !acc ar1.(i) ar2.(i);
+		acc := fn !acc ar1.(i) ar2.(i);
       done;
       !acc
     end
@@ -66,3 +66,58 @@ let array2mapIJ fn ar =
 		 (fun j -> fn i j ar.(i).(j)) ) )
 ;;
 
+let array2foldIJ fn ar initV =
+  let currentVl = ref initV in
+  for i = 0 to (Array.length ar) - 1 do
+    for j = 0 to (Array.length ar.(i)) - 1 do
+      currentVl := fn !currentVl i j ar.(i).(j);
+    done;
+  done;
+  !currentVl
+;;
+
+let arrayExist fn ar = 
+	let result = ref false in
+	let continue = ref true in
+	let i = ref 0 in
+		
+	while !continue do
+		if fn ar.(!i) then
+			begin
+				continue := false;
+				result := true;
+			end
+		else
+			begin
+				i := !i + 1;
+				if !i >= (Array.length ar) then
+					begin
+						continue := false;
+					end;
+			end;
+	done;
+	!result
+;;
+
+let array2Compare fn ar0 ar1 = 
+	let result = ref true in
+	let continue = ref true in
+	let i = ref 0 in
+		
+	while !continue do
+		if fn ar0.(!i) ar1.(!i) then
+			begin			
+				i := !i + 1;
+				if !i >= (Array.length ar0) then
+					begin
+						continue := false;
+					end;
+			end
+		else
+			begin
+				continue := false;
+				result := false;
+			end;
+	done;
+	!result
+;;

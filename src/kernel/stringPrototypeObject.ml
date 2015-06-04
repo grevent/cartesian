@@ -7,8 +7,8 @@ object(self)
     
   method verifyValue vl = (vl#isString()) && (compare s (vl#returnString()) == 0)
 
-  method toRepresentation() = 
-    CartesianRepresentation.STRINGPROTOTYPE (uc,s)
+  method toTree() = 
+    CartesianTree.STRINGPROTOTYPE (uc,s)
 
 end;;
       

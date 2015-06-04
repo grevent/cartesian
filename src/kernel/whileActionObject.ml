@@ -3,9 +3,9 @@ class whileActionObject exprObj actionObj =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] AbstractActionObject.abstractActionObject
 
-  method exec parents = 
+  method exec session parents = 
     while (exprObj#eval (Env.newEnv parents))#returnBoolean() do
-      actionObj#exec parents
+      actionObj#exec session parents
     done;
 
   method preExec env idList = 
@@ -15,7 +15,7 @@ object
      ((new whileActionObject newExpr newObj) :>
 	 (AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)))
 
-  method toRepresentation() = 
-    CartesianRepresentation.WHILEACTION ((exprObj#toRepresentation()),(actionObj#toRepresentation()))
+  method toTree() = 
+    CartesianTree.WHILEACTION ((exprObj#toTree()),(actionObj#toTree()))
       
 end;;

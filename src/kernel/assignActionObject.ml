@@ -3,7 +3,7 @@ class assignActionObject (id: string) (exprObj: AbstractExpressionObject.abstrac
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] AbstractActionObject.abstractActionObject
     
-  method exec objs =
+  method exec session objs =
     match objs with
       obj::_ -> obj#setAttribute id (exprObj#eval (Env.newEnv objs))
     | _ -> raise AbstractActionObject.NoParents

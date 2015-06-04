@@ -7,7 +7,7 @@ class atanHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalNum obj = new NumExpressionObject.numExpressionObject (atan (obj#returnNum()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (ComplexTools._atan (obj#returnNum()))
 end;;
 
 class atanNativeObject = 

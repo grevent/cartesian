@@ -1,14 +1,14 @@
 
 type cartesianTree =
-    ACTIONS of (cartesianTree list)
-  | ACTIONWRAPPER of cartesianTree
+    ACTIONWRAPPER of cartesianTree
+  | SEQUENCEACTION of (cartesianTree list)
   | WHILEACTION of cartesianTree*cartesianTree
   | ACTORSENDSACTION of (bool*((string*cartesianTree*cartesianTree) list))
-  | ACTORSTARTSACTION of (bool*((string*cartesianTree*cartesianTree) list))
+  | REGISTERSTARTACTION of (string*cartesianTree)
   | ACTORRECEIVESACTION of string*cartesianTree
-  | THREADACTION of cartesianTree*cartesianTree
-  | TRYACTION of (cartesianTree list)*(cartesianTree list)
-  | ACTIONEXPRESSION of (cartesianTree list)
+  | THREADACTION of cartesianTree
+  | TRYACTION of (cartesianTree list)*(((cartesianTree list)*cartesianTree) list)
+  | ACTIONEXPRESSION of cartesianTree
   | FUNCTION of (((cartesianTree list)*cartesianTree) list)
   | WILDCARDPATTERN 
   | STRINGPROTOTYPE of string*string
@@ -25,7 +25,8 @@ type cartesianTree =
   | NATIVEFUNCTION 
   | BOOLEXPRESSION of bool
   | NUMEXPRESSION of (float*float)
-  | MATRIXEXPRESSION of ((float*float) array array)
+  | MATRIXEXPRESSION of (cartesianTree array array)
+  | MATRIXWRAPPER of ((float*float) array array)
   | LISTEXPRESSION of (cartesianTree list)
   | NODEXPRESSION
   | STRINGEXPRESSION of string
@@ -42,17 +43,17 @@ type cartesianTree =
   | DOACTION of cartesianTree*cartesianTree
   | EXPRACTION of cartesianTree
   | NUMPATTERN of (float*float)
-  | MATRIXPATTERN of ((float*float) array array)
-  | NUMPROTOTYPE of (string*float*float)
-  | MATRIXPROTOTYPE of ((float*float) array array)
-  | FORACTION of (cartesianTree*cartesianTree*cartesianTree)
+  | MATRIXPATTERN of (cartesianTree array array)
+  | NUMPROTOTYPE of (string*(float*float))
+  | MATRIXPROTOTYPE of (string*((float*float) array array))
+  | FORACTION of (string*cartesianTree*cartesianTree)
   | FUNCTIONCALLEXPRESSION of (cartesianTree*(cartesianTree list))
   | LISTPATTERN of (cartesianTree list)
   | IDPATTERN of string
   | INSTANCESEXPRESSION of (cartesianTree list)
-  | LETEXPRESSION of (((cartesianTree list)*cartesianTree) list)*cartesianTree
+  | LETEXPRESSION of ((cartesianTree*cartesianTree) list)*cartesianTree
   | LISTPROTOTYPE of (string*(cartesianTree list))
-  | MATCHEXPRESSION of (cartesianTree*((cartesianTree*cartesianTree) list))
+  | MATCHEXPRESSION of (cartesianTree*(((cartesianTree list)*cartesianTree) list))
   | COMMENT of (string*cartesianTree)
   | WHEREPATTERN of (cartesianTree*cartesianTree)
 ;;

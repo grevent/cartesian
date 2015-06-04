@@ -6,136 +6,146 @@ exception NotAnExpr
 exception NotAPattern
 exception NotAFunction
 exception NotAPrototype
+exception NotAnObject
 exception NativeFunction
 exception NativeAction
   
-let rec tree2Object dispatcher tree =
-  tree2Action tree
-
-and tree2Action dispatcher tree =
+let rec tree2Action dispatcher tree =
   match tree with
-    ACTIONS actions -> new ActionsObject.actionsObject (List.map tree2Action actions)
-  | WHILEACTION (expr,action) -> new WhileActionObject.whileActionObject (tree2Expr expr) (tree2Action action)
-  | TRYACTION (actions,matchs) -> new TryActionObject.tryActionObject (List.map tree2Action actions) (List.map (fun (patterns,expr) -> ((List.map tree2Pattern patterns),(tree2Expr expr))) matchs)
-  | STARTACTION (blocking,signals) -> new StartActionObject.startActionObject dispatcher blocking (List.map (tree2Action dispatcher) signals)
-  | RAISEACTION expr -> new RaiseActionObject.raiseActionObject (tree2Expr expr)
+    WHILEACTION (expr,action) -> ((new WhileActionObject.whileActionObject
+				      (tree2Expr dispatcher expr)
+				      (tree2Action dispatcher action) ) :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
+  | TRYACTION (actions,matchs) -> ((new TryActionObject.tryActionObject
+				      (List.map (tree2Action dispatcher) actions)
+				      (List.map (fun (patterns,expr) -> ((List.map (tree2Pattern dispatcher) patterns),(tree2Expr dispatcher expr))) matchs)
+				   ) :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
+  | REGISTERSTARTACTION (actorId,action) -> ((new StartActionObject.startActionObject
+						  dispatcher
+						  actorId
+						  (tree2Action dispatcher action) )
+					     :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
+  | RAISEACTION expr -> ((new RaiseActionObject.raiseActionObject (tree2Expr dispatcher expr) ) :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
   | NATIVEACTION st -> raise NativeAction
-  | ASSIGNACTION (id,expr) -> new AssignActionObject.assignActionObject id (tree2Expr expr)
-  | CONTEXTACTION (context,expr) -> new ContextActionObject.contextActionObject (tree2Expr context) (tree2Expr expr)
+  | ASSIGNACTION (id,expr) -> ((new AssignActionObject.assignActionObject id (tree2Expr dispatcher expr) ) :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
+  | CONTEXTACTION (context,expr) -> ((new ContextActionObject.contextActionObject (tree2Expr dispatcher context) (tree2Expr dispatcher expr) ) :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
   | DEFINEACTION (id,patterns,expr) ->
-     new DefineActionObject.defineActionObject id (List.map tree2Pattern patterns) (tree2Expr expr)
-  | DOACTION (action,expr) -> new DoActionObject.doActionObject (tree2Action action) (tree2Expr expr)
-  | EXPRACTION expr -> new ExprActionObject.exprActionObject (tree2Expr expr)
-  | FORACTION (pattern,value,action) -> new ForActionObject.forActionObject (tree2Pattern pattern) (tree2Expr value) (tree2Action action)
+     ((new DefineActionObject.defineActionObject id (List.map (tree2Pattern dispatcher) patterns) (tree2Expr dispatcher expr) ) :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
+  | DOACTION (action,expr) -> ((new DoActionObject.doActionObject (tree2Action dispatcher action) (tree2Expr dispatcher expr) ) :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
+  | EXPRACTION expr -> ((new ExprActionObject.exprActionObject (tree2Expr dispatcher expr) ) :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
+  | FORACTION (id,value,action) -> ((new ForActionObject.forActionObject id
+					 (tree2Expr dispatcher value)
+					 (tree2Action dispatcher action) )
+				    :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
+  | SEQUENCEACTION actions -> ((new SequenceActionObject.sequenceActionObject (List.map (tree2Action dispatcher) actions)) :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
   | COMMENT (comment,tree) ->
-     let tmp = (tree2Action tree) in
+     let tmp = (tree2Action dispatcher tree) in
      begin
        (tmp#attachComment comment);
-       comment
+       tmp
      end			
   | _ -> raise NotAnAction
 
-and tree2Expr tree =
+and tree2Expr dispatcher tree =
   match tree with
-    ACTIONEXPRESSION actions -> new ActionExpressionObject.actionExpressionObject (List.map tree2Expr actions)
-  | ACTIONWRAPPER action -> new ActionWrapperExpr.actionWrapperExpr (tree2Action action)
+    ACTIONEXPRESSION action -> new ActionExpressionObject.actionExpressionObject (tree2Action dispatcher action)
+  | ACTIONWRAPPER action -> new ActionWrapperExpr.actionWrapperExpr (tree2Action dispatcher action)
   | QUOTEDIDEXPRESSION id -> new QuotedIdExpressionObject.quotedIdExpressionObject id
-  | OBJECTWRAPPEREXPRESSION expr -> new ObjectWrapperExpressionObject.objectWrapperExpressionObject (tree2Object expr)
-  | PROTOTYPESEXPRESSION (expr,useCases) -> new PrototypesExpressionObject.prototypesExpressionObject (tree2Expr expr) (List.map tree2Prototype useCases)
+  | OBJECTWRAPPEREXPRESSION expr -> new ObjectWrapperExpressionObject.objectWrapperExpressionObject (tree2Object dispatcher expr)
+  | PROTOTYPESEXPRESSION (expr,useCases) -> new PrototypesExpressionObject.prototypesExpressionObject (tree2Expr dispatcher expr) (List.map (tree2Prototype dispatcher) useCases)
   | OBJECTEXPRESSION defs ->
-     new ObjectExpressionObject.objectExpressionObject (List.map (fun (id,patterns,expr) -> (id,(List.map tree2Pattern patterns),(tree2Expr expr))) defs)
+     new ObjectExpressionObject.objectExpressionObject (List.map (fun (id,patterns,expr) -> (id,(List.map (tree2Pattern dispatcher) patterns),(tree2Expr dispatcher expr))) defs)
   | BOOLEXPRESSION bl -> new BoolExpressionObject.boolExpressionObject bl
-  | FLOATEXPRESSION fl -> new FloatExpressionObject.floatExpressionObject fl
-  | INTEXPRESSION i -> new IntExpressionObject.intExpressionObject i
-  | LISTEXPRESSION lst -> new ListExpressionObject.listExpressionObject (List.map tree2Expr lst)
+  | NUMEXPRESSION fl -> new NumExpressionObject.numExpressionObject fl
+  | LISTEXPRESSION lst -> new ListExpressionObject.listExpressionObject (List.map (tree2Expr dispatcher) lst)
   | NODEXPRESSION -> new NodExpressionObject.nodExpressionObject
   | STRINGEXPRESSION s -> new StringExpressionObject.stringExpressionObject s
-  | NATIVEFUNCTION im -> new NativeFunctionObject.nativeFunctionObject (tree2Function im)
-  | CHAREXPRESSION c -> new CharExpressionObject.charExpressionObject c
-  | ARRAYEXPRESSION lst -> new ArrayExpressionObject.arrayExpressionObject (List.map tree2Expr lst)
+  | NATIVEFUNCTION -> raise NativeFunction
+  | MATRIXWRAPPER m -> new MatrixWrapperObject.matrixWrapperObject m
+  | MATRIXEXPRESSION m -> new MatrixExpressionObject.matrixExpressionObject
+			      (Array.map
+				 (fun x ->
+				  (Array.map
+				     (fun y -> (tree2Expr dispatcher y))
+				     x ) )
+				 m )
   | IDEXPRESSION st -> new IdExpressionObject.idExpressionObject st
-  | ATTRIBUTEACCESSEXPRESSION (expr,id) -> new AttributeAccessExpressionObject.attributeAccessExpressionObject (tree2Expr expr) id
+  | ATTRIBUTEACCESSEXPRESSION (expr,id) -> new AttributeAccessExpressionObject.attributeAccessExpressionObject (tree2Expr dispatcher expr) id
   | FUNCTIONEXPRESSION lambdas ->
      new FunctionExpressionObject.functionExpressionObject
-	 (List.map (fun (patterns,expr) -> (List.map tree2Pattern patterns) (tree2Expr expr))
+	 (List.map (fun (patterns,expr) -> ((List.map (tree2Pattern dispatcher) patterns),(tree2Expr dispatcher expr)))
 		   lambdas)
   | FUNCTIONCALLEXPRESSION (fn,params) ->
-     new FunctionCallExpressionObject.functionCallExpressionObject (tree2Expr fn) (List.map tree2Expr params)
-  | INSTANCESEXPRESSION lst -> new InstancesExpressionObject.instancesExpressionObject (List.map tree2Prototype lst)
+     new FunctionCallExpressionObject.functionCallExpressionObject (tree2Expr dispatcher fn) (List.map (tree2Expr dispatcher) params)
+  | INSTANCESEXPRESSION lst -> new InstancesExpressionObject.instancesExpressionObject (List.map (tree2Prototype dispatcher) lst)
   | LETEXPRESSION (defs,expr) ->
-      new LetExpressionObject.letExpressionObject (List.map (fun (patterns,expr) -> ((List.map tree2Pattern patterns),(tree2Expr expr))) defs) expr
-  | MATCHEXPRESSION (expr,matchs) -> new MatchExpressionObject.matchExpressionObject (tree2Expr expr) (List.map (fun (patterns,expr) -> ((List.map tree2Pattern patterns),(tree2Expr expr))) matchs)
+     new LetExpressionObject.letExpressionObject
+	 (List.map (fun (pattern,expr) -> ((tree2Pattern dispatcher pattern),(tree2Expr dispatcher expr))) defs)
+	 (tree2Expr dispatcher expr)
+  | MATCHEXPRESSION (expr,matchs) ->
+     new MatchExpressionObject.matchExpressionObject
+	 (tree2Expr dispatcher expr)
+	 (List.map (fun (patterns,expr) -> ((List.map (tree2Pattern dispatcher) patterns),(tree2Expr dispatcher expr))) matchs)
   | COMMENT (comment,tree) ->
-     let tmp = (tree2Expr tree) in
+     let tmp = (tree2Expr dispatcher tree) in
      begin
        (tmp#attachComment comment);
-       comment
+       tmp
      end			
   | _ -> raise NotAnExpr
 
-and tree2Pattern tree =
+and tree2Pattern dispatcher tree =
   match tree with
     WILDCARDPATTERN -> new WildcardPatternObject.wildcardPatternObject
   | STRINGPATTERN st -> new StringPatternObject.stringPatternObject st
-  | RENAMINGPATTERN (pattern,id) -> new RenamingPatternObject.renamingPatternObject (tree2Pattern pattern) id
-  | ARRAYPATTERN lst -> new ArrayPatternObject.arrayPatternObject (List.map tree2Pattern lst)
+  | RENAMINGPATTERN (pattern,id) -> new RenamingPatternObject.renamingPatternObject (tree2Pattern dispatcher pattern) id
+  | MATRIXPATTERN lst -> new MatrixPatternObject.matrixPatternObject
+			     (Array.map (fun x -> Array.map (tree2Pattern dispatcher) x) lst)
   | BOOLPATTERN bl -> new BoolPatternObject.boolPatternObject bl
-  | CHARPATTERN ch -> new CharPatternObject.charPatternObject ch
-  | CONSPATTERN (car,cdr) -> new ConsPatternObject.consPatternObject (tree2Pattern car) (tree2Pattern cdr)
-  | FLOATPATTERN fl -> new FloatPatternObject.floatPatternObject fl
-  | INTPATTERN i -> new IntPatternObject.intPatternObject i
-  | LISTPATTERN lst -> new ListPatternObject.listPatternObject (List.map tree2Expr lst)
+  | CONSPATTERN (car,cdr) -> new ConsPatternObject.consPatternObject (tree2Pattern dispatcher car) (tree2Pattern dispatcher cdr)
+  | NUMPATTERN fl -> new NumPatternObject.numPatternObject fl
+  | LISTPATTERN lst -> new ListPatternObject.listPatternObject (List.map (tree2Pattern dispatcher) lst)
   | IDPATTERN id -> new IdPatternObject.idPatternObject id
   | COMMENT (comment,tree) ->
-     let tmp = (tree2Pattern tree) in
+     let tmp = (tree2Pattern dispatcher tree) in
      begin
        (tmp#attachComment comment);
-       comment
+       tmp
      end			
   | _ -> raise NotAPattern
 
-and tree2Function tree =
+and tree2Function dispatcher tree =
   match tree with
-    NATIVEFUNCTION1 st -> raise NativeFunction
-  | NATIVEFUNCTION2 st -> raise NativeFunction
-  | FUNCTION lambdas ->new FunctionObject.functionObject (List.map (fun (params,expr) -> (List.map tree2Pattern params) (tree2Expr expr)) lambdas)
-  | ADDNATIVE -> new AddNativeObject.addNativeObject
-  | IFNATIVE -> new IfNativeObject.ifNativeObject
-  | IFNATIVEPARTIAL2 (obj1,obj2) -> new IfNativeObject.ifNativePartial2Object (tree2Expr obj1) (tree2Expr obj2)
-  | IFNATIVEPARTIAL1 obj -> new IfNativeObject.ifNativePartial1Object (tree2Expr obj)
+  | FUNCTION lambdas -> new FunctionExpressionObject.functionExpressionObject (List.map (fun (params,expr) -> ((List.map (tree2Pattern dispatcher) params),(tree2Expr dispatcher expr))) lambdas)
   | COMMENT (comment,tree) ->
-     let tmp = (tree2Function tree) in
+     let tmp = (tree2Function dispatcher tree) in
      begin
        (tmp#attachComment comment);
-       comment
+       tmp
      end
   | _ -> raise NotAFunction
 
-and tree2Prototype tree =
+and tree2Prototype dispatcher tree =
   match tree with
     STRINGPROTOTYPE (uc,st) -> new StringPrototypeObject.stringPrototypeObject uc st
-  | OBJECTPROTOTYPE (uc,objs) -> new ObjectPrototypeObject.objectPrototypeObject uc (List.map (fun (id,expr) -> (id,(tree2Expr expr))) objs)
-  | BOOLPROTOTYPE (uc,bl) -> new BoolProtypeObject.boolPrototypeObject uc bl
-  | ARRAYPROTOTYPE (uc,lst) ->
-     let ar = Array.of_list (List.map tree2Prototype lst) in
-     new ArrayPrototypeObject.arrayPrototypeObject uc ar
-  | CHARPROTOTYPE (uc,ch) -> new CharPrototypeObject.charPrototypeObject uc ch
-  | FLOATPROTOTYPE (uc,fl) -> new FloatPrototypeObject.floatPrototypeObject uc fl
-  | INTPROTOTYPE (uc,i) -> new IntPrototypeObject.intPrototypeObject uc i
-  | LISTPROTOTYPE (uc,lst) -> new ListPrototypeObject.listPrototypeObject uc (List.map tree2Prototype lst)
+  | OBJECTPROTOTYPE (uc,objs) -> new ObjectPrototypeObject.objectPrototypeObject uc (List.map (fun (id,expr) -> (id,(tree2Prototype dispatcher expr))) objs)
+  | BOOLPROTOTYPE (uc,bl) -> new BoolPrototypeObject.boolPrototypeObject uc bl
+  | MATRIXPROTOTYPE (uc,mat) ->
+      new MatrixPrototypeObject.matrixPrototypeObject uc mat
+  | NUMPROTOTYPE (uc,fl) -> new NumPrototypeObject.numPrototypeObject uc fl
+  | LISTPROTOTYPE (uc,lst) -> new ListPrototypeObject.listPrototypeObject uc (List.map (tree2Prototype dispatcher) lst)
   | COMMENT (comment,tree) ->
-     let tmp = (tree2Expr tree) in
+     let tmp = (tree2Prototype dispatcher tree) in
      begin
        (tmp#attachComment comment);
-       comment
+       tmp
      end
   | _ -> raise NotAPrototype
 
-and tree2Object tree =
+and tree2Object dispatcher tree =
   match tree with
     OBJECT attributes ->
-    let obj = new ObjectObject.objectObject in
-    List.iter (fun (id,expr) -> obj#addAttribute id (tree2Expr expr));
+    let obj = new ObjectObject.objectObject [] in
+    List.iter (fun (id,expr) -> (obj#addAttribute id (tree2Expr dispatcher expr)));
     obj
   | _ -> raise NotAnObject
 ;;

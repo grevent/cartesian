@@ -3,10 +3,10 @@ class exprActionObject exprObj =
 object(self)
   inherit [AbstractExpressionObject.abstractExpressionObject] AbstractActionObject.abstractActionObject
     
-  method exec parents =
+  method exec session parents =
     Debug.debugStartMethod self "exec";
     let env = Env.newEnv parents in
-    ((exprObj#eval env)#returnAction())#exec parents;
+    ((exprObj#eval env)#returnAction())#exec session parents;
     Debug.debugEndMethod self "exec" self;
 
   method preExec env idList =

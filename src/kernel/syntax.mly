@@ -35,7 +35,7 @@
 
 %%
 
-phrase: actionListPtVirg EOL { ACTIONS $1 }
+phrase: expr EOL { $1 }
 
 comment: COMMENT { $1 }
 comment: { "" }
@@ -43,21 +43,21 @@ comment: { "" }
 action: ID FLECHG expr exprProtectedList { ASSIGNACTION ($1,FUNCTIONCALLEXPRESSION ($3,$4)) }
 action: ID FLECHG expr { ASSIGNACTION ($1,$3) }
 action: WHILE expr DO action { WHILEACTION ($2,$4) }
-action: FOR pattern IN expr DO action { FORACTION ($2,$4,$6) }
+action: FOR ID IN expr DO action { FORACTION ($2,$4,$6) }
 action: DO action WHILE expr { DOACTION ($2,$4) }
 action: RAISE expr { RAISEACTION $2 }
 action: expr { EXPRACTION $1 }
 action: TRY actionListPtVirg WITH matchExprs { TRYACTION ($2,$4) }
 action: ID patterns DEUXPOINTS expr { DEFINEACTION ($1,$2,$4) }
 action: CONTEXT exprProtected expr { CONTEXTACTION ($2,$3) }
-action: ID STARTSEND pattern FLECHD exprProtected otherSignals {
-  let (blocking,lst) = $6 in
-  ACTORSTARTSACTION (blocking,($1,$3,$5)::lst) }
+action: ID STARTSEND action {
+  ACTORSTARTSACTION ($1,$3) }
 action: ID SEND pattern FLECHD exprProtected otherSignals {
   let (blocking,lst) = $6 in
   ACTORSENDSACTION (blocking,($1,$3,$5)::lst) }
 action: ID RECEIVE expr { ACTORRECEIVESACTION ($1,$3) }
-action: expr THREAD expr { THREADACTION ($1,$3) }
+action: THREAD action { THREADACTION $2 }
+action: ACOO actionListPtVirg ACOF { SEQUENCEACTION $2 }
 
 otherSignals: PIPE ID SEND pattern FLECHD exprProtected otherSignals { 
   let (blocking,lst) = $7 in
@@ -104,7 +104,7 @@ exprProtected: STRINGVALUE { STRINGEXPRESSION $1 }
 exprProtected: BOOLVALUE { BOOLEXPRESSION $1 }
 exprProtected: ID { IDEXPRESSION $1 }
 exprProtected: QUOTE ID { QUOTEDIDEXPRESSION $2 }
-exprProtected: ACOO actionListPtVirg ACOF { ACTIONEXPRESSION (List.map (x -> ACTIONWRAPPER x) $2) }
+exprProtected: ACOO actionListPtVirg ACOF { ACTIONEXPRESSION (SEQUENCEACTION $2) }
 exprProtected: ACOO objectDefinitions ACOF { OBJECTEXPRESSION $2 }
 exprProtected: CROO exprListPtVirg CROF { LISTEXPRESSION $2 } 
 exprProtected: CROO CROF { LISTEXPRESSION [] }

@@ -7,7 +7,7 @@ class coshHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalNum obj = new NumExpressionObject.numExpressionObject (cosh (obj#returnNum()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (ComplexTools._cosh (obj#returnNum()))
 end;;
 
 class coshNativeObject = 

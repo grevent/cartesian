@@ -3,27 +3,17 @@ class forActionObject id exprObj actionObj =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] AbstractActionObject.abstractActionObject
     
-  method exec parents = 
+  method exec session parents = 
     let expr = exprObj#eval (Env.newEnv parents) in
     
-    if expr#isList() then
+    if expr#isObject() then
       begin
-	let lst = expr#returnList() in 
+	let lst = expr#returnObjectAsList() in 
 	
 	List.iter (fun x -> 
-	  (new AssignActionObject.assignActionObject id x)#exec parents;
-	  actionObj#exec parents;
-	) lst;
-	
-      end
-    else if expr#isArray() then
-      begin
-	let arr = expr#returnArray() in 
-	
-	Array.iter (fun x -> 
-	  (new AssignActionObject.assignActionObject id x)#exec parents;
-	  actionObj#exec parents;
-	) arr;
+		   (new AssignActionObject.assignActionObject id x)#exec session parents;
+		   actionObj#exec session parents;
+		  ) lst;
       end
     else
       raise RuntimeObject.NotAListNorAVector

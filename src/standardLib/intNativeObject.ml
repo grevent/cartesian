@@ -9,8 +9,8 @@ object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
   method evalNum obj =
-    let tmp = obj#returnNum() in
-    if (mod_float tmp 1.0) > 0.0 then
+    let (re,im) = obj#returnNum() in
+    if ((mod_float re 1.0) > 0.0) || ((abs_float im) > 0.0) then
       new BoolExpressionObject.boolExpressionObject false
     else
       new BoolExpressionObject.boolExpressionObject true;

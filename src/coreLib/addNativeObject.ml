@@ -9,7 +9,8 @@ object
     
   method evalNum obj =
     let (re0,im0) = obj#returnNum() in
-    new NumExpressionObject.numExpressionObject (re +. re0,im +. im0)
+    new NumExpressionObject.numExpressionObject (ComplexTools.add (re,im) (re0,im0))
+	
   method evalNOD obj = obj 
 end;;
 
@@ -34,10 +35,12 @@ object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
   
   method evalAction obj = 
-    new ActionExpressionObject.actionExpressionObject [
-      x; 
-      obj
-    ];
+    new ActionExpressionObject.actionExpressionObject
+	(new SequenceActionObject.sequenceActionObject 
+	     [
+	       (x#returnAction());
+	       (obj#returnAction());
+	     ]);
 
   method evalNOD obj = obj 
 end;;
@@ -56,10 +59,7 @@ object
 
   method evalMatrix obj =
     let mat0 = obj#returnMatrix() in
-    let newMat = BasicTools.array2mapIJ (fun i j (re,im) ->
-					 let (re0,im0) = mat0.(i).(j) in (re +. re0,im +. im0)) mat
-    in
-    (new MatrixExpressionObject.matrixExpressionObject newMat)
+    (new MatrixWrapperObject.matrixWrapperObject (MatrixTools.add mat mat0))
 end;;
       
 class addHelper =

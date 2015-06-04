@@ -1,12 +1,13 @@
 
-class actionExpressionObject (actions : AbstractExpressionObject.abstractExpressionObject list) =
+class actionExpressionObject (action: AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject) =
+  
 object(self)
   inherit AbstractExpressionObject.abstractExpressionObject
     
   method eval env =
     Debug.debugStartMethod self "eval";
-    let result = ((new actionExpressionObject (List.map (fun x -> 
-      x#eval env) actions))
+    let (_,resultAction) = (action#preExec env []) in
+    let result = ((new actionExpressionObject resultAction)
 		  :> AbstractExpressionObject.abstractExpressionObject)
     in
     Debug.debugEndMethod self "eval" result;
@@ -14,7 +15,8 @@ object(self)
       
   method preEval env idList = 
     Debug.debugStartMethod self "preEval";
-    let (newIdList,result) = (AbstractExpressionObject.listPreEval env idList actions (fun x -> new actionExpressionObject x)) in
+    let (newIdList,resultAction) = action#preExec env idList in
+    let result = (new actionExpressionObject resultAction) in
     Debug.debugEndMethod self "eval" result;
     (newIdList,(result :> AbstractExpressionObject.abstractExpressionObject))
 
@@ -23,13 +25,9 @@ object(self)
       
   method returnAction() = 
     Debug.debugStartMethod self "action";
-    let result = (new ActionsObject.actionsObject 
-       (List.map (fun x -> x#returnAction()) actions) )
-    in
-    Debug.debugEndMethod self "eval" result;
-    result
-
+    action
+      
   method toTree() = 
-    CartesianTree.ACTIONEXPRESSION (List.map (fun x -> x#toTree()) actions)
+    CartesianTree.ACTIONEXPRESSION (action#toTree())
       
 end;;

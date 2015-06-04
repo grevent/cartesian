@@ -7,7 +7,7 @@ class mulNumHelper fl =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalNum obj = new NumExpressionObject.numExpressionObject (fl *. (obj#returnNum()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (ComplexTools.mul fl(obj#returnNum()))
   method evalNOD obj = obj
 end;;
 

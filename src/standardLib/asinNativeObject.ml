@@ -7,7 +7,7 @@ class asinHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalNum obj = new NumExpressionObject.numExpressionObject (asin (obj#returnNum()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (ComplexTools._asin (obj#returnNum()))
 end;;
 
 class asinNativeObject = 

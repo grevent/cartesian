@@ -9,7 +9,7 @@ object
   method getIds() = 
     []
 
-  method toRepresentation() = 
-    CartesianRepresentation.WILDCARDPATTERN
+  method toTree() = 
+    CartesianTree.WILDCARDPATTERN
     
 end;;

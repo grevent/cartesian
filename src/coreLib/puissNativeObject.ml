@@ -7,7 +7,7 @@ class puissNumHelper fl =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalNum obj = new NumExpressionObject.numExpressionObject (fl ** (obj#returnNum()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (ComplexTools.puiss fl (obj#returnNum()))
   method evalNOD obj = obj 
 end;;
 

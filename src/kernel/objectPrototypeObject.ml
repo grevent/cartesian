@@ -4,7 +4,7 @@ object
   inherit AbstractPrototypeObject.abstractPrototypeObject uc 
     
   method returnValue() = 
-    let obj = new ObjectObject.objectObject in
+    let obj = new ObjectObject.objectObject [] in
     
     List.iter (fun (attr,proto) -> obj#addAttribute attr (proto#returnValue())) lst;
 

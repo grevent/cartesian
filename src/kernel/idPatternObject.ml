@@ -7,9 +7,19 @@ let rec exprToPattern expr =
   else if expr#isNum() then
     (new NumPatternObject.numPatternObject (expr#returnNum()))
   else if expr#isObject() then
-    (new ObjectPatternObject.objectPatternObject (List.map exprToPattern (expr#returnObject())))
+    begin
+      let tmp = expr#returnObject() in
+      let attr = tmp#getAttributes() in
+      (new ObjectPatternObject.objectPatternObject (List.map (fun (attr,expr) -> (attr,(exprToPattern expr))) attr))
+    end
   else if expr#isString() then
     (new StringPatternObject.stringPatternObject (expr#returnString()))
+  else if expr#isMatrix() then
+    begin
+      let mat = (expr#returnMatrix()) in
+      (new MatrixPatternObject.matrixPatternObject
+	   (Array.map (fun x -> (Array.map (fun y -> exprToPattern (new NumExpressionObject.numExpressionObject y)) x)) mat) )
+    end
   else
     raise NoCorrespondingPatternForExpr
 ;;

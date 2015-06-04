@@ -8,10 +8,8 @@ object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
   method evalNum obj =
-    if (mod_float x 1.0) > 0.0 then
-      raise (AbstractExpressionObject.CanNotConvertToInt (Printf.sprintf "%f" x))
-    else
-      new NumExpressionObject.numExpressionObject (float_of_int ((lor) (int_of_float x) (obj#returnNumAsInt())));
+    new NumExpressionObject.numExpressionObject ((float_of_int ((lor) x (obj#returnNumAsInt()))),0.0)
+
   method evalNOD obj = obj
 end;;
 
@@ -27,7 +25,7 @@ class lorHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject nativeFunctionHelper] nativeFunctionHelper (new lorNodHelper defaultValue)
     
-  method evalNum obj = (new lorNumHelper (obj#returnNum()))
+  method evalNum obj = (new lorNumHelper (obj#returnNumAsInt()))
   method evalNOD obj = (new lorNodHelper obj)
 end;;
 

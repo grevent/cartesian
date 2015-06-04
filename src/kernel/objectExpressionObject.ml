@@ -4,13 +4,13 @@ object(self)
   inherit AbstractExpressionObject.abstractExpressionObject
     
   method eval env =
-    let obj = new ObjectObject.objectObject in
+    let obj = new ObjectObject.objectObject [] in
     
     List.iter (fun (id,patterns,expr) -> 
-      obj#addAttribute id 
-	(if List.length patterns > 0 then
-	    (new FunctionExpressionObject.functionExpressionObject [(patterns,expr)])
-	 else
+	       obj#addAttribute id 
+				(if List.length patterns > 0 then
+				   (new FunctionExpressionObject.functionExpressionObject [(patterns,expr)])
+				 else
 	    (expr#eval env) ) ) defs;
     
     new ObjectWrapperExpressionObject.objectWrapperExpressionObject obj

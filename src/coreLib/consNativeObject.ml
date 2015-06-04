@@ -9,8 +9,8 @@ object
     
   method evalObj obj =
     let concreteObj = obj#returnObject() in
-    concreteObj#cons x;
-    new ObjectWrapperExpressionObject.objectWrapperExpressionObject concreteObj
+    let result = concreteObj#cons x in
+    new ObjectWrapperExpressionObject.objectWrapperExpressionObject result
 	
   method evalNOD obj = obj 
 end;;

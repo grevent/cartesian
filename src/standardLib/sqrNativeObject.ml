@@ -7,7 +7,7 @@ class sqrHelper =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] nativeFunctionHelper defaultValue
     
-  method evalNum obj = new NumExpressionObject.numExpressionObject (sqrt  (obj#returnNum()))
+  method evalNum obj = new NumExpressionObject.numExpressionObject (ComplexTools._sqrt  (obj#returnNum()))
 end;;
 
 class sqrNativeObject = 

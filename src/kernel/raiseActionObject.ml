@@ -5,7 +5,7 @@ class raiseActionObject exprObj =
 object
   inherit [AbstractExpressionObject.abstractExpressionObject] AbstractActionObject.abstractActionObject
     
-  method exec parents = 
+  method exec session parents = 
     raise (CartesianInternalException (exprObj#eval (Env.newEnv parents)));
 
   method preExec env idList =

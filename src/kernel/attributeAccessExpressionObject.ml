@@ -14,7 +14,8 @@ object
     let attr = obj#getAttribute id in
 
     if attr#isAction() then
-      (new ActionExpressionObject.actionExpressionObject [(new ActionWrapperExpr.actionWrapperExpr (new ContextActionObject.contextActionObject expr attr))])
+      (new ActionExpressionObject.actionExpressionObject 
+	   (new ContextActionObject.contextActionObject expr attr))
     else
       attr
 
