@@ -1,9 +1,14 @@
+(* Comment *) 
 
-class virtual abstractAdapter =
+class virtual abstractAdapter (actorName: string) =
 object(self)
+
   method virtual listen: (int -> string -> CartesianTree.cartesianTree -> unit) ->
-			 (string -> CartesianTree.cartesianTree -> int) ->
-			 unit 
-  method virtual send: int -> CartesianTree.cartesianTree -> unit 
-  method virtual getId: unit -> string
+			 (string -> int) ->
+			 Thread.t
+			  
+  method virtual send: int -> CartesianTree.cartesianTree -> unit
+   
+  method getId() = actorName 
+
 end;;

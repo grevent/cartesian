@@ -1,2 +1,2 @@
 #!/bin/bash
-ocamlbuild -use-ocamlfind -Is src/kernel,src/coreLib,src/standardLib -package unix -Is src src/cartesianCLI.native
+ocamlbuild -use-ocamlfind -Is src/kernel,src/coreLib,src/standardLib -tag thread -package unix -Is src src/cartesianCLI.native

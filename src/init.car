@@ -1,0 +1,10 @@
+
+{
+	console !=> {
+		console <== "\tCartesian V0.01\n"
+		console <== "\t(c) 2015 actioplan GmbH under GNU GENERAL PUBLIC LICENSE V3\n"
+
+		while true do
+			console ==> x -> { x }
+	}
+}

@@ -9,7 +9,7 @@ object
     if exprEval#isMatrix() then
       begin
 		let exprMat = exprEval#returnMatrix() in
-		BasicTools.array2foldIJ (fun acc i j y -> if acc then (mat.(i).(j))#matchToExpression env (new  NumExpressionObject.numExpressionObject y) else false) exprMat true;
+		BasicTools.array2foldIJ (fun acc i j y -> if acc then (mat.(i).(j))#matchToExpression env (new NumExpressionObject.numExpressionObject y) else false) exprMat true;
       end
     else
       false

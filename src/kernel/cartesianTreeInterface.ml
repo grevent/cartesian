@@ -145,7 +145,7 @@ and tree2Object dispatcher tree =
   match tree with
     OBJECT attributes ->
     let obj = new ObjectObject.objectObject [] in
-    List.iter (fun (id,expr) -> (obj#addAttribute id (tree2Expr dispatcher expr)));
+    List.iter (fun (id,expr) -> (obj#addAttribute id (tree2Expr dispatcher expr))) attributes;
     obj
   | _ -> raise NotAnObject
 ;;

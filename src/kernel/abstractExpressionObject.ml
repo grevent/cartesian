@@ -17,7 +17,7 @@ exception ExpressionNotAFunction
 class virtual abstractExpressionObject =
 object(self)
   inherit RuntimeObject.runtimeObject
-    
+  
   method virtual eval: abstractExpressionObject Env.env -> abstractExpressionObject
   method virtual preEval: abstractExpressionObject Env.env -> string list -> ((string list)*abstractExpressionObject)
 
