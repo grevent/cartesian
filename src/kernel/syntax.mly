@@ -28,8 +28,7 @@
 %left NOT
 
 %type <CartesianTree.cartesianTree> phrase
-%type <string -> AbstractPrototypeObject.abstractPrototypeObject> prototypeExpression
-									    
+%type <string -> CartesianTree.cartesianTree> prototypeExpression									    
 
 %start phrase
 
@@ -51,7 +50,7 @@ action: TRY actionListPtVirg WITH matchExprs { TRYACTION ($2,$4) }
 action: ID patterns DEUXPOINTS expr { DEFINEACTION ($1,$2,$4) }
 action: CONTEXT exprProtected expr { CONTEXTACTION ($2,$3) }
 action: ID STARTSEND action {
-  ACTORSTARTSACTION ($1,$3) }
+  REGISTERSTARTACTION ($1,$3) }
 action: ID SEND pattern FLECHD exprProtected otherSignals {
   let (blocking,lst) = $6 in
   ACTORSENDSACTION (blocking,($1,$3,$5)::lst) }
@@ -125,14 +124,14 @@ matchExprs: lambdaExpr { [ $1 ] }
 assigns: pattern EGAL expr AND assigns { ($1,$3)::$5 }
 assigns: pattern EGAL expr { [($1,$3)] }
 
-prototypeExpression: INTVALUE { fun uc -> NUMPROTOTYPE (uc,(float_of_int $1),0.0) }
-prototypeExpression: FLOATVALUE { fun uc -> NUMPROTOTYPE (uc,$1,0.0) }
-prototypeExpression: PARO FLOATVALUE PTVIRG FLOATVALUE PARF { fun uc -> NUMPROTOTYPE (uc,$2,$4) }
+prototypeExpression: INTVALUE { fun uc -> NUMPROTOTYPE (uc,((float_of_int $1),0.0)) }
+prototypeExpression: FLOATVALUE { fun uc -> NUMPROTOTYPE (uc,($1,0.0)) }
+prototypeExpression: PARO FLOATVALUE PTVIRG FLOATVALUE PARF { fun uc -> NUMPROTOTYPE (uc,($2,$4)) }
 prototypeExpression: STRINGVALUE { fun uc -> STRINGPROTOTYPE (uc,$1) }
 prototypeExpression: BOOLVALUE { fun uc -> BOOLPROTOTYPE (uc,$1) }
-prototypeExpression: CROO prototypeExpressionListPtVirg CROF { fun uc -> LISTPROTOTYPE (uc,$2) }
+prototypeExpression: CROO prototypeExpressionListPtVirg CROF { fun uc -> LISTPROTOTYPE (uc,(List.map (fun proto -> (proto uc)) $2)) }
 prototypeExpression: CROO CROF { fun uc -> LISTPROTOTYPE (uc,[]) }
-prototypeExpression: ACOO prototypeObjectDefinitions ACOF { fun uc -> OBJECTPROTOTYPE (uc,$2) }
+prototypeExpression: ACOO prototypeObjectDefinitions ACOF { fun uc -> OBJECTPROTOTYPE (uc,(List.map (fun proto -> (proto uc)) $2)) }
 prototypeExpression: CROOPIPE matrixNumericPart PIPECROF { fun uc -> MATRIXPROTOTYPE (uc,(Array.of_list $2)) }
 
 numListPtVirg: INTVALUE PTVIRG numListPtVirg { ((float_of_int $1),0.0)::$3 }
@@ -170,7 +169,7 @@ pattern: patternProtected { $1 }
 patternProtected: INTVALUE { NUMPATTERN ((float_of_int $1),0.0) }
 patternProtected: FLOATVALUE { NUMPATTERN ($1,0.0) }
 patternProtected: PARO FLOATVALUE PTVIRG FLOATVALUE PARF { NUMPATTERN ($2,$4) }
-patternProtected: CROOPIPE matrixNumericPart PIPECROF { MATRIXPATTERN (Array.of_list $2) }
+patternProtected: CROOPIPE matrixNumericPatternPart PIPECROF { MATRIXPATTERN (Array.of_list $2) }
 patternProtected: STRINGVALUE { STRINGPATTERN $1 }
 patternProtected: BOOLVALUE { BOOLPATTERN $1 }
 patternProtected: CROO patternListPtVirg CROF { LISTPATTERN $2 }
@@ -193,3 +192,5 @@ exprProtectedList: exprProtected { [ $1 ] }
 patternListPtVirg: pattern PTVIRG patternListPtVirg { $1::$3 }
 patternListPtVirg: pattern { [ $1 ] }
 
+matrixNumericPatternPart: patternListPtVirg PIPEPIPE matrixNumericPatternPart { (Array.of_list $1)::$3 }
+matrixNumericPatternPart: patternListPtVirg { [(Array.of_list $1)] }
