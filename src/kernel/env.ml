@@ -81,9 +81,6 @@ object(self)
     let tmp = List.fold_left (fun acc lst -> (Printf.sprintf "%s %d" acc (List.length lst))) "" (currentLevel::levels) in
     modeStr^"("^tmp^")"
 
-  method toXml() = 
-    "<env/>"
-
 end;;
 
 let newEnv objs =

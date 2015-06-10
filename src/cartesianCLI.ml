@@ -16,6 +16,7 @@ let _ =
 	close_in initChannel;
 
 	let obj = CartesianTreeInterface.tree2Expr dispatcher tree in
+	ignore (dispatcher#adapter (new ConsoleAdapter.consoleAdapter));
 	let runtimeExpr = obj#eval  (Env.newEnv [rootObject]) in
 	let runtimeAction = runtimeExpr#returnAction() in
 	

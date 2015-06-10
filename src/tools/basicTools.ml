@@ -44,8 +44,8 @@ let preEval lambdas env idList =
     (patterns,newExpr) ) lambdas)
 ;;
 
-let rec listIterator fn insertElement = function
-(el1::el2::suite) -> (fn el1)^insertElement^(listIterator fn insertElement (el2::suite))
+let rec listIterator2String fn insertElement = function
+(el1::el2::suite) -> (fn el1)^insertElement^(listIterator2String fn insertElement (el2::suite))
   | [el] -> (fn el)
   | [] -> ""
 ;;

@@ -34,7 +34,7 @@ let debugStartMethod obj mthd =
   if stdDebugOn then
     if (List.exists (fun x -> (String.compare x mthd) == 0) debugMethods) || ((List.length debugMethods) == 0) then
       begin
-	Printf.eprintf ">%s: %s" mthd (obj#toXml());
+	Printf.eprintf ">%s: %s" mthd (obj#toString());
 	prerr_newline();
       end;
 ;;
@@ -43,7 +43,7 @@ let debugEndMethod obj mthd objR =
   if stdDebugOn then
     if (List.exists (fun x -> (String.compare x mthd) == 0) debugMethods) || ((List.length debugMethods) == 0) then
       begin
-	Printf.eprintf "<%s: %s = %s" mthd (obj#toXml()) (objR#toXml());
+	Printf.eprintf "<%s: %s = %s" mthd (obj#toString()) (objR#toString());
 	prerr_newline();
       end;
 ;;
@@ -52,7 +52,7 @@ let debugEnd0Method obj mthd =
   if stdDebugOn then
     if (List.exists (fun x -> (String.compare x mthd) == 0) debugMethods) || ((List.length debugMethods) == 0) then
       begin
-	Printf.eprintf "<%s: %s" mthd (obj#toXml());
+	Printf.eprintf "<%s: %s" mthd (obj#toString());
 	prerr_newline();
       end;
 ;;

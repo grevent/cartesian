@@ -6,12 +6,6 @@ let rec exprToPattern expr =
     (new BoolPatternObject.boolPatternObject (expr#returnBool()))
   else if expr#isNum() then
     (new NumPatternObject.numPatternObject (expr#returnNum()))
-  else if expr#isObject() then
-    begin
-      let tmp = expr#returnObject() in
-      let attr = tmp#getAttributes() in
-      (new ObjectPatternObject.objectPatternObject (List.map (fun (attr,expr) -> (attr,(exprToPattern expr))) attr))
-    end
   else if expr#isString() then
     (new StringPatternObject.stringPatternObject (expr#returnString()))
   else if expr#isMatrix() then
