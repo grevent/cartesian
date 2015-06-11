@@ -121,8 +121,8 @@ lambdaExpr: patterns FLECHD exprProtected { ($1,$3) }
 matchExprs: lambdaExpr PIPE matchExprs { $1::$3 }
 matchExprs: lambdaExpr { [ $1 ] }
 
-assigns: pattern EGAL expr AND assigns { ($1,$3)::$5 }
-assigns: pattern EGAL expr { [($1,$3)] }
+assigns: pattern patterns EGAL expr AND assigns { ($1,$2,$4)::$6 }
+assigns: pattern patterns EGAL expr { [($1,$2,$4)] }
 
 prototypeExpression: INTVALUE { fun uc -> NUMPROTOTYPE (uc,((float_of_int $1),0.0)) }
 prototypeExpression: FLOATVALUE { fun uc -> NUMPROTOTYPE (uc,($1,0.0)) }

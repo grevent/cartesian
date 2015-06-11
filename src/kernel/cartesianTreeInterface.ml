@@ -7,8 +7,6 @@ exception NotAPattern
 exception NotAFunction
 exception NotAPrototype
 exception NotAnObject
-exception NativeFunction
-exception NativeAction
   
 let rec tree2Action dispatcher tree =
   match tree with

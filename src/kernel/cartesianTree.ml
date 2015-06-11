@@ -1,4 +1,7 @@
 
+exception NativeFunction
+exception NativeAction
+
 type cartesianTree =
     ACTIONWRAPPER of cartesianTree
   | SEQUENCEACTION of (cartesianTree list)

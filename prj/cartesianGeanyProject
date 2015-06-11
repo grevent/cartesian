@@ -23,7 +23,14 @@ long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=-1
+current_page=0
+FILE_NAME_0=5142;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Finterfaces%2FstringRepresentation.ml;0;4
+FILE_NAME_1=4276;None;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Finterfaces%2Fsyntax.mly;0;4
+FILE_NAME_2=49;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2FcartesianTree.ml;0;4
+FILE_NAME_3=154;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2FcartesianTreeInterface.ml;0;4
+FILE_NAME_4=2179;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Ftools%2FmatrixTools.ml;0;4
+FILE_NAME_5=0;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Ftools%2FbasicTools.ml;0;4
+FILE_NAME_6=2971;None;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Finterfaces%2Flex.mll;0;4
 
 [VTE]
 last_dir=/home/christophe
