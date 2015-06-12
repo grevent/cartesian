@@ -1,5 +1,6 @@
 
 exception NoMatch
+exception MatchNotWithOnePattern
 
 class matchExpressionObject
 	(exprObj: AbstractExpressionObject.abstractExpressionObject)
@@ -38,6 +39,9 @@ object
 
   method toTree() =
     CartesianTree.MATCHEXPRESSION ((exprObj#toTree()),
-				   (List.map (fun ([pattern],expr) -> ([(pattern#toTree())],(expr#toTree()))) matchs) )
+		(List.map (fun x -> match x with 
+			([pattern],expr) -> ([(pattern#toTree())],(expr#toTree())) |
+			_ -> raise MatchNotWithOnePattern
+			) matchs) )
 
 end;;

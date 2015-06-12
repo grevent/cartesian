@@ -77,7 +77,7 @@ and tree2Expr dispatcher tree =
   | INSTANCESEXPRESSION lst -> new InstancesExpressionObject.instancesExpressionObject (List.map (tree2Prototype dispatcher) lst)
   | LETEXPRESSION (defs,expr) ->
      new LetExpressionObject.letExpressionObject
-	 (List.map (fun (pattern,expr) -> ((tree2Pattern dispatcher pattern),(tree2Expr dispatcher expr))) defs)
+	 (List.map (fun (pattern,params,expr) -> ((tree2Pattern dispatcher pattern),(List.map (tree2Pattern dispatcher) params),(tree2Expr dispatcher expr))) defs)
 	 (tree2Expr dispatcher expr)
   | MATCHEXPRESSION (expr,matchs) ->
      new MatchExpressionObject.matchExpressionObject

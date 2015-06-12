@@ -54,7 +54,7 @@ type cartesianTree =
   | LISTPATTERN of (cartesianTree list)
   | IDPATTERN of string
   | INSTANCESEXPRESSION of (cartesianTree list)
-  | LETEXPRESSION of ((cartesianTree*cartesianTree) list)*cartesianTree
+  | LETEXPRESSION of ((cartesianTree*(cartesianTree list)*cartesianTree) list)*cartesianTree
   | LISTPROTOTYPE of (string*(cartesianTree list))
   | MATCHEXPRESSION of (cartesianTree*(((cartesianTree list)*cartesianTree) list))
   | COMMENT of (string*cartesianTree)

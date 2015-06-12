@@ -95,7 +95,7 @@ let rec generateString x = match x with
 	| FUNCTIONCALLEXPRESSION (expr,params) -> "("^(generateString expr)^(listIterator2String (fun param -> " "^(generateString param)) "" params)^")"
 	| LISTPATTERN lst -> "["^(listIterator2String generateString "; " lst)^"]"
 	| INSTANCESEXPRESSION prototypes -> "("^(listIterator2String generateString " " prototypes)^")"
-	| LETEXPRESSION (defs,expr) -> "let "^(listIterator2String (fun (pattern,expr) -> (generateString pattern)^" = "^(generateString expr)) "and" defs)^" in"
+	| LETEXPRESSION (defs,expr) -> "let "^(listIterator2String (fun (pattern,params,expr) -> (generateString pattern)^(listIterator2String (fun param -> " "^(generateString param)) "" params)^" = "^(generateString expr)) "and" defs)^" in"
 	| LISTPROTOTYPE (uc,lst) -> "["^(listIterator2String generateString "; " lst)^"]"
 	| MATCHEXPRESSION (expr,matches) -> "match "^(generateString expr)^" with "^(listIterator2String (fun (params,expr) -> (listIterator2String generateString " " params)^" -> "^(generateString expr)) " | " matches)
 ;;
