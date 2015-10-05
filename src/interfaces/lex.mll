@@ -37,8 +37,8 @@ rule lexer =
     | "lambda" { Debug.lexDebug "LAMBDA"; Syntax.LAMBDA }
     | "->" { Debug.lexDebug "FLECHD"; Syntax.FLECHD }
     | "<-" { Debug.lexDebug "FLECHG"; Syntax.FLECHG }
+    | "=>" { Debug.lexDebug "IMPLY"; Syntax.IMPLY }
     | "==>" { Debug.lexDebug "SEND"; Syntax.SEND }
-    | "!=>" { Debug.lexDebug "STARTSEND"; Syntax.STARTSEND }
     | "<==" { Debug.lexDebug "RECEIVE"; Syntax.RECEIVE }
     | "let" { Debug.lexDebug "LET"; Syntax.LET }
     | "in" { Debug.lexDebug "IN"; Syntax.IN }
@@ -46,18 +46,19 @@ rule lexer =
     | "=" { Debug.lexDebug "EGAL"; Syntax.EGAL }
     | ":" { Debug.lexDebug "DEUXPOINTS"; Syntax.DEUXPOINTS }
     | "." { Debug.lexDebug "PT"; Syntax.PT }
+    | ".." { Debug.lexDebug "PT"; Syntax.PTPT }
+	| "," { Debug.lexDebug "VIRG"; Syntax.VIRG }
     | "'" { Debug.lexDebug "QUOTE"; Syntax.QUOTE }
     | "(" { Debug.lexDebug "PARO"; Syntax.PARO }
     | ")" { Debug.lexDebug "PARF"; Syntax.PARF }
+    | "each" { Debug.lexDebug "EACH"; Syntax.EACH }
+    | "all" { Debug.lexDebug "ALL"; Syntax.ALL }
     | "match" { Debug.lexDebug "MATCH"; Syntax.MATCH }
     | "with" { Debug.lexDebug "WITH"; Syntax.WITH }
     | "and" { Debug.lexDebug "AND"; Syntax.AND }
     | "mod" { Debug.lexDebug "MOD"; Syntax.MOD }
-    | "while" { Debug.lexDebug "WHILE"; Syntax.WHILE }
-    | "do" { Debug.lexDebug "DO"; Syntax.DO }
-    | "for" { Debug.lexDebug "FOR"; Syntax.FOR }
+	| "do" { Debug.lexDebug "DO"; Syntax.DO }
     | "not" { Debug.lexDebug "NOT"; Syntax.NOT }
-    | "context" { Debug.lexDebug "CONTEXT"; Syntax.CONTEXT }
     | "||" { Debug.lexDebug "LOGICALOR"; Syntax.LOGICALOR }
     | "&&" { Debug.lexDebug "LOGICALAND"; Syntax.LOGICALAND }
     | ";" { Debug.lexDebug "PTVIRG"; Syntax.PTVIRG }
@@ -68,9 +69,7 @@ rule lexer =
     | "if" { Debug.lexDebug "IF"; Syntax.IF }
     | "then" { Debug.lexDebug "IF"; Syntax.THEN }
     | "else" { Debug.lexDebug "ELSE"; Syntax.ELSE }
-    | "raise" { Debug.lexDebug "RAISE"; Syntax.RAISE }
-    | "try" { Debug.lexDebug "TRY"; Syntax.TRY }
-    | "//" { Debug.lexDebug "THREAD"; Syntax.THREAD }
+    | "actor" { Debug.lexDebug "ACTOR"; Syntax.ACTOR }
     | ('+'|'-')?['0'-'9']+ as integer { Debug.lexDebug (Printf.sprintf "INTVALUE='%s'" (Lexing.lexeme lexbuf)); Syntax.INTVALUE (int_of_string integer) }
     | ('+'|'-')?['0'-'9']+'.'['0'-'9']*(('e'|'E')['0'-'9']+)? as floating { Debug.lexDebug (Printf.sprintf "FLOATVALUE='%s'" (Lexing.lexeme lexbuf));  Syntax.FLOATVALUE (float_of_string floating) }
     | ('+'|'-')?['0'-'9']*'.'['0'-'9']+(('e'|'E')['0'-'9']+)? as floating { Debug.lexDebug (Printf.sprintf "FLOATVALUE='%s'" (Lexing.lexeme lexbuf));  Syntax.FLOATVALUE (float_of_string floating) }

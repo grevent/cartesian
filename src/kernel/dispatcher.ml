@@ -20,15 +20,10 @@ object(self)
 
 	(* 
 		Method for the addition or replacement of a new adapter. Associates it to the actor name
-		At the end, starts the listeners of the given adapter
-		Returns the thread of the associated thread
 	*)
 
   method adapter (adapter: AbstractAdapter.abstractAdapter) = 
     Hashtbl.replace adapters (adapter#getId()) adapter;
-    adapter#listen
-	      (fun sessionId actorId tree -> self#actorSendsMessage sessionId actorId tree)
-	      (fun actorId -> self#actorStartsSession actorId)
     
     (*
 		Sends for a given session to an actor a given object represented as a tree 
@@ -48,12 +43,19 @@ object(self)
     (actorId,tree)
 
 	(*
-		Registration by the program of a given handler for the starting of a session
+		Registration by the program of a given handler for the starting of a session. 
+		Start or restart of the associated listener... 
 	*)
 
   method register actorId (handler: int -> unit) =
-    ignore (Hashtbl.replace startHandlers actorId handler);
-      
+	let adapter = Hashtbl.find adapters actorId in 
+	
+    ignore (Hashtbl.replace startHandlers actorId handler);      
+
+    adapter#listen
+		(fun sessionId actorId tree -> self#actorSendsMessage sessionId actorId tree)
+	    (fun actorId -> self#actorStartsSession actorId)
+
       (* Concrete start of a given session... The listener of an actor should call this at start *)
       
   method actorStartsSession (actorId: string) =

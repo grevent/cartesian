@@ -2,13 +2,15 @@
 exception NoMatch
 exception MatchNotWithOnePattern
 
-class matchExpressionObject
-	(exprObj: AbstractExpressionObject.abstractExpressionObject)
-	(matchs: ((AbstractExpressionObject.abstractExpressionObject AbstractPatternObject.abstractPatternObject list)*(AbstractExpressionObject.abstractExpressionObject)) list) =
+class matchExpressionObject depths exprObj extensions matchExprs =
 object
   inherit AbstractExpressionObject.abstractExpressionObject
     
   method eval env =
+	
+  
+  
+  
     let value = exprObj#eval env in
     let rec helper matchs = match (matchs) with
 	([pattern],expr)::suite -> 

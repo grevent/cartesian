@@ -10,20 +10,14 @@ let fromString str =
 let rec generateString x = match x with
 	  ACTIONWRAPPER x -> (generateString x)
 	| SEQUENCEACTION x -> "{"^(listIterator2String generateString ";" x)^"}"
-	| WHILEACTION (x,y) -> "while "^(generateString x)^" do "^(generateString y)
-	| ACTORSENDSACTION (blocking,rules) -> (listIterator2String (fun (id,pattern,action) -> id^" ==>"^(generateString pattern)^" -> "^(generateString action)) " | " rules)^(if blocking then "" else "| ...")
-	| REGISTERSTARTACTION (id,action) -> id^" !=> "^(generateString action)
+	| ACTORSENDSSTATE (actor,message,patterns,expr) -> actor^" ==> "^message^(List.fold_left (fun acc pattern -> acc^(generateString pattern)^" ") " " patterns)^" -> "^(generateString expr)
 	| ACTORRECEIVESACTION (id,expr) -> id^" <== "^(generateString expr)
-	| THREADACTION action -> "// "^(generateString action)
-	| TRYACTION (actions,matches) -> 
-		"try "^(listIterator2String generateString "; " actions)^" with "^(listIterator2String (fun (patterns,action) -> (listIterator2String generateString " " patterns)^" -> "^(generateString action)) " | " matches)
 	| ACTIONEXPRESSION expr -> (generateString expr)
 	| FUNCTION matches -> (listIterator2String (fun (patterns,expr) -> "lambda "^(listIterator2String generateString " " patterns)^" -> "^(generateString expr)) " | " matches)
 	| WILDCARDPATTERN -> "_"
 	| STRINGPROTOTYPE (uc,value) -> "\""^value^"\""
 	| STRINGPATTERN value -> "\""^value^"\""
 	| RENAMINGPATTERN (pattern,newId) -> (generateString pattern)^" as "^newId
-	| RAISEACTION expr -> "raise "^(generateString expr)
 	| QUOTEDIDEXPRESSION id -> "'"^id 
 	| OBJECTWRAPPEREXPRESSION obj -> (generateString obj)
 	| OBJECTPROTOTYPE (uc,attributes) -> (listIterator2String (fun (attribute,expr) -> attribute^"= "^(generateString expr)) "; " attributes)
@@ -83,12 +77,10 @@ let rec generateString x = match x with
 	| CONSPATTERN (car,cdr) -> "("^(generateString car)^")::("^(generateString cdr)^")"
 	| FUNCTIONEXPRESSION lambdas -> "lambda "^(listIterator2String (fun (params,expr) -> (listIterator2String generateString " " params)^" -> "^(generateString expr)) " | " lambdas)
 	| DEFINEACTION (id,params,expr) -> id^(listIterator2String (fun param -> " "^(generateString param)) "" params)^": "^(generateString expr)
-	| DOACTION (action,expr) -> "do "^(generateString action)^" while "^(generateString expr)
 	| EXPRACTION expr -> (generateString expr)
 	| NUMPATTERN (re,im) -> (Printf.sprintf "(%f,%f)" re im)
  	| NUMPROTOTYPE (uc,(re,im)) -> (Printf.sprintf "(%f,%f)" re im)
 	| MATRIXPROTOTYPE (uc,mat) -> MatrixTools.toString mat
-	| FORACTION (id,expr,action) -> "for "^id^" in "^(generateString expr)^" do "^(generateString action)
 	| IDPATTERN id -> id
 	| COMMENT (comment,node) -> (generateString node)^" "^comment
 	| WHEREPATTERN (pattern,expr) -> (generateString pattern)^" where "^(generateString expr)
@@ -97,5 +89,6 @@ let rec generateString x = match x with
 	| INSTANCESEXPRESSION prototypes -> "("^(listIterator2String generateString " " prototypes)^")"
 	| LETEXPRESSION (defs,expr) -> "let "^(listIterator2String (fun (pattern,params,expr) -> (generateString pattern)^(listIterator2String (fun param -> " "^(generateString param)) "" params)^" = "^(generateString expr)) "and" defs)^" in"
 	| LISTPROTOTYPE (uc,lst) -> "["^(listIterator2String generateString "; " lst)^"]"
-	| MATCHEXPRESSION (expr,matches) -> "match "^(generateString expr)^" with "^(listIterator2String (fun (params,expr) -> (listIterator2String generateString " " params)^" -> "^(generateString expr)) " | " matches)
+	| MATCHEXPRESSION (depth,expr,extensions,matches) -> "match "^(generateString depth)^(generateString expr)^(generateString extensions)^" with "^(listIterator2String (fun (params,expr) -> (listIterator2String generateString " " params)^" -> "^(generateString expr)) " | " matches)
+
 ;;

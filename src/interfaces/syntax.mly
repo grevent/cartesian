@@ -1,21 +1,24 @@
 
+
 %{
   open CartesianTree
 %}
 
-%token PLUS MINUS MUL MOD DIV PUISS CROO CROF PIPE ACOO ACOF LAMBDA FLECHD FLECHG LET IN DEUXDEUXPOINTS
-%token EGAL DEUXPOINTS PT PARO PARF MATCH WITH AND WHILE DO FOR NOT LOGICALOR
-%token LOGICALAND PTVIRG VIRG SOULIGNE AS NOD RAISE TRY 
-%token CONTEXT PTPTPT EOL IF THEN ELSE CROOPIPE PIPECROF PIPEPIPE
-%token STARTSEND THREAD SEND RECEIVE WHERE THREAD
-%token INF SUP EGALEGAL NOTEGAL INFEGAL SUPEGAL QUOTE
-%token <string> ID
+%token EOL USE CASE ID ACOO ACOF PTVIRG SEND FLECHD INCLUDE FLECHG
+%token DO EACH RECEIVE ACTOR DEUXPOINTS TRANSACTION LAMBDA LET IN  MATCH IF
+%token THEN ELSE CROO CROF RULE IMPLY PARO  PARF INT CROOPIPE  PIPECROF
+%token QUOTE PTPT NOD  PIPEPIPE EXTENDED BY ALL POSSIBLE EGAL AND VIRG AS
+%token SOULIGNE 
+%token PLUS MINUS MUL DIV PUISS INF SUP EGALEGAL NOTEGAL INFEGAL SUPEGAL PIPE
+%token DEUXDEUXPOINTS PT PTPT WITH MOD NOT LOGICALOR LOGICALAND 
+
+%token INT FLOAT COMPLEX STRING OBJECT ARRAY
+
+%token <string> ID COMMENT STRINGVALUE
 %token <int> INTVALUE
 %token <float> FLOATVALUE
-%token <string> STRINGVALUE COMMENT
 %token <bool> BOOLVALUE
 
-%left THREAD
 %left PIPE
 %left WHERE
 %left WITH
@@ -26,47 +29,41 @@
 %left PUISS
 %left PT
 %left NOT
-
+      
 %type <CartesianTree.cartesianTree> phrase
-%type <string -> CartesianTree.cartesianTree> prototypeExpression									    
-
+      
 %start phrase
-
+       
 %%
-
+ 
 phrase: expr EOL { $1 }
 
+statesAndDefs: state PTVIRG statesAndDefs { $1::$3 }
+statesAndDefs: state { [$1] }
+statesAndDefs: actionDef PTVIRG statesAndDefs { $1::$3 }
+statesAndDefs: actionDef { [$1] }
+
+state: ID SEND ID patterns FLECHD exprProtected { ACTORSENDSSTATE ($1,$3,$4,$6) }
+state: expr FLECHD exprProtected { BOOLSTATE ($1,$3) }
+state: INCLUDE ID { INCLUDESTATE $2 }
+  
 comment: COMMENT { $1 }
 comment: { "" }
 
+action: actionDef { $1 }
 action: ID FLECHG expr exprProtectedList { ASSIGNACTION ($1,FUNCTIONCALLEXPRESSION ($3,$4)) }
 action: ID FLECHG expr { ASSIGNACTION ($1,$3) }
-action: WHILE expr DO action { WHILEACTION ($2,$4) }
-action: FOR ID IN expr DO action { FORACTION ($2,$4,$6) }
-action: DO action WHILE expr { DOACTION ($2,$4) }
-action: RAISE expr { RAISEACTION $2 }
+action: DO expr { DOACTION $2 (* Do each action in the list / object delivered by the evaluation *) }
 action: expr { EXPRACTION $1 }
-action: TRY actionListPtVirg WITH matchExprs { TRYACTION ($2,$4) }
-action: ID patterns DEUXPOINTS expr { DEFINEACTION ($1,$2,$4) }
-action: CONTEXT exprProtected expr { CONTEXTACTION ($2,$3) }
-action: ID STARTSEND action {
-  REGISTERSTARTACTION ($1,$3) }
-action: ID SEND pattern FLECHD exprProtected otherSignals {
-  let (blocking,lst) = $6 in
-  ACTORSENDSACTION (blocking,($1,$3,$5)::lst) }
 action: ID RECEIVE expr { ACTORRECEIVESACTION ($1,$3) }
-action: THREAD action { THREADACTION $2 }
-action: ACOO actionListPtVirg ACOF { SEQUENCEACTION $2 }
+action: ACTOR ID DEUXPOINTS ID expr { DEFINEACTORACTION ($2,$4,$5) (* Definition of actor 2 with reference 4 and parameter object 5 *) }
+action: TRANSACTION expr { TRANSACTIONACTION ($2) (* Execute expr as action, with all attributes / objects accessed protected in write / read *) }
 
-otherSignals: PIPE ID SEND pattern FLECHD exprProtected otherSignals { 
-  let (blocking,lst) = $7 in
-  (blocking,($2,$4,$6)::lst) }
-otherSignals: PIPE PTPTPT { (false,[]) }
-otherSignals: { (true,[]) }
+actionDef: ID patterns DEUXPOINTS expr { DEFINEACTION ($1,$2,$4) }
 
-actionListPtVirg: action PTVIRG comment actionListPtVirg { COMMENT ($3,$1)::$4 }
-actionListPtVirg: action comment { [ COMMENT ($2,$1) ] }
-actionListPtVirg: action PTVIRG comment { [ COMMENT ($3,$1) ] }
+actionListPtVirg: action PTVIRG actionListPtVirg { $1::$3 }
+actionListPtVirg: action { [$1]}
+actionListPtVirg: action PTVIRG { [$1] }
 
 expr: expr INF expr { FUNCTIONCALLEXPRESSION ((IDEXPRESSION "_<"),[$1; $3]) }
 expr: expr SUP expr { FUNCTIONCALLEXPRESSION ((IDEXPRESSION "_>"),[$1; $3]) }
@@ -86,15 +83,22 @@ expr: expr DEUXDEUXPOINTS expr { FUNCTIONCALLEXPRESSION ((IDEXPRESSION "_::"),[$
 expr: NOT expr { FUNCTIONCALLEXPRESSION ((IDEXPRESSION "_not"),[$2]) }
 expr: LAMBDA matchExprs { FUNCTIONEXPRESSION $2 }
 expr: LET assigns IN exprProtected { LETEXPRESSION ($2,$4) }
-expr: MATCH expr WITH matchExprs { MATCHEXPRESSION ($2,$4) }
+expr: MATCH depthModification expr extensions WITH matchExprs { MATCHEXPRESSION ($2,$3,$4,$6) }
 expr: expr PT ID { ATTRIBUTEACCESSEXPRESSION ($1,$3) }
 expr: IF expr THEN expr ELSE exprProtected { FUNCTIONCALLEXPRESSION ((IDEXPRESSION "_if"),[$2; $4; $6]) }
 expr: expr PT CROO expr CROF { FUNCTIONCALLEXPRESSION ((IDEXPRESSION "_get"),[$1; $4]) }
-expr: exprProtected { $1 }
+expr: RULE patternsVirg IMPLY patternProtected { }
+expr: expr	Protected { $1 }
+expr: PARO expr IN set PARF { }
+
+set: INT { }
+set: FLOAT { }
+set: COMPLEX { }
+set: STRING { }
+set: OBJECT { }
+set: ARRAY { }
 
 exprProtected: PARO expr exprProtectedList PARF { FUNCTIONCALLEXPRESSION ($2,$3) }
-exprProtected: PARO prototypeDefinition PARF { INSTANCESEXPRESSION $2 }
-exprProtected: PARO expr prototypeDefinition PARF { PROTOTYPESEXPRESSION ($2,$3) }
 exprProtected: INTVALUE { NUMEXPRESSION ((float_of_int $1),0.0) }
 exprProtected: FLOATVALUE { NUMEXPRESSION ($1,0.0) }
 exprProtected: PARO FLOATVALUE PTVIRG FLOATVALUE PARF { NUMEXPRESSION ($2,$4) }
@@ -107,51 +111,32 @@ exprProtected: ACOO actionListPtVirg ACOF { ACTIONEXPRESSION (SEQUENCEACTION $2)
 exprProtected: ACOO objectDefinitions ACOF { OBJECTEXPRESSION $2 }
 exprProtected: CROO exprListPtVirg CROF { LISTEXPRESSION $2 } 
 exprProtected: CROO CROF { LISTEXPRESSION [] }
+exprProtected: CROO expr PTPT expr CROF { }
+exprProtected: CROO expr PTVIRG expr PTPT expr CROF { }
 exprProtected: NOD { NODEXPRESSION }
 exprProtected: PARO expr PARF { $2 }
+exprProtected: CROO exprProtected PIPE pattern IN expr CROF { }
+exprProtected: USE CASE ID ACOO statesAndDefs ACOF { USECASE ($3,$5) }
 
 matrixPart: exprListPtVirg  PIPEPIPE matrixPart { (Array.of_list $1)::$3 }
 matrixPart: exprListPtVirg { [ (Array.of_list $1) ] }
-
-prototypeDefinition: DEUXPOINTS ID prototypeExpression prototypeDefinition { ($3 $2)::$4 }
-prototypeDefinition: DEUXPOINTS ID prototypeExpression { [$3 $2] }
 
 lambdaExpr: patterns FLECHD exprProtected { ($1,$3) }
 
 matchExprs: lambdaExpr PIPE matchExprs { $1::$3 }
 matchExprs: lambdaExpr { [ $1 ] }
 
+extensions: EXTENDED BY expr { }
+extensions: { }
+
+depthModification: { ONEELEMENT (* Just matchs one element, not the elements in a list *) }
+depthModification: ALL { ALLELEMENTS (* Matches in depth in the tree... Delivers a similar tree... If no match, then error... Through this more powerfull than a mapping... *) }
+depthModification: EACH { EACHELEMENT (* Matches every element of a list / object. No in-depth matching... *) }
+depthModification: ALL POSSIBLE { ALLPOSSIBELEMENTS (* The one not matching are just discarded... *) }
+depthModification: EACH POSSIBLE { EACHPOSSIBLEELEMENTS (* The one not matching are just discarded...*) }
+
 assigns: pattern patterns EGAL expr AND assigns { ($1,$2,$4)::$6 }
 assigns: pattern patterns EGAL expr { [($1,$2,$4)] }
-
-prototypeExpression: INTVALUE { fun uc -> NUMPROTOTYPE (uc,((float_of_int $1),0.0)) }
-prototypeExpression: FLOATVALUE { fun uc -> NUMPROTOTYPE (uc,($1,0.0)) }
-prototypeExpression: PARO FLOATVALUE PTVIRG FLOATVALUE PARF { fun uc -> NUMPROTOTYPE (uc,($2,$4)) }
-prototypeExpression: STRINGVALUE { fun uc -> STRINGPROTOTYPE (uc,$1) }
-prototypeExpression: BOOLVALUE { fun uc -> BOOLPROTOTYPE (uc,$1) }
-prototypeExpression: CROO prototypeExpressionListPtVirg CROF { fun uc -> LISTPROTOTYPE (uc,(List.map (fun proto -> (proto uc)) $2)) }
-prototypeExpression: CROO CROF { fun uc -> LISTPROTOTYPE (uc,[]) }
-prototypeExpression: ACOO prototypeObjectDefinitions ACOF { fun uc -> OBJECTPROTOTYPE (uc,(List.map (fun proto -> (proto uc)) $2)) }
-prototypeExpression: CROOPIPE matrixNumericPart PIPECROF { fun uc -> MATRIXPROTOTYPE (uc,(Array.of_list $2)) }
-
-numListPtVirg: INTVALUE PTVIRG numListPtVirg { ((float_of_int $1),0.0)::$3 }
-numListPtVirg: FLOATVALUE PTVIRG numListPtVirg { ($1,0.0)::$3 }
-numListPtVirg: PARO FLOATVALUE PTVIRG FLOATVALUE PARF PTVIRG numListPtVirg { ($2,$4)::$7 }
-numListPtVirg: INTVALUE  { [((float_of_int $1),0.0)] }
-numListPtVirg: FLOATVALUE { [($1,0.0)] }
-numListPtVirg: PARO FLOATVALUE PTVIRG FLOATVALUE PARF { [($2,$4)] }
-
-matrixNumericPart: numListPtVirg PIPEPIPE matrixNumericPart { (Array.of_list $1)::$3 }
-matrixNumericPart: numListPtVirg { [(Array.of_list $1)] }
-
-prototypeExpressionListPtVirg: prototypeExpression PTVIRG prototypeExpressionListPtVirg { $1::$3 }
-prototypeExpressionListPtVirg: prototypeExpression { [$1] }
-
-prototypeObjectDefinitions: prototypeObjectDefinition PTVIRG prototypeObjectDefinitions { $1::$3 } 
-prototypeObjectDefinitions: prototypeObjectDefinition PTVIRG { [ $1 ]}
-prototypeObjectDefinitions: prototypeObjectDefinition { [ $1 ] }
-
-prototypeObjectDefinition: ID EGAL prototypeExpression { (fun uc -> ($1,($3 uc))) }
 
 exprListPtVirg: expr PTVIRG exprListPtVirg { $1::$3 }
 exprListPtVirg: expr { [$1] } 
@@ -162,8 +147,10 @@ objectDefinitions: ID patterns EGAL expr { [ ($1,$2,$4) ] }
 patterns: patternProtected patterns { $1::$2 }
 patterns: { [] }
 
+patternsVirg: patternProtected VIRG patternsVirg { }
+patternsVirg: patternProtected { }
+
 pattern: pattern DEUXDEUXPOINTS pattern { CONSPATTERN ($1,$3) }
-pattern: pattern WHERE expr { WHEREPATTERN ($1,$3) }
 pattern: patternProtected { $1 }
 
 patternProtected: INTVALUE { NUMPATTERN ((float_of_int $1),0.0) }
@@ -179,6 +166,7 @@ patternProtected: SOULIGNE { WILDCARDPATTERN }
 patternProtected: PARO pattern PARF { $2 }
 patternProtected: ID { IDPATTERN $1 }
 patternProtected: ACOO patternObjectDefinitions ACOF { OBJECTPATTERN $2 }
+patternProtected: patternProtected WHERE exprProtected { }
 
 patternObjectDefinitions: patternObjectDefinition PTVIRG patternObjectDefinitions { $1::$3 }
 patternObjectDefinitions: patternObjectDefinition PTVIRG { [$1] }

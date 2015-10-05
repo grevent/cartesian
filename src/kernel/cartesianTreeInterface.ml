@@ -10,30 +10,12 @@ exception NotAnObject
   
 let rec tree2Action dispatcher tree =
   match tree with
-    WHILEACTION (expr,action) -> ((new WhileActionObject.whileActionObject
-				      (tree2Expr dispatcher expr)
-				      (tree2Action dispatcher action) ) :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
-  | TRYACTION (actions,matchs) -> ((new TryActionObject.tryActionObject
-				      (List.map (tree2Action dispatcher) actions)
-				      (List.map (fun (patterns,expr) -> ((List.map (tree2Pattern dispatcher) patterns),(tree2Expr dispatcher expr))) matchs)
-				   ) :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
-  | REGISTERSTARTACTION (actorId,action) -> ((new StartActionObject.startActionObject
-						  dispatcher
-						  actorId
-						  (tree2Action dispatcher action) )
-					     :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
-  | RAISEACTION expr -> ((new RaiseActionObject.raiseActionObject (tree2Expr dispatcher expr) ) :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
   | NATIVEACTION st -> raise NativeAction
   | ASSIGNACTION (id,expr) -> ((new AssignActionObject.assignActionObject id (tree2Expr dispatcher expr) ) :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
   | CONTEXTACTION (context,expr) -> ((new ContextActionObject.contextActionObject (tree2Expr dispatcher context) (tree2Expr dispatcher expr) ) :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
   | DEFINEACTION (id,patterns,expr) ->
      ((new DefineActionObject.defineActionObject id (List.map (tree2Pattern dispatcher) patterns) (tree2Expr dispatcher expr) ) :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
-  | DOACTION (action,expr) -> ((new DoActionObject.doActionObject (tree2Action dispatcher action) (tree2Expr dispatcher expr) ) :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
   | EXPRACTION expr -> ((new ExprActionObject.exprActionObject (tree2Expr dispatcher expr) ) :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
-  | FORACTION (id,value,action) -> ((new ForActionObject.forActionObject id
-					 (tree2Expr dispatcher value)
-					 (tree2Action dispatcher action) )
-				    :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
   | SEQUENCEACTION actions -> ((new SequenceActionObject.sequenceActionObject (List.map (tree2Action dispatcher) actions)) :> AbstractExpressionObject.abstractExpressionObject AbstractActionObject.abstractActionObject)
   | COMMENT (comment,tree) ->
      let tmp = (tree2Action dispatcher tree) in

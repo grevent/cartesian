@@ -1,9 +1,15 @@
 
+exception ConsoleAdapterCanTBeDerived
+
 class consoleAdapter =
 object(self)
-	inherit AbstractAdapter.abstractAdapter "console"
+	inherit AbstractAdapter.abstractAdapter [("name","console")]
 	
 	val mutable consoleSessionId = (-1)
+	val mutable currentThread = Thread.self()
+	val mutable firstStart = true
+	
+	(* Starts or restarts listener *)
 	
 	method listen receiveHandler startHandler =
 		let listener sessionId = 
@@ -14,8 +20,17 @@ object(self)
 			done
 		in
 		
+		if firstStart then
+			begin
+				firstStart <- false;
+			end
+		else
+			begin
+				Thread.kill currentThread;
+			end;		
+
 		consoleSessionId <- startHandler (self#getId());
-		Thread.create listener consoleSessionId;
+		currentThread <- Thread.create listener consoleSessionId;
 	
 	method send sessionId tree = 
 		if sessionId == consoleSessionId then
@@ -24,7 +39,11 @@ object(self)
 			end
 		else
 			begin
-				print_string (Printf.sprintf "Session %d: %s" sessionId (StringRepresentation.generateString tree));
+				prerr_string (Printf.sprintf "Session %d: %s" sessionId (StringRepresentation.generateString tree));
+				prerr_newline();
 			end;
+
+	method deriveAdapter lst = 
+		raise ConsoleAdapterCanTBeDerived
 
 end;;
