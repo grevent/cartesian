@@ -1,5 +1,0 @@
-
-class assignPrototypeObject = 
-object
-  inherit 
-
