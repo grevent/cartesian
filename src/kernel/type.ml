@@ -1,18 +1,18 @@
 
-type cartesianType = 
+type cType = 
 	UNKNOWN |
 	INT |
 	FLOAT |
 	STRING |
 	BOOL |
-	NOD |
 	ACTION |
 	GENTYPE of int |
 	NOD |
-	LIST of cartesianType |
-	ARRAY of cartesianType |
-	PAIR of cartesianType list |
-	NAMED of string
+	LIST of cType |
+	ARRAY of cType |
+	PAIR of cType list |
+	NAMED of string | 
+	ALTERNATIVE of cType list
 ;;
 
 exception CycleInGenericTypesFound;;
@@ -25,7 +25,7 @@ let newGeneric() =
 
 let rec reduceGeneric generics id0 =
 	try 
-		(List.assoc generics id0)
+		(List.assoc id0 generics)
 	with Not_found -> 
 		GENTYPE id0
 ;;

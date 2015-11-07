@@ -60,7 +60,7 @@ declaration: ID EGAL object {OBJECTDECL ($1,$3) }
 transition: objectPatterns IMPLY expr { RULE ($2,$4) }
 transition: objectPatterns PTEXCFLECHD actionListPtVirg { TRANSITION ($2,$4) }
 
-action: ID FLECHG expr { ASSIGNA ($1,$3) }
+action: ID FLECHG expr { ASSIGNACTION ($1,$3) }
 action: DO expr { DO $2 (* Do each action in the list / object delivered by the evaluation *) }
 action: expr { EXPRACTION $1 }
 action: COPY ID { COPY $1 }
@@ -94,8 +94,8 @@ expr: expr PT CROO expr CROF { ARRAYACCESS (UNKNOWN,$1,$4) }
 expr: exprProtected { $1 }
 
 exprProtected: PARO expr DEUXPOINTS typeDef PARF { TYPEVERIFICATION (UNKNOWN,$2,$4) }
-exprProtected: PARO expr DEUXPOINTSSUP typeDef PARF { TOSUBTYPE (UNKNOWN,$2,$4) }
-exprProtected: PARO expr DEUXPOINTSINF typeDef PARF { FROMSUBTYPE (UNKNOWN,(2,$4) }
+exprProtected: PARO expr DEUXPOINTSSUP typeDef PARF { TOSUBTYPE (UNKNOWN,$2,$4) (* Used for in cases like 1 :> myInt *) }
+exprProtected: PARO expr DEUXPOINTSINF typeDef PARF { CONVERSION (UNKNOWN,(2,$4) (* Used in cases like (x: int) :< float, which is a conversion... }
 exprProtected: PARO expr exprProtectedList PARF { FUNCTIONCALL (UNKNOWN,$2,$3) }
 exprProtected: INTVALUE { INTVAL (INT,$1) }
 exprProtected: FLOATVALUE { FLOATEXPR (FLOAT,$1) }
@@ -124,7 +124,7 @@ typeDefProtected: CROO typeDef CROF { LISTTYPE $2 }
 typeDefProtected: GENID { GENTYPE $1 }
 typeDefProtected: PARO typeDefVirgList PARF  { PAIRTYPE $2 }
 typeDefProtected: ID { NAMEDTYPE ($1,[]) }
-typeDefProtected: PARO ID typeDefList PARF { NAMEDTYPE ($2,$3) }
+typeDefProtected: PARO typeDefList ID PARF { NAMEDTYPE ($2,$3) }
 
 typeDef: typeDefProtected variants { ALTERNATIVESTYPE ($1::$2) }
 
@@ -199,4 +199,5 @@ patternListPtVirg: pattern PTVIRG patternListPtVirg { $1::$3 }
 patternListPtVirg: pattern { [ $1 ] }
 
 syncMethod: { LOCAL }
-syncMethod: FRONTEND { FRONTEND }
+syncMethod: PIPE ID PIPE { FRONTEND $2 }
+ 

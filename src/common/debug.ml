@@ -1,10 +1,9 @@
 
 let debugOn = true;;
-let lexDebugOn = false;;
+let lexDebugOn = true;;
 let synDebugOn = false;;
 let stdDebugOn = true;;
-let debugMethods = [];;
-  (* ["eval"; "preEval"; "exec"; "preExec"; "removeLevel"; "addLevel"; "apply"; "matchToExpression"; "add"];; *)
+let debugFun = [ "cartesianCLI_local" ];;
 
 let genericDebug str = 
   if debugOn then
@@ -30,42 +29,20 @@ let synDebug str =
     end;
 ;;
 
-let debugStartMethod obj mthd =
+let debugStartFun file mthd =
   if stdDebugOn then
-    if (List.exists (fun x -> (String.compare x mthd) == 0) debugMethods) || ((List.length debugMethods) == 0) then
+    if (List.exists (fun x -> (String.compare x mthd) == 0) debugFun) || ((List.length debugFun) == 0) then
       begin
-	Printf.eprintf ">%s: %s" mthd (obj#toString());
-	prerr_newline();
+		(Printf.eprintf ">: %s/%s" file mthd);
+		prerr_newline();
       end;
 ;;
 
-let debugEndMethod obj mthd objR =
+let debugEndFun file mthd result =
   if stdDebugOn then
-    if (List.exists (fun x -> (String.compare x mthd) == 0) debugMethods) || ((List.length debugMethods) == 0) then
+    if (List.exists (fun x -> (String.compare x mthd) == 0) debugFun) || ((List.length debugFun) == 0) then
       begin
-	Printf.eprintf "<%s: %s = %s" mthd (obj#toString()) (objR#toString());
-	prerr_newline();
+		(Printf.eprintf "<: %s/%s = %s" file mthd result);
+		prerr_newline();
       end;
 ;;
-
-let debugEnd0Method obj mthd =
-  if stdDebugOn then
-    if (List.exists (fun x -> (String.compare x mthd) == 0) debugMethods) || ((List.length debugMethods) == 0) then
-      begin
-	Printf.eprintf "<%s: %s" mthd (obj#toString());
-	prerr_newline();
-      end;
-;;
-
-  
-let debugStd objName mthd = 
-  if stdDebugOn then
-    if (List.exists (fun x -> (String.compare x mthd) == 0) debugMethods) || ((List.length debugMethods) == 0) then
-      begin
-	Printf.eprintf "!%s: %s" mthd objName;
-	prerr_newline();
-      end;
-;;
-  
-
-  
