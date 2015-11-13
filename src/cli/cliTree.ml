@@ -7,9 +7,8 @@ type cliTree =
 	EDITRULE of int |
 	EDITDECLARATION of string |
 	STARTGUI |
-	NEWOBJECT |
-	NEWRULE |
-	NEWDECLARATION |
+	EVAL |
+	EXEC|
 	EXIT
 ;;
 
@@ -22,9 +21,8 @@ let tree2string tree =
 		EDITRULE i ->  (Printf.sprintf "EDIT RULE %d" i) |
 		EDITDECLARATION id -> (Printf.sprintf "EDIT DECLRATION %s" id) |
 		STARTGUI -> "START GUI" |
-		NEWOBJECT -> "NEW OBJECT" | 
-		NEWRULE -> "NEW RULE" | 
-		NEWDECLARATION -> "NEW DECLARATION" | 
+		EXEC -> "EXECUTE" | 
+		EVAL -> "EVAL" |
 		EXIT -> "EXIT"		
 ;;
 

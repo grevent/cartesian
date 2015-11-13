@@ -14,9 +14,9 @@ let rec read_line() =
 		tmp^(read_line())
 ;;
 
-let cli prompt linestart parser lexer evaluer =
+let cli prompt parser lexer evaluer =
 	let addLine = ref false in
-	let line = ref linestart in
+	let line = ref "" in
 	let start = ref true in
     
 	while !start || !addLine do  	
@@ -68,9 +68,9 @@ let eval tree =
 			List.iter (fun obj -> 
 				print_string (objectToStringRepresentation obj);
 				print_newline(); )
-				(getObjects()) (*|
-		NEWOBJECT -> 
-			cli "#" "object" CartesianSyntax.command CartesianLex.lexer  *)
+				(getObjects()) |
+		EXEC -> 
+			cli "#" CartesianSyntax.command CartesianLex.lexer Exec.exec
 ;;
           
 let cartesianCLI () =
@@ -79,6 +79,6 @@ let cartesianCLI () =
 	print_newline();
 
 	while true do
-		cli ">" "" CliSyntax.phrase CliLex.lexem eval;
+		cli ">" CliSyntax.phrase CliLex.lexem eval;
 	done;
 ;;
