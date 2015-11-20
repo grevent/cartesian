@@ -1,8 +1,5 @@
 { 
   open CliSyntax;;
-  
-  exception Eof;;
-  exception LexicalError;;
 }
 
 let hexadecimal = ['0'-'9''a'-'f''A'-'F']
@@ -21,6 +18,7 @@ rule lexem =
 	"object" { Debug.lexDebug "OBJECT"; CliSyntax.OBJECT } | 
     "edit" { Debug.lexDebug "EDIT"; CliSyntax.EDIT } |
     "exit" { Debug.lexDebug "EXIT"; CliSyntax.EXIT } |
+    "exec" { Debug.lexDebug "EXEC"; CliSyntax.EXEC } |
     "new" { Debug.lexDebug "NEW"; CliSyntax.NEW } |
 	('+'|'-')?['0'-'9']+ as integer { Debug.lexDebug (Printf.sprintf "INTVALUE='%s'" (Lexing.lexeme lexbuf)); CliSyntax.INTVALUE (int_of_string integer) } |
     ('_'('+'|'-'|'*'|'/'|'^'|'@'|':'':'|'|''|'|('&''&')|'~'|'=''='|'!''='|'<'|'>'|'<''='|'>''='|':'':')) as pIdent { Debug.lexDebug (Printf.sprintf "ID='%s'" (Lexing.lexeme lexbuf)); CliSyntax.ID pIdent } |

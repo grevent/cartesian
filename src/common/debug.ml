@@ -1,7 +1,7 @@
 
 let debugOn = true;;
 let lexDebugOn = true;;
-let synDebugOn = false;;
+let synDebugOn = true;;
 let stdDebugOn = true;;
 let debugFun = [ "cartesianCLI_local" ];;
 

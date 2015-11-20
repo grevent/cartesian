@@ -37,6 +37,7 @@ let cli prompt parser lexer evaluer =
 				begin
 					let lexbuf = Lexing.from_string !line in				
 					let tree = parser lexer lexbuf in
+					genericDebug "evaluating...";
 					evaluer tree;
 					addLine := false;					
 				end;
@@ -65,12 +66,25 @@ let eval tree =
 		EXIT -> 
 			exit 0 | 
 		LISTOBJECTS -> 
-			List.iter (fun obj -> 
-				print_string (objectToStringRepresentation obj);
-				print_newline(); )
-				(getObjects()) |
+			let objs = getObjects() in
+			if List.length objs > 0 then
+				List.iter (fun obj -> 
+					print_string (objectToStringRepresentation obj);
+					print_newline(); )
+					(getObjects()) 
+			else 
+				begin
+					print_string "no objects"; 
+					print_newline();
+				end; |
 		EXEC -> 
-			cli "#" CartesianSyntax.command CartesianLex.lexer Exec.exec
+			let execFromTree tree = 
+				let actions = Tree.exprToActions tree in
+				List.iter (Exec.exec (Runtime.getEnv())) actions
+			in
+			let tree = cli "#" CartesianSyntax.command CartesianLex.lexer execFromTree in
+			print_string "EXEC Called, Tree parsed"; 
+			print_newline();
 ;;
           
 let cartesianCLI () =

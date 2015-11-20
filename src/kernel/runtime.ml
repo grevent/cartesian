@@ -1,5 +1,6 @@
 
 let objects = ref ([] : Object.cObject list);;
+let env = ref ([]: Env.env list)
 (* 
 let rules = ref [];;
 let declarations = ref [];;
@@ -13,4 +14,8 @@ let runtime() =
 
 let getObjects() =
 	!objects
+;;
+
+let getEnv() = 
+	!env
 ;;

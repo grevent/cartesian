@@ -163,7 +163,7 @@ and objectPatternToString pattern =
 		OPENOBJPATTERN -> "..." |
 		OBJPATTERN (id,pattern) -> id^"= "^(patternToString pattern)
 ;; 
-	 
+ 
 exception ExpressionIsNotActionList of string;;
 let exprToActions expr = 
 	match expr with

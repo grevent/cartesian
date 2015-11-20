@@ -13,14 +13,15 @@ let allchar = escaped | unicode | char
   
   rule lexer = 		    parse 
      [' ' '\t'] { Debug.lexDebug "SPACE -> Ignoring"; lexer lexbuf } 
-| ['\r' '\n'] { Debug.lexDebug "EOL"; CartesianSyntax.EOL }
-| "+" { Debug.lexDebug "PLUS"; CartesianSyntax.PLUS }
-| "-" { Debug.lexDebug "MINUS"; CartesianSyntax.MINUS }
-| "*" { Debug.lexDebug "MUL"; CartesianSyntax.MUL }
-| "/" { Debug.lexDebug "DIV"; CartesianSyntax.DIV }
-| "^" { Debug.lexDebug "PUISS"; CartesianSyntax.PUISS }
-| "<" { Debug.lexDebug "INF"; CartesianSyntax.INF }
-    | ">" { Debug.lexDebug "SUP"; CartesianSyntax.SUP }
+	| ['\r' '\n'] { Debug.lexDebug "Return -> Ignoring"; lexer lexbuf }
+	| "define" { Debug.lexDebug "DEFINE"; CartesianSyntax.DEFINE }
+	| "+" { Debug.lexDebug "PLUS"; CartesianSyntax.PLUS }
+	| "-" { Debug.lexDebug "MINUS"; CartesianSyntax.MINUS }
+	| "*" { Debug.lexDebug "MUL"; CartesianSyntax.MUL }
+	| "/" { Debug.lexDebug "DIV"; CartesianSyntax.DIV }
+	| "^" { Debug.lexDebug "PUISS"; CartesianSyntax.PUISS }
+	| "<" { Debug.lexDebug "INF"; CartesianSyntax.INF }
+	| ">" { Debug.lexDebug "SUP"; CartesianSyntax.SUP }
     | "==" { Debug.lexDebug "EGALEGAL"; CartesianSyntax.EGALEGAL }
     | "!=" { Debug.lexDebug "NOTEGAL"; CartesianSyntax.NOTEGAL }
     | "<=" { Debug.lexDebug "INFEGAL"; CartesianSyntax.INFEGAL }
@@ -75,5 +76,6 @@ let allchar = escaped | unicode | char
     | ('_'('+'|'-'|'*'|'/'|'^'|'@'|':'':'|'|''|'|('&''&')|'~'|'=''='|'!''='|'<'|'>'|'<''='|'>''='|':'':')) as pIdent { Debug.lexDebug (Printf.sprintf "ID='%s'" (Lexing.lexeme lexbuf)); CartesianSyntax.ID pIdent }
     | "_" { Debug.lexDebug "SOULIGNE";  CartesianSyntax.SOULIGNE }
     | ['a'-'z''A'-'Z''_''?']['a'-'z''A'-'Z''_''0'-'9''?']* as ident { Debug.lexDebug (Printf.sprintf "ID='%s'" (Lexing.lexeme lexbuf)); CartesianSyntax.ID ident }
+    | ";;"  { Debug.lexDebug (Printf.sprintf "COMMANDEND"); CartesianSyntax.COMMANDEND } 
     | _ as c { Debug.lexDebug (Printf.sprintf "Error reading '%c'" c); raise LexicalError }
-    | eof { Debug.lexDebug "EOF"; raise Eof }
+

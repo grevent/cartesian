@@ -1,7 +1,3 @@
 
-open Types
-
-let env = { 
-}
-;;
+type env = { id: int; def: bool; cType: Type.cType };;
 
