@@ -1,21 +1,38 @@
 
-let objects = ref ([] : Object.cObject list);;
-let env = ref ([]: Env.env list)
-(* 
-let rules = ref [];;
-let declarations = ref [];;
-*)
+open CartesianDataModel
 
-let runtime() = 
-	while true do
-		Unix.sleep 10;
-	done;
+let newRuntime() = 
+	{
+		objects= [];
+		rules= [];
+		env0= { scope= ROOT; values= [] };
+		decorations= [];
+		genericTypes= [];
+		namedTypes= [];
+	}
 ;;
 
-let getObjects() =
-	!objects
+let getObjects runtime = 
+	runtime.objects
 ;;
 
-let getEnv() = 
-	!env
+exception IdNotDeclared
+let getIdValue runtime id =
+	let rec search env =
+		if List.exists (fun x -> (String.compare x.id id) == 0) env.values then
+			List.find (fun x -> (String.compare x.id id) == 0) env.values 
+		else
+			(match env.parentScope with
+				ROOT -> raise IdNotDeclared |
+				PARENT parentEnv -> search parentEnv);
+	in
+	search runtime.env0
+;;
+
+let getValueType vl = 
+	vl.cType
+;;
+
+let getValueValue vl =
+	value.value
 ;;

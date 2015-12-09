@@ -75,7 +75,8 @@ let allchar = escaped | unicode | char
     | "false" { Debug.lexDebug "BOOLVALUE=false"; CartesianSyntax.BOOLVALUE false }
     | ('_'('+'|'-'|'*'|'/'|'^'|'@'|':'':'|'|''|'|('&''&')|'~'|'=''='|'!''='|'<'|'>'|'<''='|'>''='|':'':')) as pIdent { Debug.lexDebug (Printf.sprintf "ID='%s'" (Lexing.lexeme lexbuf)); CartesianSyntax.ID pIdent }
     | "_" { Debug.lexDebug "SOULIGNE";  CartesianSyntax.SOULIGNE }
-    | ['a'-'z''A'-'Z''_''?']['a'-'z''A'-'Z''_''0'-'9''?']* as ident { Debug.lexDebug (Printf.sprintf "ID='%s'" (Lexing.lexeme lexbuf)); CartesianSyntax.ID ident }
+    | ['a'-'z''_''?']['a'-'z''A'-'Z''_''0'-'9''?']* as ident { Debug.lexDebug (Printf.sprintf "ID='%s'" (Lexing.lexeme lexbuf)); CartesianSyntax.ID ident }
+    | ['A'-'Z''`']['a'-'z''A'-'Z''_''0'-'9''?']* as ident { Debug.lexDebug (Printf.sprintf "CAPID='%s'" (Lexing.lexeme lexbuf)); CartesianSyntax.CAPID ident }
     | ";;"  { Debug.lexDebug (Printf.sprintf "COMMANDEND"); CartesianSyntax.COMMANDEND } 
     | _ as c { Debug.lexDebug (Printf.sprintf "Error reading '%c'" c); raise LexicalError }
 

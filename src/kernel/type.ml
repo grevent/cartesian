@@ -1,19 +1,5 @@
 
-type cType = 
-	UNKNOWN |
-	INT |
-	FLOAT |
-	STRING |
-	BOOL |
-	ACTION |
-	GENTYPE of int |
-	NOD |
-	LIST of cType |
-	ARRAY of cType |
-	PAIR of cType list |
-	NAMED of string | 
-	ALTERNATIVE of cType list
-;;
+open CartesianDataModel
 
 exception CycleInGenericTypesFound;;
 
@@ -23,11 +9,15 @@ let newGeneric() =
 	GENTYPE !typeGen
 ;;
 
-let rec reduceGeneric generics id0 =
-	try 
-		(List.assoc id0 generics)
-	with Not_found -> 
-		GENTYPE id0
+let rec reduceGeneric runtime alreadyResolved id0 =
+	if List.exist (fun x -> x == id0) alreadyResolved then
+		GENTYPE id
+	else
+		try match (List.assoc id0 runtime.genericTypes) with
+			GENTYPE otherId -> reduceGeneric (id0::alreadyResolved) runtime otherId |
+			x -> x
+		with Not_found -> 
+			GENTYPE id0
 ;;
 
 exception NamedTypeDoesNotExist;;
@@ -45,13 +35,14 @@ let rec reduceGenerics generics alreadyTested tp =
 		LIST tp -> LIST (reduceGenerics generics alreadyTested tp) |
 		ARRAY tp -> ARRAY (reduceGenerics generics alreadyTested tp) |
 		PAIR tps -> PAIR (List.map (reduceGenerics generics alreadyTested) tps) |
+		FUNCTION (params,result) -> FUNCTION ((List.map (reduceGenerics generics alreadyTested) params),(reduceGenerics generics result)) |
 		_ -> tp
 ;;	
 
 exception TypesNotCompatible;;
-exception PairElementsWithSameType;;
 let rec unification namedTypes generics tp1 tp2 = 
 	match (tp1,tp2) with
+		(FUNCTION params1,result1),(FUNCTION params2,result2) -> ERROR |
 		INT,INT -> (generics,INT) |
 		FLOAT,FLOAT -> (generics,FLOAT) |
 		UNKNOWN,tp -> (generics,tp) |
@@ -66,17 +57,16 @@ let rec unification namedTypes generics tp1 tp2 =
 		(ARRAY tp1),(ARRAY tp2) ->  let (newGens,tp) = unification namedTypes generics tp1 tp2 in (newGens,ARRAY tp) |
 		(PAIR tps1),(PAIR tps2) -> 
 			let (newGens,tps) = List.fold_left (fun (gens,tps) (tp1,tp2) -> let (newGens,tp) = unification namedTypes gens tp1 tp2 in (newGens,(tps@[tp]))) (generics,[]) (List.combine tps1 tps2) in
-			if verifyUniqueness newGens tps then 	
-				(newGens,(PAIR tps)) 
-			else
-				raise PairElementsWithSameType |
+			(newGens,(PAIR tps)) |
 		(NAMED st1),_ -> 
 			findNamedType namedTypes st1 |
 		_,(NAMED st2) -> 
 			findNamedType namedTypes st2 |
 		_ -> 
 			raise TypesNotCompatible
-and verifyUniqueness generics typeLst = 
+;;
+
+let rec verifyUniqueness generics typeLst = 
 	match typeLst with
 		[] -> 
 			true |
@@ -90,4 +80,15 @@ and verifyUniqueness generics typeLst =
 					otherTypes
 			else
 				false
+;;
+
+exception TypeNotAPair
+let getTypesFromPair tp = 
+	match tp with
+		PAIR lst -> lst |
+		_ -> raise TypeNotAPair
+;;
+
+let testUnification runtime tp1 tp2 =
+	unification runtime (renameGenerics tp1) (renameGenerics tp2)
 ;;

@@ -1,4 +1,3 @@
 
 
-type cartesianRule = { rule: objectPattern; exec: expr }
-;;
+open CartesianDataModel

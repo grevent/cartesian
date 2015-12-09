@@ -2,8 +2,7 @@
 
 
 %{
-  open Tree
-  open Type
+  open CartesianDataModel
   open Debug
   
   let currentId = ref 0;; 
@@ -25,9 +24,9 @@
 %token LIST GENID TYPEDEF USE EXTERNAL DEUXPOINTSSUP DEUXPOINTSINF
 %token INT FLOAT STRING OBJECT ARRAY IMPLY ACTION DECLARATION
 %token TRANSITION RULE PTEXCFLECHD TYPE COPY NEW DELETE REPLACE
-%token ACOOPIPE PIPEACOF DEFINE COMMANDEND
+%token ACOOPIPE PIPEACOF DEFINE COMMANDEND 
 
-%token <string> ID COMMENT STRINGVALUE GENID
+%token <string> ID COMMENT STRINGVALUE GENID CAPID
 %token <int> INTVALUE
 %token <float> FLOATVALUE
 %token <bool> BOOLVALUE
@@ -43,8 +42,8 @@
 %left PT
 %left NOT
       
-%type <Tree.exprNode> command
-%type <Tree.objectNode> objectDef
+%type <CartesianDataModel.exprNode> command
+%type <CartesianDataModel.objectNode> objectDef
 								 
 %start command
        
@@ -96,10 +95,11 @@ expr: expr PT CROO expr CROF { synDebug "expr-23"; createFunctionCallExprn "_get
 expr: exprProtected { synDebug "expr-24"; $1 }
 expr: objectDef { synDebug "expr-25"; OBJEXPR (newId(),$1) }
 expr: TRANSITION transition { synDebug "expr-26"; TRANSITIONEXPR (newId(),$2) }
+expr: CAPID exprProtected { VARIANTEXPR ($1,$2) }
 
 exprProtected: PARO expr DEUXPOINTS typeDef PARF { synDebug "exprProtected-1"; TYPEVERIFICATIONEXPR (newId(),$2,$4) }
-exprProtected: PARO expr DEUXPOINTSSUP typeDef PARF { synDebug "exprProtected-2"; TOSUBTYPEEXPR (newId(),$2,$4)  }
-exprProtected: PARO expr DEUXPOINTSINF typeDef PARF { synDebug "exprProtected-3"; CONVERSIONEXPR (newId(),$2,$4)  }
+exprProtected: PARO expr DEUXPOINTSSUP typeDef PARF { synDebug "exprProtected-2"; NARROWTYPEEXPR (newId(),$2,$4)  }
+exprProtected: PARO expr DEUXPOINTSINF typeDef PARF { synDebug "exprProtected-3"; GENERALISETYPEEXPR (newId(),$2,$4)  }
 exprProtected: PARO expr exprProtectedList PARF { synDebug "exprProtected-4"; FUNCTIONCALLEXPR (newId(),$2,$3) }
 exprProtected: INTVALUE { synDebug "exprProtected-5"; INTEXPR $1 }
 exprProtected: FLOATVALUE { synDebug "exprProtected-6"; FLOATEXPR $1 }
@@ -125,7 +125,9 @@ objectDef: ACOOPIPE ID PIPE objectDefinitions PIPEACOF { OBJECT ((INTERFACE $2),
 transition: objectPatterns IMPLY exprProtected { EXPRTRANS ($1,$3) }
 transition: objectPatterns PTEXCFLECHD exprProtected { ACTIONTRANS ($1,$3) (* Should return an object ! *) }
 
-typeDef: typeDefProtected variants { ALTERNATIVESTYPE ($1::$2) }
+typeDef: variant variants { VARIANTTYPE ($1::$2) }
+typeDef: typeDefProtected FLECHD typeDef { FUNCTIONTTYPE ($1,$3) }
+typeDef: typeDefProtected { $1 }
 
 typeDefProtected: NOD { NODTYPE }
 typeDefProtected: INT { INTTYPE }
@@ -139,15 +141,18 @@ typeDefProtected: ID { NAMEDTYPE ([],$1) }
 typeDefProtected: PARO ID typeDefList PARF { NAMEDTYPE ($3,$2) }
 typeDefProtected: OBJECT { OBJECTTYPE }
 typeDefProtected: TRANSITION { TRANSITIONTYPE }
+typeDefProtected: PARO typeDef PARF { $2 }
 
 typeDefList: typeDefProtected typeDefList { $1::$2 }
 typeDefList: typeDefProtected  { [$1] }
 
-variants: PIPE typeDefProtected variants { $2::$3 }
+variant: CAPID typeDefProtected { ($1,$2) }
+
+variants: PIPE variant variants { $2::$3 }
 variants: { [] } 
 
 typeDefVirgList: typeDef VIRG typeDefVirgList { $1::$3 }
-typeDefVirgList: typeDef { [$1] } 
+typeDefVirgList: typeDef VIRG typeDef { [$1; $3] } 
 
 lambdaExpr: patterns FLECHD exprProtected { ($1,$3) }
 
