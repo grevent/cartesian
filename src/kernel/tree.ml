@@ -13,7 +13,6 @@ let rec exprToString expr =
 		TYPEACCESSEXPR (_,expr,tp) -> (exprToString expr)^".:"^(typeToString tp) |
 		TYPEVERIFICATIONEXPR (_,expr,tp) -> "("^(exprToString expr)^": "^(typeToString tp)^")" |
 		TOSUBTYPEEXPR (_,expr,tp) -> "("^(exprToString expr)^":> "^(typeToString tp)^")" |
-		CONVERSIONEXPR (_,expr,tp) -> "("^(exprToString expr)^":< "^(typeToString tp)^")" |
 		INTEXPR i -> (Printf.sprintf "%d" i) |
 		FLOATEXPR f -> (Printf.sprintf "%f" f) |
 		STRINGEXPR s -> (Printf.sprintf "\"%s\"" s) |
@@ -21,14 +20,16 @@ let rec exprToString expr =
 		IDEXPR (_,id) -> id |
 		ACTIONEXPR (_,a) -> (concatAndInsert "; " (List.map actionToString a)) |
 		LISTEXPR (_,lst) -> "["^(concatAndInsert "; " (List.map exprToString lst))^"]" |
-		INTERVALEXPR (_,start,ending) -> "["^(exprToString start)^" .. "^(exprToString ending)^"]" |
-		INTERVALSTEPEXPR (_,value1,value2,lastValue) -> "["^(exprToString value1)^"; "^(exprToString value2)^" .. "^(exprToString lastValue)^"]" |
+		INTERVALEXPR (start,ending) -> "["^(exprToString start)^" .. "^(exprToString ending)^"]" |
+		INTERVALSTEPEXPR (value1,value2,lastValue) -> "["^(exprToString value1)^"; "^(exprToString value2)^" .. "^(exprToString lastValue)^"]" |
 		NODEXPR -> "nod" |
 		PAIREXPR (_,exprs) -> "("^(concatAndInsert ", " (List.map exprToString exprs))^")" |
 		ARRAYEXPR (_,exprs) -> "[|"^(concatAndInsert "; " (List.map exprToString exprs))^"|]" |
 		LISTCOMPREHENSIONEXPR (_,expr,pattern,set) -> "["^(exprToString expr)^" | "^(patternToString pattern)^" in "^(exprToString set) |
-		OBJEXPR (_,obj) -> objectToString obj |
-		TRANSITIONEXPR (_,transition) -> transitionToString transition
+		OBJEXPR (obj) -> objectToString obj |
+		TRANSITIONEXPR (transition) -> transitionToString transition |
+		NARROWTYPEEXPR (_,expr,typeExpr) -> "("^(exprToString expr)^" :> "^(typeToString typeExpr)^")" | 
+		GENERALISETYPEEXPR (_,expr,typeExpr) -> "("^(exprToString expr)^" :< "^(typeToString typeExpr)^")"  
 and patternToString pattern = 
 	match pattern with
 		INTPATTERN i -> (Printf.sprintf "%d" i) |
@@ -54,22 +55,29 @@ and typeToString tp =
 		LISTTYPE t -> (typeToString t)^" list" |
 		GENTYPE st -> "'"^st |
 		PAIRTYPE lst -> "("^(concatAndInsert " " (List.map typeToString lst))^")" |
-		NAMEDTYPE (lst,st) -> "("^(concatAndInsert " " (List.map typeToString lst))^" "^st^")" |
-		ALTERNATIVESTYPE lst -> (concatAndInsert " | " (List.map typeToString lst)) |
+		NAMEDTYPE st -> st |
 		OBJECTTYPE -> "object" |
-		TRANSITIONTYPE -> "transition"  
+		TRANSITIONTYPE -> "transition" |
+		VARIANTTYPE lst -> (concatAndInsert " | " (List.map (fun (variant,tp) -> variant^" "^(typeToString tp)) lst)) |
+		FUNCTIONTYPE (param,result) -> (typeToString param)^" -> "^(typeToString result) |
+		INCHANNELTYPE -> "inchannel" |
+		OUTCHANNELTYPE -> "outchannel" 		
 and actionToString act = 
 	match act with
 		ASSIGNACTION (id,expr) -> id^"<- "^(exprToString expr) |
 		DOACTION expr -> "do "^(exprToString expr) |
-		COPYACTION id -> "copy "^id |
 		EXPRACTION expr -> (exprToString expr) |
-		NEWACTION (id,expr) -> "new "^id^" = "^(exprToString expr) |
-		DELETEACTION id -> "delete "^id |
-		REPLACEACTION (id,expr) -> "replace "^id^" with "^(exprToString expr) |
-		DEFINETYPEACTION (id,params,typeDef) -> "type "^id^(concatAndInsert " " params)^" = "^(typeToString typeDef) |
-		DEFINEACTION (id,params,expr) -> "define "^id^(concatAndInsert " " (List.map patternToString params))^" = "^(exprToString expr) |
-		EXTERNACTION (id,typeDef) -> "extern "^id^": "^(typeToString typeDef)
+		ASSIGNRULEACTION (id,expr) -> "rule "^id^" <- "^(exprToString expr) |
+		ASSIGNOBJECTACTION (id,expr) -> "object "^id^" <- "^(exprToString expr) | 
+		DELETERULEACTION id -> "delete rule "^id |
+		DELETEOBJECTACTION id -> "delete object "^id |
+		DEFINETYPEACTION (id,tp) -> "define type "^id^" = "^(typeToString tp) | 
+		DEFINEACTION (id,params,expr) -> "define "^id^(List.fold_left (fun acc param -> acc^" "^(patternToString param)) "" params)^" = "^(exprToString expr) | 
+		DEFINEEXTERNALACTION (id,tp) -> "define external "^id^" : "^(typeToString tp) | 
+		DEFINEOBJECTACTION (id,expr) -> "define object "^id^" = "^(exprToString expr) | 
+		DEFINERULEACTION (id,expr) -> "define rule "^id^" = "^(exprToString expr) | 
+		OUTACTION (channel,tp) -> (exprToString channel)^" >> "^(typeToString tp) | 
+		INACTION (channel,tp) -> (exprToString channel)^" << "^(typeToString tp)
 and objectToString obj = 
 	match obj with
 		OBJECT (syncMode,attributes) -> "{"^(syncModeToString  syncMode)^(concatAndInsert "; " (List.map (fun (att,expr) -> att^"= "^(exprToString expr)) attributes))
@@ -79,13 +87,17 @@ and syncModeToString mode =
 		INTERFACE st -> "|" ^st^"|"
 and transitionToString transition = 
 	match transition with
-		EXPRTRANS (patterns,expr) -> (concatAndInsert " " (List.map (fun objPattern -> "{"^(concatAndInsert "; " (List.map objectPatternToString objPattern))^"}") patterns))^" => "^(exprToString expr) |
-		ACTIONTRANS (patterns,expr) -> (concatAndInsert " " (List.map (fun objPattern -> "{"^(concatAndInsert "; " (List.map objectPatternToString objPattern))^"}") patterns))^" !-> "^(exprToString expr)
-and objectPatternToString pattern =
-	match pattern with
-		OPENOBJPATTERN -> "..." |
-		OBJPATTERN (id,pattern) -> id^"= "^(patternToString pattern)
-;; 
+		EXPRTRANS (objPatterns,expr) -> (concatAndInsert " " (List.map objectPatternToString objPatterns))^" => "^(exprToString expr) |
+		ACTIONTRANS (objPatterns,expr) -> (concatAndInsert " " (List.map objectPatternToString objPatterns))^" !-> "^(exprToString expr)
+and objectPatternToString obj =
+	match obj with
+		OBJPATTERN attributes -> "{"^(concatAndInsert "; " (List.map attributePatternToString attributes))^"}" 
+and attributePatternToString att = 
+	match att with
+		VALUEATTRIBUTEPATTERN (id,pattern) -> id^"= "^(patternToString pattern) |
+		PRESENTATTRIBUTEPATTERN id -> id |
+		TYPEATTRIBUTEPATTERN (id,tp) -> id^": "^(typeToString tp)
+;;
  
 exception ExpressionIsNotActionList of string;;
 let exprToActions expr = 

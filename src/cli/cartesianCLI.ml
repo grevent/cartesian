@@ -1,10 +1,10 @@
 
 open Debug
 open Ledit
-open CliTree
 open CartesianDataModel
 open Runtime
 open Object
+open EvalTree
 
 let rec read_line() = 
 	let tmp = input_char stdin in
@@ -62,33 +62,15 @@ let cli prompt parser lexer evaluer =
 	done;
 ;;
 
-let eval runtime tree = 
-	match tree with
-		EXIT -> 
-			exit 0 | 
-		LISTOBJECTS -> 
-			let objs = getObjects runtime in
-			if List.length objs > 0 then
-				List.iter (fun obj -> 
-					print_string (objectToStringRepresentation obj);
-					print_newline(); )
-					(getObjects runtime) 
-			else 
-				begin
-					print_string "no objects"; 
-					print_newline();
-				end; |
-		EXEC -> 
-			let execFromTree tree = 
-				let evaluatedExpr = EvalTree.evalExpr runtime tree in 
-				let actions = Tree.exprToActions evaluatedExpr in
-				List.iter (EvalTree.evalAction runtime) actions
-			in
-			let tree = cli "#" CartesianSyntax.command CartesianLex.lexer execFromTree in
-			print_string "EXEC Called, Tree parsed"; 
-			print_newline();
-;;
-          
+
+let exec runtime tree = 
+	let (tp,expr) = evalExprType runtime tree in
+	ignore (unification runtime.namedType runtime.genericTypes ACTION tp);
+	let actions = exprToActions expr in
+	List.iter (evalExprType runtime) actions;
+;;  
+
+
 let cartesianCLI () =
 	let runtime = newRuntime() in
 	
@@ -97,6 +79,6 @@ let cartesianCLI () =
 	print_newline();
 
 	while true do
-		cli ">" CliSyntax.phrase CliLex.lexem (eval runtime);
+		cli ">" CartesianSyntax.command CartesianLex.lexer exec;
 	done;
 ;;

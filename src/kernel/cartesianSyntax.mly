@@ -1,6 +1,3 @@
-
-
-
 %{
   open CartesianDataModel
   open Debug
@@ -24,7 +21,8 @@
 %token LIST GENID TYPEDEF USE EXTERNAL DEUXPOINTSSUP DEUXPOINTSINF
 %token INT FLOAT STRING OBJECT ARRAY IMPLY ACTION DECLARATION
 %token TRANSITION RULE PTEXCFLECHD TYPE COPY NEW DELETE REPLACE
-%token ACOOPIPE PIPEACOF DEFINE COMMANDEND 
+%token ACOOPIPE PIPEACOF DEFINE COMMANDEND INFINF SUPSUP INCHANNEL OUTCHANNEL 
+%token INFPT SUPPT INFEGALPT SUPEGALPT EGALEGALPT NOTEGALPT PLUSPT MINUSPT MULPT DIVPT
 
 %token <string> ID COMMENT STRINGVALUE GENID CAPID
 %token <int> INTVALUE
@@ -34,9 +32,9 @@
 %left PIPE
 %left WHERE
 %left WITH
-%left SUPEGAL INFEGAL INF SUP EGALEGAL NOTEGAL 
-%left PLUS MINUS LOGICALOR
-%left MUL MOD DIV LOGICALAND
+%left SUPEGAL INFEGAL INF SUP EGALEGAL NOTEGAL SUPEGALPT INFEGALPT INFPT SUPPT EGALEGALPT NOTEGALPT 
+%left PLUS MINUS PLUSPT MINUSPT LOGICALOR
+%left MUL MOD DIV LOGICALAND MULPT DIVPT 
 %left DEUXDEUXPOINTS
 %left PUISS
 %left PT
@@ -51,19 +49,20 @@
   
 command: expr COMMANDEND { synDebug "command-1"; $1 }
 
-genericIds: GENID genericIds { synDebug "genericIds-1"; $1::$2 }
-genericIds: { synDebug "genericIds-2"; [] }
-
 action: ID FLECHG expr { synDebug "action-1"; ASSIGNACTION ($1,$3) }
+action: RULE ID FLECHG expr { ASSIGNRULEACTION ($2,$4) }
+action: OBJECT ID FLECHG expr { ASSIGNOBJECTACTION ($2,$4) }
+action: DELETE RULE ID { DELETERULEACTION $3 }
+action: DELETE OBJECT ID { DELETEOBJECT $3 }
+action: DEFINE genIdList TYPE ID EGAL typeDefProtected { DEFINETYPEACTION ($2,$4,$6) }
+action: DEFINE ID patterns EGAL exprProtected { synDebug "action-9"; DEFINEACTION ($2,$3,$5) }
+action: DEFINE EXTERNAL ID DEUXPOINTS typeDefProtected {DEFINEEXTERNALACTION ($3,$5) }
+action: DEFINE OBJECT ID EGAL exprProtected { DEFINEOBJECTACTION ($3,$5) }
+action: DEFINE RULE ID EGAL exprProtected { DEFINERULEACTION ($3,$5) }
 action: DO expr { synDebug "action-2"; DOACTION $2 (* Do each action in the list / object delivered by the evaluation *) }
 action: exprProtected { synDebug "action-3"; EXPRACTION $1 }
-action: COPY ID { synDebug "action-4"; COPYACTION $2 }
-action: NEW ID EGAL expr { synDebug "action-5"; NEWACTION ($2,$4) }
-action: DELETE ID { synDebug "action-6"; DELETEACTION $2 }
-action: REPLACE ID WITH expr { synDebug "action-7"; REPLACEACTION ($2,$4) }
-action: TYPE ID genericIds EGAL typeDefProtected  { synDebug "action-8"; DEFINETYPEACTION ($2,$3,$5) }
-action: DEFINE ID patterns EGAL exprProtected { synDebug "action-9"; DEFINEACTION ($2,$3,$5) }
-action: EXTERNAL ID DEUXPOINTS typeDefProtected { synDebug "action-10"; EXTERNACTION ($2,$4) }
+action: exprProtected INFINF typeDefProtected { OUTACTION ($1,$3) (* $1 = expression representing the object, $3 expression representing the new channel *) }
+action: exprProtected SUPSUP typeDefProtected { INACTION ($1,$3) }
 
 actionListPtVirg: action PTVIRG actionListPtVirg { synDebug "actionListPtVirg-1"; $1::$3 }
 actionListPtVirg: action { synDebug "actionListPtVirg-2"; [$1]}
@@ -75,11 +74,21 @@ expr: expr EGALEGAL expr { synDebug "expr-3"; createFunctionCallExprn "_==" [$1;
 expr: expr NOTEGAL expr { synDebug "expr-4"; createFunctionCallExprn "_!=" [$1; $3] }
 expr: expr INFEGAL expr { synDebug "expr-5"; createFunctionCallExprn "_<=" [$1; $3] }
 expr: expr SUPEGAL expr { synDebug "expr-6"; createFunctionCallExprn "_>=" [$1; $3] }
+expr: expr INFPT expr { synDebug "expr-1"; createFunctionCallExprn "_<." [$1; $3] }
+expr: expr SUPPT expr {  synDebug "expr-2"; createFunctionCallExprn "_>." [$1; $3] }
+expr: expr EGALEGALPT expr { synDebug "expr-3"; createFunctionCallExprn "_==." [$1; $3] }
+expr: expr NOTEGALPT expr { synDebug "expr-4"; createFunctionCallExprn "_!=." [$1; $3] }
+expr: expr INFEGALPT expr { synDebug "expr-5"; createFunctionCallExprn "_<=." [$1; $3] }
+expr: expr SUPEGALPT expr { synDebug "expr-6"; createFunctionCallExprn "_>=." [$1; $3] }
 expr: expr PLUS expr { synDebug "expr-7"; createFunctionCallExprn "_+" [$1; $3] }
 expr: expr MINUS expr { synDebug "expr-8"; createFunctionCallExprn "_-" [$1; $3] }
+expr: expr PLUSPT expr { synDebug "expr-7"; createFunctionCallExprn "_+." [$1; $3] }
+expr: expr MINUSPT expr { synDebug "expr-8"; createFunctionCallExprn "_-." [$1; $3] }
 expr: expr MUL expr { synDebug "expr-9"; createFunctionCallExprn "_*" [$1; $3] }
 expr: expr MOD expr { synDebug "expr-10"; createFunctionCallExprn "_mod" [$1; $3] }
 expr: expr DIV expr { synDebug "expr-11"; createFunctionCallExprn "_/" [$1; $3] }
+expr: expr MULPT expr { synDebug "expr-9"; createFunctionCallExprn "_*." [$1; $3] }
+expr: expr DIVPT expr { synDebug "expr-11"; createFunctionCallExprn "_/." [$1; $3] }
 expr: expr PUISS expr { synDebug "expr-12"; createFunctionCallExprn "_^" [$1; $3] }
 expr: expr LOGICALOR expr { synDebug "expr-13"; createFunctionCallExprn "_||" [$1; $3] }
 expr: expr LOGICALAND expr { synDebug "expr-14"; createFunctionCallExprn "_&&" [$1; $3] }
@@ -142,6 +151,8 @@ typeDefProtected: PARO ID typeDefList PARF { NAMEDTYPE ($3,$2) }
 typeDefProtected: OBJECT { OBJECTTYPE }
 typeDefProtected: TRANSITION { TRANSITIONTYPE }
 typeDefProtected: PARO typeDef PARF { $2 }
+typeDefProtected: INCHANNEL { INCHANNELTYPE }
+typeDefProtected: OUTCHANNEL { OUTCHANNELTYPE }
 
 typeDefList: typeDefProtected typeDefList { $1::$2 }
 typeDefList: typeDefProtected  { [$1] }
@@ -196,9 +207,10 @@ objectPattern: ACOO patternObjectDefinitions ACOF { $2 }
 patternObjectDefinitions: patternObjectDefinition PTVIRG patternObjectDefinitions { $1::$3 }
 patternObjectDefinitions: patternObjectDefinition PTVIRG { [ $1 ] }
 patternObjectDefinitions: patternObjectDefinition { [ $1 ] }
-patternObjectDefinitions: PTPTPT { [ OPENOBJPATTERN ] }
 
-patternObjectDefinition: ID EGAL pattern { OBJPATTERN ($1,$3) }
+patternObjectDefinition: ID EGAL pattern { VALUEOBJPATTERN ($1,$3) }
+patternObjectDefinition: ID { ATTRIBUTEOBJPATTERN $1 }
+patternObjectDefinition: ID DEUXPOINTS typeDef { TYPEOBJPATTERN ($1,$3) }
 
 objectPatterns: objectPattern objectPatterns { $1::$2 }
 objectPatterns: objectPattern { [ $1 ] }
@@ -209,3 +221,5 @@ exprProtectedList: exprProtected { [ $1 ] }
 patternListPtVirg: pattern PTVIRG patternListPtVirg { $1::$3 }
 patternListPtVirg: pattern { [ $1 ] }
  
+genIdList: GENID genIdList { $1::$2 }
+genIdList: { [] }

@@ -1,5 +1,7 @@
 
 open CartesianDataModel
+open ListReference
+open Runtime
 
 exception CycleInGenericTypesFound;;
 
@@ -9,72 +11,71 @@ let newGeneric() =
 	GENTYPE !typeGen
 ;;
 
-let rec reduceGeneric runtime alreadyResolved id0 =
-	if List.exist (fun x -> x == id0) alreadyResolved then
-		GENTYPE id
-	else
-		try match (List.assoc id0 runtime.genericTypes) with
-			GENTYPE otherId -> reduceGeneric (id0::alreadyResolved) runtime otherId |
-			x -> x
-		with Not_found -> 
-			GENTYPE id0
-;;
-
-exception NamedTypeDoesNotExist;;
-let findNamedType namedTypes id0 =
-	try
-		let (_,tp) = List.find (fun (id,_) -> (String.compare id id0 == 0)) namedTypes in
-		tp
-	with Not_found ->
-		raise NamedTypeDoesNotExist
-;;
-
-let rec reduceGenerics generics alreadyTested tp = 
+let rec recursiveReduceGenerics runtime alreadyTested tp = 
 	match tp with
-		GENTYPE id0 -> (reduceGenerics generics (id0::alreadyTested) (reduceGeneric generics id0)) |
-		LIST tp -> LIST (reduceGenerics generics alreadyTested tp) |
-		ARRAY tp -> ARRAY (reduceGenerics generics alreadyTested tp) |
-		PAIR tps -> PAIR (List.map (reduceGenerics generics alreadyTested) tps) |
-		FUNCTION (params,result) -> FUNCTION ((List.map (reduceGenerics generics alreadyTested) params),(reduceGenerics generics result)) |
+		GENTYPE id0 when (List.exists (fun x -> x == id0) alreadyTested) -> GENTYPE id0 |
+		GENTYPE id0 -> 
+			(try 
+				reduceGenerics runtime (id0::alreadyTested) (List.assoc id0 (returnList runtime.genericTypes))
+			with
+				Not_found -> GENTYPE id0) |
+		LIST tp -> LIST (reduceGenerics runtime alreadyTested tp) |
+		ARRAY tp -> ARRAY (reduceGenerics runtime alreadyTested tp) |
+		PAIR tps -> PAIR (List.map (reduceGenerics runtime alreadyTested) tps) |
+		FUNCTION (param,result) -> FUNCTION ((reduceGenerics runtime alreadyTested param),(reduceGenerics runtime alreadyTested result)) |
 		_ -> tp
-;;	
+;;
+
+let reduceGenerics runtime tp = 
+	let (_,result) = recursiveReduceGenerics runtime [] tp in
+	result
+;;
 
 exception TypesNotCompatible;;
-let rec unification namedTypes generics tp1 tp2 = 
+let rec unification runtime tp1 tp2 = 
 	match (tp1,tp2) with
-		(FUNCTION params1,result1),(FUNCTION params2,result2) -> ERROR |
-		INT,INT -> (generics,INT) |
-		FLOAT,FLOAT -> (generics,FLOAT) |
-		UNKNOWN,tp -> (generics,tp) |
-		tp,UNKNOWN -> (generics,tp) |
-		STRING,STRING -> (generics,STRING) |
-		BOOL,BOOL -> (generics,BOOL) |
-		NOD,NOD -> (generics,NOD) |
-		ACTION,ACTION -> (generics,ACTION) |
-		(GENTYPE id),tp -> ((id,tp)::generics,tp) |
-		tp,(GENTYPE id) -> ((id,tp)::generics,tp) |
-		(LIST tp1),(LIST tp2) -> let (newGens,tp) = unification namedTypes generics tp1 tp2 in (newGens,LIST tp) |
-		(ARRAY tp1),(ARRAY tp2) ->  let (newGens,tp) = unification namedTypes generics tp1 tp2 in (newGens,ARRAY tp) |
+		((FUNCTION (param1,result1)),(FUNCTION (param2,result2))) -> 
+			let param = unification runtime param1 param2 in
+			let result = unification runtime result1 result2 in 
+			FUNCTION (param,result) |
+		(INT,INT) -> INT |
+		(FLOAT,FLOAT) -> FLOAT |
+		(STRING,STRING) -> STRING |
+		(BOOL,BOOL) -> BOOL |
+		(NOD,NOD) -> NOD |
+		(ACTION,ACTION) -> ACTION |
+		(GENTYPE id),tp -> 
+			addGeneric runtime id tp;
+			tp |
+		tp,(GENTYPE id) -> 
+			addGeneric runtime id tp;
+			tp |
+		(LIST tp1),(LIST tp2) -> 
+			let tp = unification runtime tp1 tp2 in 
+			LIST tp |
+		(ARRAY tp1),(ARRAY tp2) ->  
+			let tp = unification runtime tp1 tp2 in 
+			ARRAY tp |
 		(PAIR tps1),(PAIR tps2) -> 
-			let (newGens,tps) = List.fold_left (fun (gens,tps) (tp1,tp2) -> let (newGens,tp) = unification namedTypes gens tp1 tp2 in (newGens,(tps@[tp]))) (generics,[]) (List.combine tps1 tps2) in
-			(newGens,(PAIR tps)) |
+			let tps = List.fold_left (fun tps (tp1,tp2) -> let tp = unification runtime tp1 tp2 in (tps@[tp])) [] (List.combine tps1 tps2) in
+			(PAIR tps) |
 		(NAMED st1),_ -> 
-			findNamedType namedTypes st1 |
+			findNamedType runtime st1 |
 		_,(NAMED st2) -> 
-			findNamedType namedTypes st2 |
+			findNamedType runtime st2 |
 		_ -> 
 			raise TypesNotCompatible
 ;;
 
-let rec verifyUniqueness generics typeLst = 
+let rec verifyUniqueness runtime typeLst = 
 	match typeLst with
 		[] -> 
 			true |
 		tp::otherTypes -> 
-			if (verifyUniqueness generics otherTypes) then	
+			if (verifyUniqueness runtime otherTypes) then	
 				List.fold_left 
 					(fun acc ot -> 
-						try ignore (unification [] generics ot tp); false with
+						try ignore (unification runtime ot tp); false with
 							TypesNotCompatible -> acc)
 					true
 					otherTypes
@@ -89,6 +90,43 @@ let getTypesFromPair tp =
 		_ -> raise TypeNotAPair
 ;;
 
-let testUnification runtime tp1 tp2 =
-	unification runtime (renameGenerics tp1) (renameGenerics tp2)
+let recursiveRenameGenerics alreadyRenamed tp = 
+	match tp with 
+		INT -> (alreadyRenamed,INT) |
+		FLOAT -> (alreadyRenamed,FLOAT) |
+		STRING -> (alreadyRenamed,STRING) |
+		BOOL -> (alreadyRenamed,BOOL) |
+		ACTION -> (alreadyRenamed,ACTION) | 
+		GENTYPE id -> 
+			try (alreadyRenamed,List.assoc (fun id0 -> id == id0) alreadyRenamed) with
+			Not_found -> let genericType = newGeneric() in 
+				(((id,genericType)::alreadyRenamed),genericType) |
+		NOD -> (alreadyRenamed,NOD) |
+		LIST tp -> (alreadyRenames,(recursiveRenameGenerics alreadyRenamed tp)) |
+		ARRAY tp -> (alreadyRenames,(recursiveRenameGenerics alreadyRenamed tp)) |
+		PAIR tps -> List.fold_left (fun (lst,tpList) tp -> let (resultList,resultType) = recursiveRenameGenerics lst tp in (resultList,tpList@[resultType])) alreadyRenamed tps |
+		NAMED (id,params) -> 
+			let (newList,types) = List.fold_left (fun (lst,tpList) param -> let (resultList,resultType) = recursiveRenameGenerics lst param in (resultList,tpList@[resultType])) params in
+			(newList,NAMED (id,types)) |
+		VARIANT variants -> List.fold_left (fun (lst,variants) (id,tp) -> let (resultList,resultType) = recursiveRenameGenerics lst tp in (
+		
+		
+		
+let renameGenerics runtime tp = 
+	let (_,result) = recursiveRenameGenerics runtime [] tp in
+	result
 ;;
+
+	VARIANT of (string*cType) list |
+	FUNCTION of cType*cType |
+	OBJECT |
+	TRANSITION |
+	INCHANNEL | 
+	OUTCHANNEL 
+;;
+
+
+let testUnification runtime tp1 tp2 =
+	unification runtime (renameGenerics runtime [] tp1) (renameGenerics runtime [] tp2)
+;;
+

@@ -8,9 +8,10 @@ let typedEvalExpr runtime expr =
 ;;
 
 let evalExpr runtime expr = 
-	let runtime1 = evalExprType runtime expr in
-	typedEvalExpr runtime expr
+	let resultType = evalExprType runtime expr in
+	(resultType,typedEvalExpr runtime expr)
 and evalAction runtime action =
-	let runtime1 = evalActionType runtime action in
-	typedEvalExpr runtime1 action
+	(evalActionType runtime action);
+	typedEvalAction runtime action 
 ;;
+

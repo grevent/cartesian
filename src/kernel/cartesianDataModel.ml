@@ -1,4 +1,6 @@
 
+open ListReference
+
 type exprNode = 
 	FUNCTIONCALLEXPR of int*exprNode*(exprNode list) |
 	LAMBDAEXPR of int*(((patternNode list)*exprNode) list) |
@@ -52,33 +54,41 @@ and typeNode =
 	VARIANTTYPE of ((string*typeNode) list) |
 	FUNCTIONTYPE of (typeNode*typeNode) |
 	OBJECTTYPE |
-	TRANSITIONTYPE 
+	TRANSITIONTYPE |
+	INCHANNELTYPE |
+	OUTCHANNELTYPE 
 and actionNode =
 	ASSIGNACTION of string*exprNode |
+	ASSIGNRULEACTION of string*exprNode |
+	ASSIGNOBJECTACTION of string*exprNode |
 	DOACTION of exprNode |
-	COPYACTION of string |
 	EXPRACTION of exprNode |
-	NEWACTION of string*exprNode |
-	DELETEACTION of string  |
-	REPLACEACTION of string*exprNode |
-	DEFINETYPEACTION of string*(string list)*typeNode |
+	DELETERULEACTION of string  |
+	DELETEOBJECTACTION of string |
+	DEFINETYPEACTION of string*typeNode |
 	DEFINEACTION of string*(patternNode list)*exprNode |
-	EXTERNACTION of string*typeNode
+	DEFINEEXTERNALACTION of string*typeNode |
+	DEFINEOBJECTACTION of string*exprNode |
+	DEFINERULEACTION of string*exprNode |
+	OUTACTION of exprNode*typeNode |
+	INACTION of exprNode*typeNode 
 and objectNode =
 	OBJECT of syncMode*((string*exprNode) list)
 and syncMode = 
 	LOCAL | 
 	INTERFACE of string
 and transitionNode =
-	EXPRTRANS of ((objectPatternNode list list)*exprNode) |
-	ACTIONTRANS of ((objectPatternNode list list)*exprNode) 
+	EXPRTRANS of (objectPatternNode list)*exprNode |
+	ACTIONTRANS of ((objectPatternNode list)*exprNode) 
 and objectPatternNode = 
-	OPENOBJPATTERN |
-	OBJPATTERN of string*patternNode
-;; 
+	OBJPATTERN of (attributePatternNode list) 
+and attributePatternNode = 
+	VALUEATTRIBUTEPATTERN of string*patternNode |
+	PRESENTATTRIBUTEPATTERN of string |
+	TYPEATTRIBUTEPATTERN of string*typeNode
+;;
 
 type cType = 
-	UNKNOWN |
 	INT |
 	FLOAT |
 	STRING |
@@ -89,11 +99,13 @@ type cType =
 	LIST of cType |
 	ARRAY of cType |
 	PAIR of cType list |
-	NAMED of string | 
+	NAMED of (string*cType list) | 
 	VARIANT of (string*cType) list |
 	FUNCTION of cType*cType |
 	OBJECT |
-	TRANSITION
+	TRANSITION |
+	INCHANNEL | 
+	OUTCHANNEL 
 ;;
 
 type decoration = { node: int; typeDes: cType };;
@@ -109,10 +121,11 @@ and
 ;;
 
 type runtime = { 
-	mutable objects: cObject list; 
-	mutable rules: rule list; 
-	mutable env0: env; 
-	mutable decorations: decoration list;
-	mutable genericTypes: (int*cType) list;
-	mutable namedTypes: (string*cType) list
+	objects: cObject listReference; 
+	rules: rule listReference; 
+	env0: env; 
+	decorations: decoration listReference;
+	genericTypes: (int*cType) listReference;
+	namedTypes: (string*cType) listReference;
 };;
+

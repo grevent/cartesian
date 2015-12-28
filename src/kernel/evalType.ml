@@ -1,37 +1,44 @@
 
 open Tree 
 open CartesianDataModel
+open Runtime
+open Type
 
 exception PairElementsWithSameType;;
 exception TypeNotInPair;;
-let rec evalExprType runtime expr = 
-	let evalAssign runtime (pattern,patterns,expr) = 
-		if List.length patterns > 0 then
-			begin
-				let runtime1 = newScope runtime in
-				let patternTypes = List.map (evalPatternType runtime1) patterns in
-				let exprType = evalExprType runtime1 expr in
-				let tp1 = FUNCTION (patternTypes,exprType) in
-				let realTp1 = reduceGeneric runtime1 [] tp1 in
-				let tp2 = evalPatternType runtime1 pattern in
-				ignore (unification runtime1 realTp1 tp2);
-			end
-		else
-			begin
-				let exprType = evalExprType runtime expr in
-				let tp =  evalPatternType runtime pattern in
-				ignore (unification runtime1 exprType tp);
-			end;
-	in
-	let evalMatch runtime (patterns,expr) =
-		let runtime1 = newScope runtime in
-		let patternTypes = List.map (evalPatternType runtime1) patterns in
-		let exprType = evalExprType runtime1 expr in
-		let tp = FUNCTION (patternTypes,exprType) in
-		let realResult = reduceGeneric runtime1 [] tp in
-		addDecoration nd realResult;
-		realResult
-	in
+
+let rec createFunctionType types resultType =
+	match types with
+		[] -> resultType |
+		tp::otherTypes -> FUNCTION (tp,(createFunctionType otherTypes resultType))
+;;
+
+let rec evalAssign runtime (pattern,patterns,expr) = 
+	if List.length patterns > 0 then
+		begin
+			let runtime1 = newScope runtime in
+			let patternTypes = List.map (evalPatternType runtime1) patterns in
+			let exprType = evalExprType runtime1 expr in
+			let tp1 = createFunctionType patternTypes exprType in  
+			let realTp1 = reduceGenerics runtime1 [] tp1 in
+			let tp2 = evalPatternType runtime1 pattern in
+			ignore (unification runtime1 realTp1 tp2);
+		end
+	else
+		begin
+			let exprType = evalExprType runtime expr in
+			let tp =  evalPatternType runtime pattern in
+			ignore (unification runtime1 exprType tp);
+		end;
+and evalMatch runtime (patterns,expr) =
+	let runtime1 = newScope runtime in
+	let patternTypes = List.map (evalPatternType runtime1) patterns in
+	let exprType = evalExprType runtime1 expr in
+	let tp = createFunctionType patternTypes exprType in
+	let realResult = reduceGeneric runtime1 [] tp in
+	addDecoration nd realResult;
+	realResult
+and evalExprType runtime expr = 
 	match expr with
 		FUNCTIONCALLEXPR (nd,fn,params) -> 
 			let fnType = evalExprType runtime fn in
@@ -49,7 +56,7 @@ let rec evalExprType runtime expr =
 		LETEXPR (nd,assigns,expr) -> 
 			let runtime1 = newScope runtime in
 			List.iter (fun (pattern,patterns,expr) -> evalPatternType runtime1 pattern) assigns; 
-			List.iter (evalAssign runtime1 x) assigns; 
+			List.iter (evalAssign runtime1) assigns; 
 			let realResult = evalExprType runtime1 expr in
 			addDecoration runtime nd realResult;
 			realResult |
@@ -252,33 +259,87 @@ and evalTypeType runtime tp =
 and evalActionType runtime action =
 	match action with
 		ASSIGNACTION (id,expr) -> 
-			
-
-
-
-
-
-and actionNode =
-	ASSIGNACTION of string*exprNode |
-	DOACTION of exprNode |
-	COPYACTION of string |
-	EXPRACTION of exprNode |
-	NEWACTION of string*exprNode |
-	DELETEACTION of string  |
-	REPLACEACTION of string*exprNode |
-	DEFINETYPEACTION of string*(string list)*typeNode |
-	DEFINEACTION of string*(patternNode list)*exprNode |
-	EXTERNACTION of string*typeNode
-and objectNode =
-	OBJECT of syncMode*((string*exprNode) list)
-and syncMode = 
-	LOCAL | 
-	INTERFACE of string
-and transitionNode =
-	EXPRTRANS of ((objectPatternNode list list)*exprNode) |
-	ACTIONTRANS of ((objectPatternNode list list)*exprNode) 
-and objectPatternNode = 
-	OPENOBJPATTERN |
-	OBJPATTERN of string*patternNode
-;; 
-
+			ignore (evalExprType runtime expr); |
+		ASSIGNRULEACTION (id,expr) -> 
+			let tp = evalExprType runtime expr in
+			let _ = unification runtime RULE tp in
+			ignore 0 |
+		ASSIGNOBJECTACTION (id,expr) -> 
+			let tp = evalExprType runtime expr in
+			let _ = unification runtime OBJECT tp in
+			ignore 0 |
+		EXPRACTION expr -> 
+			let tp = evalExprType runtime expr in
+			let _ = unification runtime ACTION tp in
+			ignore 0 |
+		DOACTION expr -> 
+			let tp = evalExprType runtime expr in
+			let _ = unification runtime (LIST ACTION) tp in
+			ignore 0 |
+		DELETERULEACTION id -> 
+			ignore 0 |
+		DELETEOBJECTACTION id -> 
+			ignore 0 |
+		DEFINETYPEACTION (id,typeExpr) -> 
+			let tp = evalTypeType runtime typeExpr in
+			addType runtime id tp |
+		DEFINEACTION (id,params,expr) -> 
+			evalPatternType runtime (IDPATTERN id);
+			evalAssign runtime ((IDPATTERN id),params,expr); |
+		DEFINEEXTERNALACTION (id,typeExpr) -> 
+			let tp1 = evalTypeType runtime typeExpr in
+			let tp2 = evalPatternType runtime (IDPATTERN id) in
+			ignore (unification runtime tp1 tp2); |
+		DEFINEOBJECTACTION (id,expr) -> 
+			let tp = evalExprType runtime expr in
+			let _ = unification runtime OBJECT tp in
+			ignore 0 |
+		DEFINERULEACTION (id,expr) -> 
+			let tp = evalExprType runtime expr in 
+			let _ = unification runtime RULE tp in
+			ignore 0 | 
+		OUTACTION (expr,typeExpr) -> 
+			let tp1 = evalExprType runtime expr in
+			let _ = unification runtime OBJECT tp1 in
+			let tp2 = evalTypeType runtime typeExpr in 
+			let _ = unification runtime OUTCHANNEL in
+			ignore 0 |
+		INACTION (expr,typeExpr) -> 
+			let tp1 = evalExprType runtime expr in 
+			let _ = unification runtime OBJECT tp1 in
+			let tp2 = evalTypeType runtime typeExpr in 
+			let _ = unification runtime INCHANNEL in
+			ignore 0 
+and evalObjectType runtime obj =
+	match obj with
+		OBJECT (_,atts) -> 
+			List.iter (fun (_,expr) -> ignore (evalExprNode runtime expr)) atts 
+and evalTransitionExpr runtime trans = 
+	match trans with
+		EXPRTRANS (objs,equivalentExpr) -> 
+			let runtime1 = newScope runtime in
+			List.iter (evalObjectPattern runtime1) objs;
+			let tp = evalExprType runtime1 equivalentExpr in
+			let _ = unification runtime1 OBJECT tp in
+			ignore 0 |
+		ACTIONTRANS (objs,actionExpr) -> 
+			let runtime1 = newScope runtime in
+			List.iter (evalObjectPattern runtime1) objs;
+			let tp = evalExprType runtime1 equivalentExpr in
+			let _ = unification runtime1 ACTION tp in
+			ignore 0 
+and evalObjectPattern runtime obj = 
+	match obj with
+		OBJPATTERN atts -> 
+			List.iter evalObjectAttributePattern runtime atts 
+and evalObjectAttributePattern runtime att = 
+	match att with
+		VALUEATTRIBUTEPATTERN (id,pattern) -> 
+			let _ = evalPatternType runtime pattern in
+			ignore 0 |
+		PRESENTATTRIBUTEPATTERN id -> 
+			ignore 0 |
+		TYPEATTRIBUTEPATTERN (id,tp) -> 
+			let _ = evalTypeType runtime tp in
+			ignore 0
+;;
