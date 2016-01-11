@@ -1,4 +1,5 @@
 %{
+%{
   open CartesianDataModel
   open Debug
   
@@ -21,8 +22,9 @@
 %token LIST GENID TYPEDEF USE EXTERNAL DEUXPOINTSSUP DEUXPOINTSINF
 %token INT FLOAT STRING OBJECT ARRAY IMPLY ACTION DECLARATION
 %token TRANSITION RULE PTEXCFLECHD TYPE COPY NEW DELETE REPLACE
-%token ACOOPIPE PIPEACOF DEFINE COMMANDEND INFINF SUPSUP INCHANNEL OUTCHANNEL 
+%token ACOOPIPE PIPEACOF DEFINE COMMANDEND INFINF SUPSUP 
 %token INFPT SUPPT INFEGALPT SUPEGALPT EGALEGALPT NOTEGALPT PLUSPT MINUSPT MULPT DIVPT
+%token INTERFACE ACOOINF SUPACOF INFSUP NOW ACOOTILDE TILDEACOF
 
 %token <string> ID COMMENT STRINGVALUE GENID CAPID
 %token <int> INTVALUE
@@ -54,15 +56,15 @@ action: RULE ID FLECHG expr { ASSIGNRULEACTION ($2,$4) }
 action: OBJECT ID FLECHG expr { ASSIGNOBJECTACTION ($2,$4) }
 action: DELETE RULE ID { DELETERULEACTION $3 }
 action: DELETE OBJECT ID { DELETEOBJECT $3 }
-action: DEFINE genIdList TYPE ID EGAL typeDefProtected { DEFINETYPEACTION ($2,$4,$6) }
+action: DEFINE TYPE genIdList ID EGAL typeDefProtected { DEFINETYPEACTION ($3,$4,$6) }
 action: DEFINE ID patterns EGAL exprProtected { synDebug "action-9"; DEFINEACTION ($2,$3,$5) }
 action: DEFINE EXTERNAL ID DEUXPOINTS typeDefProtected {DEFINEEXTERNALACTION ($3,$5) }
 action: DEFINE OBJECT ID EGAL exprProtected { DEFINEOBJECTACTION ($3,$5) }
 action: DEFINE RULE ID EGAL exprProtected { DEFINERULEACTION ($3,$5) }
+action: DEFINE INTERFACE ID EGAL interfaceDefinition { let (driver,inChannels,outChannels) = $5 in DEFINEINTERFACE ($3,driver,inChannels,outChannels) }
 action: DO expr { synDebug "action-2"; DOACTION $2 (* Do each action in the list / object delivered by the evaluation *) }
 action: exprProtected { synDebug "action-3"; EXPRACTION $1 }
-action: exprProtected INFINF typeDefProtected { OUTACTION ($1,$3) (* $1 = expression representing the object, $3 expression representing the new channel *) }
-action: exprProtected SUPSUP typeDefProtected { INACTION ($1,$3) }
+action: NOW exprProtected { IMMEDIATEACTION $2 } 
 
 actionListPtVirg: action PTVIRG actionListPtVirg { synDebug "actionListPtVirg-1"; $1::$3 }
 actionListPtVirg: action { synDebug "actionListPtVirg-2"; [$1]}
@@ -128,8 +130,10 @@ exprProtected: CROOPIPE exprListPtVirg PIPECROF { synDebug "exprProtected-18"; A
 exprVirgList: expr VIRG exprVirgList { $1::$3 }
 exprVirgList: expr { [ $1 ] }
 
-objectDef: ACOOPIPE objectDefinitions PIPEACOF { OBJECT (LOCAL,$2) }
-objectDef: ACOOPIPE ID PIPE objectDefinitions PIPEACOF { OBJECT ((INTERFACE $2),$4) }
+objectDef: ACOOPIPE objectDefinitions PIPEACOF { SIMPLEOBJECT $2 }
+objectDef: ACOOPIPE ID INFSUP objectDefinitionsWithInterface PIPEACOF { OBJECT ($2,$4) }
+objectDef: ACOOTILDE objectDefinitions TILDEACOF { TRANSIENTSIMPLEOBJECT $2 }
+objectDef: ACOOTILDE ID INFSUP objectDefinitionsWithInterface TILDEACOF { TRANSIENTOBJECT ($2,$4) }
 
 transition: objectPatterns IMPLY exprProtected { EXPRTRANS ($1,$3) }
 transition: objectPatterns PTEXCFLECHD exprProtected { ACTIONTRANS ($1,$3) (* Should return an object ! *) }
@@ -146,13 +150,12 @@ typeDefProtected: CROOPIPE typeDef PIPECROF { ARRAYTYPE $2 }
 typeDefProtected: CROO typeDef CROF { LISTTYPE $2 }
 typeDefProtected: GENID { GENTYPE $1 }
 typeDefProtected: PARO typeDefVirgList PARF  { PAIRTYPE $2 }
-typeDefProtected: ID { NAMEDTYPE ([],$1) }
-typeDefProtected: PARO ID typeDefList PARF { NAMEDTYPE ($3,$2) }
+typeDefProtected: ID { NAMEDTYPE ($1,[]) }
+typeDefProtected: PARO ID typeDefList PARF { NAMEDTYPE ($2,$3) }
 typeDefProtected: OBJECT { OBJECTTYPE }
 typeDefProtected: TRANSITION { TRANSITIONTYPE }
 typeDefProtected: PARO typeDef PARF { $2 }
-typeDefProtected: INCHANNEL { INCHANNELTYPE }
-typeDefProtected: OUTCHANNEL { OUTCHANNELTYPE }
+typeDefProtected: INTERFACE { INTERFACE }
 
 typeDefList: typeDefProtected typeDefList { $1::$2 }
 typeDefList: typeDefProtected  { [$1] }
@@ -177,7 +180,12 @@ exprListPtVirg: expr PTVIRG exprListPtVirg { $1::$3 }
 exprListPtVirg: expr { [$1] } 
 
 objectDefinitions: ID EGAL expr PTVIRG objectDefinitions { ($1,$3)::$5 }
-objectDefinitions: ID EGAL expr { [ ($1,$3) ] }
+objectDefinitions: { [ ] }
+
+objectDefinitionsWithInterface: ID EGAL expr SUPSUP ID PTVIRG objectDefinitionsWithInterface { ($1,$3,SEND $5)::$7 }
+objectDefinitionsWithInterface: ID EGAL expr INFINF ID PTVIRG objectDefinitionsWithInterface { ($1,$3,RECEIVE $5)::$7 }
+objectDefinitionsWithInterface: ID EGAL expr PTVIRG objectDefinitionsWithInterface { ($1,$3,NOINTERFACE)::$5 }
+objectDefinitionsWithInterface: { [] }
 
 patterns: patternProtected patterns { $1::$2 }
 patterns: { [] }
@@ -223,3 +231,9 @@ patternListPtVirg: pattern { [ $1 ] }
  
 genIdList: GENID genIdList { $1::$2 }
 genIdList: { [] }
+
+interfaceDefinition: ACOOINF ID PIPE interfaceDescriptionList SUPACOF { let (inChannels,outChannels) = $4 in ($2,inChannels,outChannels) }
+
+interfaceDescriptionList: SUPSUP ID interfaceDescriptionList { let (inChannels,outChannels) = $3 in (inChannels,(outChannels@[$2])) } 
+interfaceDescriptionList: INFINF ID interfaceDescriptionList { let (inChannels,outChannels) = $3 in (inChannels@[$2],outChannels) }
+interfaceDescriptionList: { ([],[]) }

@@ -29,14 +29,21 @@ let getObjects runtime =
 exception IdNotDeclared
 let getIdValue runtime id =
 	let rec search env =
-		if List.exists (fun x -> (String.compare x.id id) == 0) env.values then
-			List.find (fun x -> (String.compare x.id id) == 0) env.values 
-		else
-			(match runtime.env0.scope with
+		try
+			ListTools.find (fun x -> String.compare x.id id == 0) env.values
+		with 
+			_ -> (match runtime.env0.scope with
 				ROOT -> raise IdNotDeclared |
 				PARENT parentEnv -> search parentEnv);
 	in
 	search runtime.env0
+;;
+
+let getIdValueCurrentLevel runtime id =
+	try 
+		ListTools.find (fun x -> String.compare x.id id == 0) runtime.env0.values
+	with
+		_ -> raise IdNotDeclared
 ;;
 
 let getValueType vl = 
@@ -51,12 +58,50 @@ let addGeneric runtime id tp =
 	addElement runtime.genericTypes (id,tp)
 ;;
 
-exception NamedTypeDoesNotExist;;
-let findNamedType runtime id0 =
-	try
-		let (_,tp) = List.find (fun (id,_) -> (String.compare id id0 == 0)) (returnList runtime.namedTypes) in
-		tp
-	with Not_found ->
-		raise NamedTypeDoesNotExist
+let getGeneric runtime id = 
+	List.assoc id (returnList runtime.genericTypes);
 ;;
-		
+
+let existsGeneric runtime id = 
+	List.exists (fun (x,_) -> if x == id then true else false) (returnList runtime.genericTypes)
+;;
+
+let addDecoration runtime nd tp = 
+	addElement runtime.decorations (nd,tp)
+;;
+
+let getDecoration runtime nd = 
+	List.assoc nd (returnList runtime.decorations)
+;;
+
+let addId runtime id nd tp vl = 
+	runtime.env0.values <- {id= id; nodeId= nd; cType= tp; value= vl }::runtime.env0.values; 
+;;
+
+exception NamedTypeNotDefined;;
+let getNamedType runtime id = 
+	let rec recursiveHelper lst = 
+		match lst with
+			(name,tp,params)::cdr when (String.compare name id == 0) -> (tp,params) |
+			car::cdr -> recursiveHelper cdr |
+			[] -> raise NamedTypeNotDefined  
+	in
+	recursiveHelper (returnList runtime.namedTypes)
+;;
+
+let addType runtime id tp params = 
+	addElement runtime.namedTypes (id,tp,params)
+;;
+
+let copyVal vl = 
+	{id= vl.id; nodeId= vl.nodeId; cType= vl.cType; value= vl.value }
+;;
+	
+let rec copyEnv env = 
+	match env.scope with
+		ROOT -> 
+			{ scope= ROOT; values= List.map copyVal env.values } |
+		PARENT parentEnv -> 
+			{ scope= PARENT (copyEnv parentEnv); values= List.map copyVal env.values }
+;;  
+

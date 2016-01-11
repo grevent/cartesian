@@ -62,14 +62,13 @@ let cli prompt parser lexer evaluer =
 	done;
 ;;
 
-
 let exec runtime tree = 
-	let (tp,expr) = evalExprType runtime tree in
+	let tp = evalExprType runtime tree in
 	ignore (unification runtime.namedType runtime.genericTypes ACTION tp);
+	let expr = evalExpr runtime tree in
 	let actions = exprToActions expr in
-	List.iter (evalExprType runtime) actions;
+	List.iter (evalAction runtime) actions;
 ;;  
-
 
 let cartesianCLI () =
 	let runtime = newRuntime() in

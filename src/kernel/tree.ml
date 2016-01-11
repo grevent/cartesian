@@ -12,7 +12,6 @@ let rec exprToString expr =
 		MATCHPOSSIBLEEXPR (_,expr,alternatives) -> "match possible "^(exprToString expr)^" with "^(concatAndInsert " | " (List.map (fun (params,expr) -> (concatAndInsert " " (List.map patternToString params))^" -> "^(exprToString expr)) alternatives)) |
 		TYPEACCESSEXPR (_,expr,tp) -> (exprToString expr)^".:"^(typeToString tp) |
 		TYPEVERIFICATIONEXPR (_,expr,tp) -> "("^(exprToString expr)^": "^(typeToString tp)^")" |
-		TOSUBTYPEEXPR (_,expr,tp) -> "("^(exprToString expr)^":> "^(typeToString tp)^")" |
 		INTEXPR i -> (Printf.sprintf "%d" i) |
 		FLOATEXPR f -> (Printf.sprintf "%f" f) |
 		STRINGEXPR s -> (Printf.sprintf "\"%s\"" s) |
@@ -29,7 +28,8 @@ let rec exprToString expr =
 		OBJEXPR (obj) -> objectToString obj |
 		TRANSITIONEXPR (transition) -> transitionToString transition |
 		NARROWTYPEEXPR (_,expr,typeExpr) -> "("^(exprToString expr)^" :> "^(typeToString typeExpr)^")" | 
-		GENERALISETYPEEXPR (_,expr,typeExpr) -> "("^(exprToString expr)^" :< "^(typeToString typeExpr)^")"  
+		GENERALISETYPEEXPR (_,expr,typeExpr) -> "("^(exprToString expr)^" :< "^(typeToString typeExpr)^")" |
+		PROMISEEXPR (expr,_) -> exprToString !expr
 and patternToString pattern = 
 	match pattern with
 		INTPATTERN i -> (Printf.sprintf "%d" i) |
@@ -55,13 +55,12 @@ and typeToString tp =
 		LISTTYPE t -> (typeToString t)^" list" |
 		GENTYPE st -> "'"^st |
 		PAIRTYPE lst -> "("^(concatAndInsert " " (List.map typeToString lst))^")" |
-		NAMEDTYPE st -> st |
+		NAMEDTYPE (st,[]) -> st |
+		NAMEDTYPE (st,types) -> "("^st^" "^(List.fold_left (fun currentState tp -> currentState^" "^(typeToString tp)) "" types)^")" |
 		OBJECTTYPE -> "object" |
 		TRANSITIONTYPE -> "transition" |
 		VARIANTTYPE lst -> (concatAndInsert " | " (List.map (fun (variant,tp) -> variant^" "^(typeToString tp)) lst)) |
-		FUNCTIONTYPE (param,result) -> (typeToString param)^" -> "^(typeToString result) |
-		INCHANNELTYPE -> "inchannel" |
-		OUTCHANNELTYPE -> "outchannel" 		
+		FUNCTIONTYPE (param,result) -> (typeToString param)^" -> "^(typeToString result) 
 and actionToString act = 
 	match act with
 		ASSIGNACTION (id,expr) -> id^"<- "^(exprToString expr) |
@@ -71,20 +70,27 @@ and actionToString act =
 		ASSIGNOBJECTACTION (id,expr) -> "object "^id^" <- "^(exprToString expr) | 
 		DELETERULEACTION id -> "delete rule "^id |
 		DELETEOBJECTACTION id -> "delete object "^id |
-		DEFINETYPEACTION (id,tp) -> "define type "^id^" = "^(typeToString tp) | 
-		DEFINEACTION (id,params,expr) -> "define "^id^(List.fold_left (fun acc param -> acc^" "^(patternToString param)) "" params)^" = "^(exprToString expr) | 
-		DEFINEEXTERNALACTION (id,tp) -> "define external "^id^" : "^(typeToString tp) | 
+		DEFINETYPEACTION (id,typeParams,tp) -> "define type"^(List.fold_left (fun current id -> current^" "^id) "" typeParams)^" "^id^" = "^(typeToString tp) | 
+		DEFINEACTION (_,id,params,expr) -> "define "^id^(List.fold_left (fun acc param -> acc^" "^(patternToString param)) "" params)^" = "^(exprToString expr) | 
+		DEFINEEXTERNALACTION (_,id,tp) -> "define external "^id^" : "^(typeToString tp) | 
 		DEFINEOBJECTACTION (id,expr) -> "define object "^id^" = "^(exprToString expr) | 
 		DEFINERULEACTION (id,expr) -> "define rule "^id^" = "^(exprToString expr) | 
-		OUTACTION (channel,tp) -> (exprToString channel)^" >> "^(typeToString tp) | 
-		INACTION (channel,tp) -> (exprToString channel)^" << "^(typeToString tp)
+		DEFINEINTERFACE (id,driver,ins,outs) -> "define interface "^id^" = {< "^driver^" | "^(List.fold_left (fun str inElement -> str^" << "^inElement) "" ins)^" "^(List.fold_left (fun str outElement -> str^" >> "^outElement) "" outs) 
 and objectToString obj = 
 	match obj with
-		OBJECT (syncMode,attributes) -> "{"^(syncModeToString  syncMode)^(concatAndInsert "; " (List.map (fun (att,expr) -> att^"= "^(exprToString expr)) attributes))
-and syncModeToString mode = 
-	match mode with
-		LOCAL -> "" |
-		INTERFACE st -> "|" ^st^"|"
+		SIMPLEOBJECT attributes -> 
+			"{|"^(concatAndInsert "; " (List.map (fun (att,expr) -> att^"= "^(exprToString expr)) attributes))^"|}" |
+		TRANSIENTSIMPLEOBJECT attributes -> 
+			"{~"^(concatAndInsert "; " (List.map (fun (att,expr) -> att^"= "^(exprToString expr)) attributes))^"~}" |
+		OBJECT (driverId,attributes) -> 
+			"{|"^driverId^" <> "^(concatAndInsert "; " (List.map (fun (att,expr,interface) -> att^"= "^(exprToString expr)^" "^(attributeInterfacingToString interface)) attributes))^"|}" | 
+		TRANSIENTOBJECT (driverId,attributes) -> 
+			"{~"^driverId^" <> "^(concatAndInsert "; " (List.map (fun (att,expr,interface) -> att^"= "^(exprToString expr)^" "^(attributeInterfacingToString interface)) attributes))^"~}"
+and attributeInterfacingToString description = 
+	match description with
+		SEND id -> ">> "^id |
+		RECEIVE id -> "<< "^id |
+		NOINTERFACE -> "" 
 and transitionToString transition = 
 	match transition with
 		EXPRTRANS (objPatterns,expr) -> (concatAndInsert " " (List.map objectPatternToString objPatterns))^" => "^(exprToString expr) |
@@ -112,3 +118,10 @@ let exprToList expr =
 		LISTEXPR (_,lst) -> lst |
 		_ -> raise (ExpressionIsNotList (exprToString expr))
 ;;
+
+exception ExpressionIsNotLambda of string;;
+let exprToLambda expr =
+	match expr with
+		LAMBDAEXPR (_,params) -> params |
+		_ -> raise (ExpressionIsNotLambda (exprToString expr))
+;; 

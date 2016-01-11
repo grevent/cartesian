@@ -54,6 +54,12 @@ let allchar = escaped | unicode | char
     | "and" { Debug.lexDebug "AND"; CartesianSyntax.AND }
     | "mod" { Debug.lexDebug "MOD"; CartesianSyntax.MOD }
 	| "do" { Debug.lexDebug "DO"; CartesianSyntax.DO }
+	| "interface" { Debug.lexDebug "INTERFACE"; CartesianSyntax.INTERFACE }
+	| "now" { Debug.lexDebug "NOW"; CartesianSyntax.NOW }
+	| "{~" { Debug.lexDebug "ACOOTILDE"; CartesianSyntax.ACOOTILDE }
+	| "~}" { Debug.lexDebug "TILDEACOF"; CartesianSyntax.TILDEACOF }
+	| "{<" { Debug.lexDebug "ACOOINF"; CartesianSyntax.ACOOINF }
+	| ">}" { Debug.lexDebug "SUPACOF"; CartesianSyntax.SUPACOF }
     | "not" { Debug.lexDebug "NOT"; CartesianSyntax.NOT }
     | "||" { Debug.lexDebug "LOGICALOR"; CartesianSyntax.LOGICALOR }
     | "&&" { Debug.lexDebug "LOGICALAND"; CartesianSyntax.LOGICALAND }

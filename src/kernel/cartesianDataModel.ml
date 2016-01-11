@@ -1,6 +1,25 @@
 
 open ListReference
 
+type cType = 
+	INT |
+	FLOAT |
+	STRING |
+	BOOL |
+	ACTION |
+	GENERIC of int |
+	NOD |
+	LIST of cType |
+	ARRAY of cType |
+	PAIR of cType list |
+	NAMED of (string*(cType list)) | 
+	VARIANT of (string*cType) list |
+	FUNCTION of cType*cType |
+	OBJECT |
+	TRANSITION |
+	INTERFACE of (string list)*(string list) (* In and Out *)
+;;
+
 type exprNode = 
 	FUNCTIONCALLEXPR of int*exprNode*(exprNode list) |
 	LAMBDAEXPR of int*(((patternNode list)*exprNode) list) |
@@ -11,7 +30,6 @@ type exprNode =
 	GENERALISETYPEEXPR of int*exprNode*typeNode | 
 	TYPEACCESSEXPR of int*exprNode*typeNode |
 	TYPEVERIFICATIONEXPR of int*exprNode*typeNode |
-	TOSUBTYPEEXPR of int*exprNode*typeNode |
 	INTEXPR of int |
 	FLOATEXPR of float |
 	STRINGEXPR of string |
@@ -26,7 +44,8 @@ type exprNode =
 	LISTCOMPREHENSIONEXPR of int*exprNode*patternNode*exprNode |
 	ARRAYEXPR of int*(exprNode list) |
 	OBJEXPR of objectNode |
-	TRANSITIONEXPR of transitionNode
+	TRANSITIONEXPR of transitionNode | 
+	PROMISEEXPR of ((exprNode ref)*runtime)
 and patternNode = 
 	CONSPATTERN of int*patternNode*patternNode |
 	INTPATTERN of int |
@@ -50,13 +69,11 @@ and typeNode =
 	LISTTYPE of typeNode |
 	GENTYPE of string |
 	PAIRTYPE of (typeNode list) |
-	NAMEDTYPE of string |
+	NAMEDTYPE of string*(typeNode list) |
 	VARIANTTYPE of ((string*typeNode) list) |
 	FUNCTIONTYPE of (typeNode*typeNode) |
 	OBJECTTYPE |
-	TRANSITIONTYPE |
-	INCHANNELTYPE |
-	OUTCHANNELTYPE 
+	TRANSITIONTYPE 
 and actionNode =
 	ASSIGNACTION of string*exprNode |
 	ASSIGNRULEACTION of string*exprNode |
@@ -65,18 +82,21 @@ and actionNode =
 	EXPRACTION of exprNode |
 	DELETERULEACTION of string  |
 	DELETEOBJECTACTION of string |
-	DEFINETYPEACTION of string*typeNode |
-	DEFINEACTION of string*(patternNode list)*exprNode |
-	DEFINEEXTERNALACTION of string*typeNode |
+	DEFINETYPEACTION of string*(string list)*typeNode |
+	DEFINEACTION of int*string*(patternNode list)*exprNode |
+	DEFINEEXTERNALACTION of int*string*typeNode |
 	DEFINEOBJECTACTION of string*exprNode |
 	DEFINERULEACTION of string*exprNode |
-	OUTACTION of exprNode*typeNode |
-	INACTION of exprNode*typeNode 
+	DEFINEINTERFACE of string*string*(string list)*(string list)
 and objectNode =
-	OBJECT of syncMode*((string*exprNode) list)
-and syncMode = 
-	LOCAL | 
-	INTERFACE of string
+	SIMPLEOBJECT of ((string*exprNode) list) | 
+	OBJECT of (string*((string*exprNode*attributeInterfacing) list)) |
+	TRANSIENTSIMPLEOBJECT of ((string*exprNode) list) |
+	TRANSIENTOBJECT of (string*((string*exprNode*attributeInterfacing) list)) 
+and attributeInterfacing = 
+	SEND of string |
+	RECEIVE of string |
+	NOINTERFACE
 and transitionNode =
 	EXPRTRANS of (objectPatternNode list)*exprNode |
 	ACTIONTRANS of ((objectPatternNode list)*exprNode) 
@@ -86,46 +106,25 @@ and attributePatternNode =
 	VALUEATTRIBUTEPATTERN of string*patternNode |
 	PRESENTATTRIBUTEPATTERN of string |
 	TYPEATTRIBUTEPATTERN of string*typeNode
-;;
-
-type cType = 
-	INT |
-	FLOAT |
-	STRING |
-	BOOL |
-	ACTION |
-	GENTYPE of int |
-	NOD |
-	LIST of cType |
-	ARRAY of cType |
-	PAIR of cType list |
-	NAMED of (string*cType list) | 
-	VARIANT of (string*cType) list |
-	FUNCTION of cType*cType |
-	OBJECT |
-	TRANSITION |
-	INCHANNEL | 
-	OUTCHANNEL 
-;;
-
-type decoration = { node: int; typeDes: cType };;
-type rule = { rule: objectPatternNode; exec: exprNode };;
-type objectEntry = { name: string; mutable value: exprNode; locked: Mutex.t}
-type cObject = { id: int; attributes: objectEntry list; mutable changed: bool };;
-type value = { id: string; nodeId: int; cType: cType; value: exprNode };;
-type parentScope = 
+and rule = 
+	{ rule: objectPatternNode; exec: exprNode }
+and objectEntry = 
+	{ name: string; mutable objValue: exprNode; locked: Mutex.t}
+and cObject = 
+	{ objId: int; attributes: objectEntry list; mutable changed: bool }
+and value = 
+	{ id: string; nodeId: int; cType: cType; value: exprNode }
+and parentScope = 
 	ROOT |
 	PARENT of env
-and
-	env = { scope: parentScope; values: value list }
-;;
-
-type runtime = { 
+and env = 
+	{ scope: parentScope; mutable values: value list }
+and runtime = { 
 	objects: cObject listReference; 
 	rules: rule listReference; 
 	env0: env; 
-	decorations: decoration listReference;
+	decorations: (int*cType) listReference;
 	genericTypes: (int*cType) listReference;
-	namedTypes: (string*cType) listReference;
+	namedTypes: (string*cType*(cType list)) listReference;
 };;
 
