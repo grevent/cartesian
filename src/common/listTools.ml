@@ -32,3 +32,47 @@ let rec map2 fn lst1 lst2 =
 let mapWithState fn state0 lst =
 	List.fold_left (fun (state,currentResult) el -> let (nextState,transformedEl) = (fn state el) in (nextState,currentResult@[transformedEl])) ([],[]) lst
 ;;
+
+let createList i_0 i_n step continue =
+	let rec helper i =
+		match i with
+			x when continue x -> i::(helper (step i)) |
+			x -> []
+	in
+	helper i_0
+;;
+
+let rec iterTillFalse fn lst = 
+	match lst with
+		car::cdr -> 
+			if fn car then
+				ignore 0
+			else
+				iterTillFalse fn cdr |
+		[] -> 
+			raise Not_found
+;;
+
+let rec firstWorking fn lst = 
+	match lst with 
+		car::cdr -> 
+			(try
+				let result = fn car in
+				(car,result)
+			with _ -> 
+				firstWorking fn cdr) |
+		[] -> 
+			raise Not_found
+;;
+
+let rec allWorking fn lst = 
+	match lst with
+		car::cdr -> 
+			(try 
+				let result = fn car in 
+				(result::(allWorking fn cdr));
+			with _ -> 
+				allWorking fn cdr) |
+		[] -> 
+			[]
+;;

@@ -31,7 +31,7 @@ let getIdValue runtime id =
 	let rec search env =
 		try
 			ListTools.find (fun x -> String.compare x.id id == 0) env.values
-		with 
+		with
 			_ -> (match runtime.env0.scope with
 				ROOT -> raise IdNotDeclared |
 				PARENT parentEnv -> search parentEnv);
@@ -44,14 +44,6 @@ let getIdValueCurrentLevel runtime id =
 		ListTools.find (fun x -> String.compare x.id id == 0) runtime.env0.values
 	with
 		_ -> raise IdNotDeclared
-;;
-
-let getValueType vl = 
-	vl.cType
-;;
-
-let getValueValue vl =
-	vl.value
 ;;
 	
 let addGeneric runtime id tp =
@@ -75,7 +67,17 @@ let getDecoration runtime nd =
 ;;
 
 let addId runtime id nd tp vl = 
-	runtime.env0.values <- {id= id; nodeId= nd; cType= tp; value= vl }::runtime.env0.values; 
+	try 
+		let vlForId = getIdValueCurrentLevel runtime id in
+		(match vlForId.value with
+			TBDEXPR -> vlForId.value <- vl; |
+			_ -> runtime.env0.values <- {id= id; nodeId= nd; tp= tp; value= vl }::runtime.env0.values;)
+	with 
+		IdNotDeclared -> runtime.env0.values <- {id= id; nodeId= nd; tp= tp; value= vl }::runtime.env0.values;
+;;
+
+let addIdWithoutValue runtime id nd tp = 
+	runtime.env0.values <- { id=id; nodeId=nd; tp= tp; value=TBDEXPR }::runtime.env0.values;
 ;;
 
 exception NamedTypeNotDefined;;
@@ -94,14 +96,23 @@ let addType runtime id tp params =
 ;;
 
 let copyVal vl = 
-	{id= vl.id; nodeId= vl.nodeId; cType= vl.cType; value= vl.value }
+	{id= vl.id; nodeId= vl.nodeId; value= vl.value; tp= vl.tp }
 ;;
 	
 let rec copyEnv env = 
 	match env.scope with
 		ROOT -> 
-			{ scope= ROOT; values= List.map copyVal env.values } |
+			{ scope= ROOT; values= List.map (fun x -> x) env.values } |
 		PARENT parentEnv -> 
-			{ scope= PARENT (copyEnv parentEnv); values= List.map copyVal env.values }
+			{ scope= PARENT (copyEnv parentEnv); values= List.map (fun x -> x) env.values }
 ;;  
 
+let copyRuntime runtime = {
+	rules = runtime.rules;
+	objects = runtime.objects;
+	env0 = copyEnv runtime.env0;
+	decorations= runtime.decorations;
+	genericTypes= runtime.genericTypes;
+	namedTypes= runtime.namedTypes;
+}
+;;

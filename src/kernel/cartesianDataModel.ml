@@ -21,11 +21,12 @@ type cType =
 ;;
 
 type exprNode = 
-	FUNCTIONCALLEXPR of int*exprNode*(exprNode list) |
-	LAMBDAEXPR of int*(((patternNode list)*exprNode) list) |
-	LETEXPR of int*((patternNode*(patternNode list)*exprNode) list)*exprNode |	
+	FUNCTIONCALLEXPR of int*exprNode*exprNode |
+	LAMBDAEXPR of int*(patternNode*exprNode) |
+	LETEXPR of int*((patternNode*exprNode) list)*exprNode |	
 	MATCHEXPR of int*exprNode*(((patternNode list)*exprNode) list) |
-	MATCHPOSSIBLEEXPR of int*exprNode*(((patternNode list)*exprNode) list) |
+	MATCHINLISTEXPR of int*exprNode*(((patternNode list)*exprNode) list) |
+	MATCHINARRAYEXPR of int*exprNode*(((patternNode list)*exprNode) list) |
 	NARROWTYPEEXPR of int*exprNode*typeNode |
 	GENERALISETYPEEXPR of int*exprNode*typeNode | 
 	TYPEACCESSEXPR of int*exprNode*typeNode |
@@ -45,7 +46,10 @@ type exprNode =
 	ARRAYEXPR of int*(exprNode list) |
 	OBJEXPR of objectNode |
 	TRANSITIONEXPR of transitionNode | 
-	PROMISEEXPR of ((exprNode ref)*runtime)
+	PROMISEEXPR of ((exprNode ref)*runtime) |
+	NATIVEEXPR of (cType*(runtime -> exprNode -> exprNode)) |
+	INSTANCIATEDLAMBDAEXPR of (int*runtime*patternNode*exprNode) | 
+	TBDEXPR
 and patternNode = 
 	CONSPATTERN of int*patternNode*patternNode |
 	INTPATTERN of int |
@@ -83,7 +87,7 @@ and actionNode =
 	DELETERULEACTION of string  |
 	DELETEOBJECTACTION of string |
 	DEFINETYPEACTION of string*(string list)*typeNode |
-	DEFINEACTION of int*string*(patternNode list)*exprNode |
+	DEFINEACTION of int*string*exprNode |
 	DEFINEEXTERNALACTION of int*string*typeNode |
 	DEFINEOBJECTACTION of string*exprNode |
 	DEFINERULEACTION of string*exprNode |
@@ -113,7 +117,7 @@ and objectEntry =
 and cObject = 
 	{ objId: int; attributes: objectEntry list; mutable changed: bool }
 and value = 
-	{ id: string; nodeId: int; cType: cType; value: exprNode }
+	{ id: string; nodeId: int; mutable tp: cType; mutable value: exprNode }
 and parentScope = 
 	ROOT |
 	PARENT of env

@@ -96,10 +96,11 @@ expr: expr LOGICALOR expr { synDebug "expr-13"; createFunctionCallExprn "_||" [$
 expr: expr LOGICALAND expr { synDebug "expr-14"; createFunctionCallExprn "_&&" [$1; $3] }
 expr: expr DEUXDEUXPOINTS expr { synDebug "expr-15"; createFunctionCallExprn "_::" [$1; $3] }
 expr: NOT expr { synDebug "expr-16"; createFunctionCallExprn "_not" [$2]  }
-expr: LAMBDA matchExprs { synDebug "expr-17"; LAMBDAEXPR (newId(),$2) }
+expr: LAMBDA lambdaExpr { synDebug "expr-17"; LAMBDAEXPR (newId(),$2) }
 expr: LET assigns IN exprProtected { synDebug "expr-18"; LETEXPR (newId(),$2,$4) }
 expr: MATCH expr WITH matchExprs { synDebug "expr-19"; MATCHEXPR (newId(),$2,$4) }
-expr: MATCH POSSIBLE expr WITH matchExprs { synDebug "expr-20"; MATCHPOSSIBLEEXPR (newId(),$3,$5) }
+expr: MATCH IN LIST expr WITH matchExprs { synDebug "expr-20"; MATCHINLISTEXPR (newId(),$4,$6) }
+expr: MATCH IN ARRAY expr WITH matchExprs { synDebug "expr-20"; MATCHINARRAYEXPR (newId(),$4,$6) }
 expr: exprProtected PTDEUXPOINTS typeDefProtected { synDebug "expr-21"; TYPEACCESSEXPR (newId(),$1,$3) }
 expr: IF expr THEN expr ELSE exprProtected { synDebug "expr-22"; createFunctionCallExprn "_if" [$2; $4; $6] }
 expr: expr PT CROO expr CROF { synDebug "expr-23"; createFunctionCallExprn "_get" [$1; $4] }
