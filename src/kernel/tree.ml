@@ -17,13 +17,14 @@ let rec exprEqual expr1 expr2 =
 
 let rec exprToString expr = 
 	match expr with
+		VARIANTEXPR (_,id,expr) -> id^" "^(exprToString expr) |
 		FUNCTIONCALLEXPR (_,fn,param) -> "("^(exprToString fn)^" "^(exprToString param)^")" |
-		LAMBDAEXPR (_,(pattern,expr)) -> "lambda "^(patternToString pattern)^" -> "^(exprToString expr) |
+		LAMBDAEXPR (_,pattern,expr) -> "lambda "^(patternToString pattern)^" -> "^(exprToString expr) |
 		LETEXPR (_,assigns,expr) -> "let "^(concatAndInsert " and " 
 			(List.map (fun (param,expr) -> (patternToString param)^" = "^(exprToString expr)) assigns))^" in "^(exprToString expr) |
-		MATCHEXPR (_,expr,alternatives) -> "match "^(exprToString expr)^" with "^(concatAndInsert " | " (List.map (fun (params,expr) -> (concatAndInsert " " (List.map patternToString params))^" -> "^(exprToString expr)) alternatives)) |
-		MATCHINLISTEXPR (_,expr,alternatives) -> "match in list "^(exprToString expr)^" with "^(concatAndInsert " | " (List.map (fun (params,expr) -> (concatAndInsert " " (List.map patternToString params))^" -> "^(exprToString expr)) alternatives)) |
-		MATCHINARRAYEXPR (_,expr,alternatives) -> "match in array "^(exprToString expr)^" with "^(concatAndInsert " | " (List.map (fun (params,expr) -> (concatAndInsert " " (List.map patternToString params))^" -> "^(exprToString expr)) alternatives)) |
+		MATCHEXPR (_,expr,alternatives) -> "match "^(exprToString expr)^" with "^(concatAndInsert " | " (List.map exprToString alternatives)) |
+		MATCHINLISTEXPR (_,expr,alternatives) -> "match in list "^(exprToString expr)^" with "^(concatAndInsert " | " (List.map exprToString alternatives)) |
+		MATCHINARRAYEXPR (_,expr,alternatives) -> "match in array "^(exprToString expr)^" with "^(concatAndInsert " | " (List.map exprToString alternatives)) |
 		TYPEACCESSEXPR (_,expr,tp) -> (exprToString expr)^".:"^(typeToString tp) |
 		TYPEVERIFICATIONEXPR (_,expr,tp) -> "("^(exprToString expr)^": "^(typeToString tp)^")" |
 		INTEXPR i -> (Printf.sprintf "%d" i) |
@@ -49,6 +50,7 @@ let rec exprToString expr =
 		TBDEXPR -> "not defined"
 and patternToString pattern = 
 	match pattern with
+		VARIANTPATTERN (_,id,pattern) -> id^" "^(patternToString pattern) |
 		INTPATTERN i -> (Printf.sprintf "%d" i) |
 		CONSPATTERN (_,car,cdr) -> (patternToString car)^"::"^(patternToString cdr) |
 		FLOATPATTERN f -> (Printf.sprintf "%f" f) |
@@ -80,6 +82,7 @@ and typeToString tp =
 		FUNCTIONTYPE (param,result) -> (typeToString param)^" -> "^(typeToString result) 
 and actionToString act = 
 	match act with
+		IMMEDIATEACTION expr -> "NOW "^(exprToString expr) |
 		ASSIGNACTION (id,expr) -> id^"<- "^(exprToString expr) |
 		DOACTION expr -> "do "^(exprToString expr) |
 		EXPRACTION expr -> (exprToString expr) |
@@ -110,11 +113,8 @@ and attributeInterfacingToString description =
 		NOINTERFACE -> "" 
 and transitionToString transition = 
 	match transition with
-		EXPRTRANS (objPatterns,expr) -> (concatAndInsert " " (List.map objectPatternToString objPatterns))^" => "^(exprToString expr) |
-		ACTIONTRANS (objPatterns,expr) -> (concatAndInsert " " (List.map objectPatternToString objPatterns))^" !-> "^(exprToString expr)
-and objectPatternToString obj =
-	match obj with
-		OBJPATTERN attributes -> "{"^(concatAndInsert "; " (List.map attributePatternToString attributes))^"}" 
+		EXPRTRANS (objPatterns,expr) -> (concatAndInsert " " (List.map (fun x -> "{"^(concatAndInsert "; " (List.map attributePatternToString x))^"}") objPatterns))^" => "^(exprToString expr) |
+		ACTIONTRANS (objPatterns,expr) -> (concatAndInsert " " (List.map (fun x -> "{"^(concatAndInsert "; " (List.map attributePatternToString x))^"}") objPatterns))^" !-> "^(exprToString expr)
 and attributePatternToString att = 
 	match att with
 		VALUEATTRIBUTEPATTERN (id,pattern) -> id^"= "^(patternToString pattern) |
@@ -146,7 +146,7 @@ let exprToArrayAsList expr =
 exception ExpressionIsNotLambda of string;;
 let exprToLambda expr =
 	match expr with
-		LAMBDAEXPR (_,lambda) -> lambda |
+		LAMBDAEXPR (_,lambdaPattern,lambdaExpr) -> (lambdaPattern,lambdaExpr) |
 		_ -> raise (ExpressionIsNotLambda (exprToString expr))
 ;; 
 
@@ -177,3 +177,10 @@ let exprToBool expr =
 		BOOLEXPR b -> b |
 		_ -> raise (ExpressionIsNotBool (exprToString expr))
 ;;
+
+exception ExpressionIsNotCorrespondingVariant of string;;
+let variantToExpr id0 expr = 
+	match expr with
+		VARIANTEXPR (_,id,expr) when String.compare id0 id == 0 -> expr |
+		_ -> raise (ExpressionIsNotCorrespondingVariant (exprToString expr))
+;; 

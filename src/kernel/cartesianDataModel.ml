@@ -16,17 +16,16 @@ type cType =
 	VARIANT of (string*cType) list |
 	FUNCTION of cType*cType |
 	OBJECT |
-	TRANSITION |
-	INTERFACE of (string list)*(string list) (* In and Out *)
+	TRANSITION
 ;;
 
 type exprNode = 
 	FUNCTIONCALLEXPR of int*exprNode*exprNode |
-	LAMBDAEXPR of int*(patternNode*exprNode) |
+	LAMBDAEXPR of int*patternNode*exprNode |
 	LETEXPR of int*((patternNode*exprNode) list)*exprNode |	
-	MATCHEXPR of int*exprNode*(((patternNode list)*exprNode) list) |
-	MATCHINLISTEXPR of int*exprNode*(((patternNode list)*exprNode) list) |
-	MATCHINARRAYEXPR of int*exprNode*(((patternNode list)*exprNode) list) |
+	MATCHEXPR of int*exprNode*(exprNode list) |
+	MATCHINLISTEXPR of int*exprNode*(exprNode list) |
+	MATCHINARRAYEXPR of int*exprNode*(exprNode list) |
 	NARROWTYPEEXPR of int*exprNode*typeNode |
 	GENERALISETYPEEXPR of int*exprNode*typeNode | 
 	TYPEACCESSEXPR of int*exprNode*typeNode |
@@ -49,7 +48,8 @@ type exprNode =
 	PROMISEEXPR of ((exprNode ref)*runtime) |
 	NATIVEEXPR of (cType*(runtime -> exprNode -> exprNode)) |
 	INSTANCIATEDLAMBDAEXPR of (int*runtime*patternNode*exprNode) | 
-	TBDEXPR
+	TBDEXPR |
+	VARIANTEXPR of (int*string*exprNode)
 and patternNode = 
 	CONSPATTERN of int*patternNode*patternNode |
 	INTPATTERN of int |
@@ -63,7 +63,8 @@ and patternNode =
 	IDPATTERN of int*string |
 	WHEREPATTERN of int*patternNode*exprNode |
 	ARRAYPATTERN of int*(patternNode list) |
-	TYPEDPATTERN of int*patternNode*typeNode 
+	TYPEDPATTERN of int*patternNode*typeNode |
+	VARIANTPATTERN of int*string*patternNode
 and typeNode = 
 	NODTYPE |
 	INTTYPE |
@@ -91,7 +92,8 @@ and actionNode =
 	DEFINEEXTERNALACTION of int*string*typeNode |
 	DEFINEOBJECTACTION of string*exprNode |
 	DEFINERULEACTION of string*exprNode |
-	DEFINEINTERFACE of string*string*(string list)*(string list)
+	DEFINEINTERFACE of string*string*(string list)*(string list) |
+	IMMEDIATEACTION of exprNode
 and objectNode =
 	SIMPLEOBJECT of ((string*exprNode) list) | 
 	OBJECT of (string*((string*exprNode*attributeInterfacing) list)) |
@@ -102,16 +104,14 @@ and attributeInterfacing =
 	RECEIVE of string |
 	NOINTERFACE
 and transitionNode =
-	EXPRTRANS of (objectPatternNode list)*exprNode |
-	ACTIONTRANS of ((objectPatternNode list)*exprNode) 
-and objectPatternNode = 
-	OBJPATTERN of (attributePatternNode list) 
+	EXPRTRANS of (attributePatternNode list list)*exprNode |
+	ACTIONTRANS of ((attributePatternNode list list)*exprNode) 
 and attributePatternNode = 
 	VALUEATTRIBUTEPATTERN of string*patternNode |
 	PRESENTATTRIBUTEPATTERN of string |
 	TYPEATTRIBUTEPATTERN of string*typeNode
 and rule = 
-	{ rule: objectPatternNode; exec: exprNode }
+	{ rule: attributePatternNode list list; exec: exprNode }
 and objectEntry = 
 	{ name: string; mutable objValue: exprNode; locked: Mutex.t}
 and cObject = 

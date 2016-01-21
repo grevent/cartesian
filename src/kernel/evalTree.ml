@@ -10,6 +10,7 @@ exception NoLambdaMatching
 exception NoTypeForExpr
 let rec getExprType runtime expr = 
 	match expr with
+		VARIANTEXPR (nd,_,_) -> getDecoration runtime nd |
 		INTEXPR _ -> INT |
 		FLOATEXPR _ -> FLOAT |
 		STRINGEXPR _ -> STRING |
@@ -21,7 +22,7 @@ let rec getExprType runtime expr =
 		NODEXPR -> NOD |
 		PAIREXPR (nd,_) -> getDecoration runtime nd |
 		ARRAYEXPR (nd,_) -> getDecoration runtime nd |
-		LAMBDAEXPR (nd,_) -> getDecoration runtime nd |
+		LAMBDAEXPR (nd,_,_) -> getDecoration runtime nd |
 		INSTANCIATEDLAMBDAEXPR (nd,_,_,_) -> getDecoration runtime nd |
 		NATIVEEXPR (tp,fn) -> tp |
 		NARROWTYPEEXPR (nd,expr,tp) -> getDecoration runtime nd |
@@ -74,13 +75,15 @@ let rec preEvalPattern runtime pattern =
 		WHEREPATTERN (nd,pattern,testExpr) -> 
 			preEvalPattern runtime pattern |
 		ARRAYPATTERN (nd,lstPattern) -> 
-			List.iter (preEvalPattern runtime) lstPattern
+			List.iter (preEvalPattern runtime) lstPattern |
+		VARIANTPATTERN (nd,id,pattern) -> 
+			preEvalPattern runtime pattern
 ;;
 
 let rec createFunction patterns expr =
 	match patterns with
 		[] -> expr |
-		pattern::otherPatterns -> LAMBDAEXPR ((-1),(pattern,(createFunction otherPatterns expr)))
+		pattern::otherPatterns -> LAMBDAEXPR ((-1),pattern,(createFunction otherPatterns expr))
 ;;
 
 let rec evalExpr runtime expr = 
@@ -113,7 +116,7 @@ let rec evalExpr runtime expr =
 			PAIREXPR (nd,(List.map (evalExpr runtime) vls)) |
 		ARRAYEXPR (nd,listExpr) -> 
 			ARRAYEXPR (nd,(List.map (evalExpr runtime) listExpr)) | 
-		LAMBDAEXPR (nd,(pattern,expr)) -> 
+		LAMBDAEXPR (nd,pattern,expr) -> 
 			INSTANCIATEDLAMBDAEXPR (nd,(copyRuntime runtime),pattern,expr) |
 		INSTANCIATEDLAMBDAEXPR x -> 
 			INSTANCIATEDLAMBDAEXPR x |
@@ -142,9 +145,9 @@ let rec evalExpr runtime expr =
 			List.iter (fun (pattern,expr) -> let tmp = ref expr in evalPattern runtime1 pattern (PROMISEEXPR (tmp,(copyRuntime runtime1)))) assigns;
 			evalExpr runtime1 expr |
 		MATCHEXPR (nd,expr,lambdas) -> 
-			let value = evalExpr runtime expr in
+			let _ = evalExpr runtime expr in
 			(try
-				let (_,firstPossible) = ListTools.firstWorking (fun (params,expr) -> evalExpr runtime (FUNCTIONCALLEXPR (nd,(createFunction params expr),value))) lambdas in
+				let (_,firstPossible) = ListTools.firstWorking (evalExpr runtime) lambdas in
 				firstPossible 
 			with 
 				Not_found -> 
@@ -182,7 +185,9 @@ let rec evalExpr runtime expr =
 		PROMISEEXPR (exprRef,runtime) -> 
 			evalExpr runtime !exprRef |
 		TBDEXPR -> 
-			TBDEXPR 
+			TBDEXPR |
+		VARIANTEXPR (nd,id,expr) -> 
+			VARIANTEXPR (nd,id,(evalExpr runtime expr))
 and evalPattern runtime pattern expr = 
 	match pattern with 
 		INTPATTERN i0 -> 
@@ -245,7 +250,10 @@ and evalPattern runtime pattern expr =
 				raise PatternNotMatching |
 		ARRAYPATTERN (nd,lstPattern) -> 
 			let lst = exprToArrayAsList expr in 
-			List.iter2 (evalPattern runtime) lstPattern lst
+			List.iter2 (evalPattern runtime) lstPattern lst |
+		VARIANTPATTERN (nd,id,pattern) -> 
+			let subExpr = variantToExpr id expr in 
+			evalPattern runtime pattern subExpr 
 and evalObject runtime obj = 
 	match obj with
 		SIMPLEOBJECT lst -> 

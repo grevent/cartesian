@@ -59,9 +59,7 @@ let rec recursiveReduceGenerics runtime alreadyTested tp =
 				let (nextAlreadyTested,newPartialResult) = recursiveReduceGenerics runtime currentAlreadyTested currentType in 
 				(nextAlreadyTested,(id,newPartialResult))) alreadyTested variants 
 			in
-			(newAlreadyTested,VARIANT newVariants) |
-		INTERFACE (ins,outs) -> 
-			(alreadyTested,INTERFACE (ins,outs))
+			(newAlreadyTested,VARIANT newVariants)
 ;;
 
 let reduceGenerics runtime tp = 
@@ -177,8 +175,7 @@ let rec recursiveRenameGenerics alreadyRenamed renameFn tp =
 			let (renamed,newResultType) = recursiveRenameGenerics renamed renameFn resultType in
 			(renamed,FUNCTION (newParamType,newResultType)) |
 		OBJECT -> (alreadyRenamed,OBJECT) |
-		TRANSITION -> (alreadyRenamed,TRANSITION) |
-		INTERFACE (ins,outs) -> (alreadyRenamed,INTERFACE (ins,outs))
+		TRANSITION -> (alreadyRenamed,TRANSITION)
 ;;
 					
 let renameGenerics tp = 
@@ -213,4 +210,29 @@ let subtypeUnification runtime originalType narrowedType  =
 					unification runtime originalType rewrittenType |
 				_ -> 
 					raise SubtypeUnificationOnlyWithNamedTypes)
+;;
+
+exception TypeNotVariant
+exception IdNotInVariant
+let getVariantType tp id0 = 
+	let rec helper variants = 
+		match variants with
+			(id,tp)::_ when String.compare id id0 == 0 -> tp |
+			_::cdr -> helper cdr |
+			[] -> raise IdNotInVariant
+	in
+	match tp with 
+		VARIANT variants -> helper variants |
+		_ -> raise TypeNotVariant
+;;
+
+exception NoTypesForVariant 
+let getTypeForVariant runtime id = 
+	let namedTypes = returnList runtime.namedTypes in
+	let rec helper lst = 
+		match lst with
+			(nm,tp,params)::cdr -> (try ((NAMED (nm,params)),getVariantType tp id) with IdNotInVariant -> helper cdr) |
+			[] -> raise NoTypesForVariant
+	in
+	helper namedTypes
 ;;

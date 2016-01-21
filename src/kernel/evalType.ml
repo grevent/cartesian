@@ -31,7 +31,7 @@ and evalExprType runtime expr =
 			let realResult = reduceGenerics runtime resultType in
 			addDecoration runtime nd realResult;
 			realResult |
-		LAMBDAEXPR (nd,(pattern,expr)) ->
+		LAMBDAEXPR (nd,pattern,expr) ->
 			let runtime1 = newScope runtime in
 			let patternType = evalPatternType runtime1 pattern in
 			let exprType = evalExprType runtime1 expr in
@@ -52,32 +52,35 @@ and evalExprType runtime expr =
 			let realResult = evalExprType runtime1 expr in
 			addDecoration runtime nd realResult;
 			realResult |
-		MATCHEXPR (nd,expr,assigns) -> 
+		MATCHEXPR (nd,expr,lambdas) -> 
 			let exprType = evalExprType runtime expr in
-			let matchsType = List.map (evalMatchType runtime)  assigns in
 			let resultType = newGeneric() in
-			let _ = List.fold_left(unification runtime) (FUNCTION (exprType,resultType)) matchsType in
+			let lambdaType = FUNCTION(exprType,resultType) in
+			let lambdasTypes = List.map (evalExprType runtime) lambdas in  
+			let _ = List.fold_left (unification runtime) lambdaType lambdasTypes in
 			let realResult = reduceGenerics runtime resultType in
 			addDecoration runtime nd realResult;
 			realResult |
-		MATCHINLISTEXPR (nd,expr,assigns) -> 
-			let exprListType = evalExprType runtime expr in
+		MATCHINLISTEXPR (nd,expr,lambdas) -> 
+			let exprListType = evalExprType runtime expr in 
 			let exprType = newGeneric() in
 			ignore (unification runtime (LIST exprType) exprListType);
-			let matchsType = List.map (evalMatchType runtime)  assigns in
 			let resultType = newGeneric() in
-			let _ = List.fold_left (unification runtime) (FUNCTION (exprType,resultType)) matchsType in
-			let realResult = reduceGenerics runtime resultType in
+			let lambdaType = FUNCTION(exprType,resultType) in
+			let lambdasTypes = List.map (evalExprType runtime) lambdas in
+			let _ = List.fold_left (unification runtime) lambdaType lambdasTypes in
+			let realResult = LIST (reduceGenerics runtime resultType) in
 			addDecoration runtime nd realResult;
 			realResult |
-		MATCHINARRAYEXPR (nd,expr,assigns) -> 
-			let exprListType = evalExprType runtime expr in
+		MATCHINARRAYEXPR (nd,expr,lambdas) -> 
+			let exprListType = evalExprType runtime expr in 
 			let exprType = newGeneric() in
 			ignore (unification runtime (ARRAY exprType) exprListType);
-			let matchsType = List.map (evalMatchType runtime)  assigns in
 			let resultType = newGeneric() in
-			let _ = List.fold_left (unification runtime) (FUNCTION (exprType,resultType)) matchsType in
-			let realResult = reduceGenerics runtime resultType in
+			let lambdaType = FUNCTION(exprType,resultType) in
+			let lambdasTypes = List.map (evalExprType runtime) lambdas in
+			let _ = List.fold_left (unification runtime) lambdaType lambdasTypes in
+			let realResult = ARRAY (reduceGenerics runtime resultType) in
 			addDecoration runtime nd realResult;
 			realResult |
 		TYPEACCESSEXPR (nd,expr,typeNode) -> 
@@ -181,11 +184,17 @@ and evalExprType runtime expr =
 		NATIVEEXPR _ -> 
 			newGeneric() |
 		INSTANCIATEDLAMBDAEXPR (nd,localRuntime,param,expr) -> 
-			let tp = evalExprType localRuntime (LAMBDAEXPR ((-1),(param,expr))) in 
+			let tp = evalExprType localRuntime (LAMBDAEXPR ((-1),param,expr)) in 
 			addDecoration runtime nd tp;
 			tp |
 		TBDEXPR -> 
-			newGeneric()
+			newGeneric() |
+		VARIANTEXPR (nd,id,vl) -> 	
+			let vlType = evalExprType runtime vl in
+			let (variantType,tp) = getTypeForVariant runtime id in
+			let _ = unification runtime tp vlType in
+			addDecoration runtime nd variantType;
+			variantType 			
 and evalPatternType runtime pattern =
 	match pattern with
 		CONSPATTERN (nd,carPattern,cdrPattern) -> 
@@ -246,7 +255,13 @@ and evalPatternType runtime pattern =
 			let (_,typeType) = evalTypeType runtime [] tp in
 			let resultType = unification runtime patternType typeType in
 			addDecoration runtime nd resultType;
-			resultType
+			resultType |
+		VARIANTPATTERN (nd,id,pattern) -> 
+			let patternType = evalPatternType runtime pattern in
+			let (fullType,subType) = getTypeForVariant runtime id in
+			let _ = unification runtime subType patternType in
+			addDecoration runtime nd fullType;
+			fullType 
 and evalTypeType runtime genericTypes tp =
 	match tp with
 		NODTYPE -> 
@@ -289,6 +304,10 @@ and evalTypeType runtime genericTypes tp =
 			(genericTypes,TRANSITION)
 and evalActionType runtime action =
 	match action with
+		IMMEDIATEACTION expr -> 
+			let tp = evalExprType runtime expr in
+			let _ = unification runtime ACTION tp in
+			ignore 0 | 
 		ASSIGNACTION (id,expr) -> 
 			ignore (evalExprType runtime expr); |
 		ASSIGNRULEACTION (id,expr) -> 
@@ -348,20 +367,16 @@ and evalTransitionExpr runtime trans =
 	match trans with
 		EXPRTRANS (objs,equivalentExpr) -> 
 			let runtime1 = newScope runtime in
-			List.iter (evalObjectPattern runtime1) objs;
+			List.iter (List.iter (evalObjectAttributePattern runtime1)) objs;
 			let tp = evalExprType runtime1 equivalentExpr in
 			let _ = unification runtime1 OBJECT tp in
 			ignore 0 |
 		ACTIONTRANS (objs,actionExpr) -> 
 			let runtime1 = newScope runtime in
-			List.iter (evalObjectPattern runtime1) objs;
+			List.iter (List.iter (evalObjectAttributePattern runtime1)) objs;
 			let tp = evalExprType runtime1 actionExpr in
 			let _ = unification runtime1 ACTION tp in
 			ignore 0 
-and evalObjectPattern runtime obj = 
-	match obj with
-		OBJPATTERN atts -> 
-			List.iter (evalObjectAttributePattern runtime) atts 
 and evalObjectAttributePattern runtime att = 
 	match att with
 		VALUEATTRIBUTEPATTERN (id,pattern) -> 

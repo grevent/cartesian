@@ -1,5 +1,4 @@
 %{
-%{
   open CartesianDataModel
   open Debug
   
@@ -9,7 +8,9 @@
 	!currentId
 ;;
   
-  let createFunctionCallExprn id params = FUNCTIONCALLEXPR (newId(),(IDEXPR (newId(),id)),params)
+  let rec createLambdaExpr patterns expr = match patterns with [] -> expr | car::cdr -> LAMBDAEXPR (newId(),car,(createLambdaExpr cdr expr));;
+  let rec createFunctionCallExpr expr params = match params with [] ->  expr | car::cdr -> FUNCTIONCALLEXPR (newId(),(createFunctionCallExpr expr cdr),car);;
+  let createIdCallExpr id params = createFunctionCallExpr (IDEXPR (newId(),id)) params;;
 %}
 
 %token ID ACOO ACOF PTVIRG FLECHD FLECHG
@@ -44,6 +45,8 @@
       
 %type <CartesianDataModel.exprNode> command
 %type <CartesianDataModel.objectNode> objectDef
+%type <CartesianDataModel.attributePatternNode list list> objectPatterns 
+%type <CartesianDataModel.exprNode list> exprProtectedList
 								 
 %start command
        
@@ -55,10 +58,10 @@ action: ID FLECHG expr { synDebug "action-1"; ASSIGNACTION ($1,$3) }
 action: RULE ID FLECHG expr { ASSIGNRULEACTION ($2,$4) }
 action: OBJECT ID FLECHG expr { ASSIGNOBJECTACTION ($2,$4) }
 action: DELETE RULE ID { DELETERULEACTION $3 }
-action: DELETE OBJECT ID { DELETEOBJECT $3 }
-action: DEFINE TYPE genIdList ID EGAL typeDefProtected { DEFINETYPEACTION ($3,$4,$6) }
-action: DEFINE ID patterns EGAL exprProtected { synDebug "action-9"; DEFINEACTION ($2,$3,$5) }
-action: DEFINE EXTERNAL ID DEUXPOINTS typeDefProtected {DEFINEEXTERNALACTION ($3,$5) }
+action: DELETE OBJECT ID { DELETEOBJECTACTION $3 }
+action: DEFINE TYPE genIdList ID EGAL typeDefProtected { DEFINETYPEACTION ($4,$3,$6) }
+action: DEFINE ID patterns EGAL exprProtected { synDebug "action-9"; DEFINEACTION (newId(),$2,(createLambdaExpr $3 $5)) }
+action: DEFINE EXTERNAL ID DEUXPOINTS typeDefProtected {DEFINEEXTERNALACTION (newId(),$3,$5) }
 action: DEFINE OBJECT ID EGAL exprProtected { DEFINEOBJECTACTION ($3,$5) }
 action: DEFINE RULE ID EGAL exprProtected { DEFINERULEACTION ($3,$5) }
 action: DEFINE INTERFACE ID EGAL interfaceDefinition { let (driver,inChannels,outChannels) = $5 in DEFINEINTERFACE ($3,driver,inChannels,outChannels) }
@@ -70,49 +73,49 @@ actionListPtVirg: action PTVIRG actionListPtVirg { synDebug "actionListPtVirg-1"
 actionListPtVirg: action { synDebug "actionListPtVirg-2"; [$1]}
 actionListPtVirg: action PTVIRG { synDebug "actionListPtVirg-3"; [$1] }
 
-expr: expr INF expr { synDebug "expr-1"; createFunctionCallExprn "_<" [$1; $3] }
-expr: expr SUP expr {  synDebug "expr-2"; createFunctionCallExprn "_>" [$1; $3] }
-expr: expr EGALEGAL expr { synDebug "expr-3"; createFunctionCallExprn "_==" [$1; $3] }
-expr: expr NOTEGAL expr { synDebug "expr-4"; createFunctionCallExprn "_!=" [$1; $3] }
-expr: expr INFEGAL expr { synDebug "expr-5"; createFunctionCallExprn "_<=" [$1; $3] }
-expr: expr SUPEGAL expr { synDebug "expr-6"; createFunctionCallExprn "_>=" [$1; $3] }
-expr: expr INFPT expr { synDebug "expr-1"; createFunctionCallExprn "_<." [$1; $3] }
-expr: expr SUPPT expr {  synDebug "expr-2"; createFunctionCallExprn "_>." [$1; $3] }
-expr: expr EGALEGALPT expr { synDebug "expr-3"; createFunctionCallExprn "_==." [$1; $3] }
-expr: expr NOTEGALPT expr { synDebug "expr-4"; createFunctionCallExprn "_!=." [$1; $3] }
-expr: expr INFEGALPT expr { synDebug "expr-5"; createFunctionCallExprn "_<=." [$1; $3] }
-expr: expr SUPEGALPT expr { synDebug "expr-6"; createFunctionCallExprn "_>=." [$1; $3] }
-expr: expr PLUS expr { synDebug "expr-7"; createFunctionCallExprn "_+" [$1; $3] }
-expr: expr MINUS expr { synDebug "expr-8"; createFunctionCallExprn "_-" [$1; $3] }
-expr: expr PLUSPT expr { synDebug "expr-7"; createFunctionCallExprn "_+." [$1; $3] }
-expr: expr MINUSPT expr { synDebug "expr-8"; createFunctionCallExprn "_-." [$1; $3] }
-expr: expr MUL expr { synDebug "expr-9"; createFunctionCallExprn "_*" [$1; $3] }
-expr: expr MOD expr { synDebug "expr-10"; createFunctionCallExprn "_mod" [$1; $3] }
-expr: expr DIV expr { synDebug "expr-11"; createFunctionCallExprn "_/" [$1; $3] }
-expr: expr MULPT expr { synDebug "expr-9"; createFunctionCallExprn "_*." [$1; $3] }
-expr: expr DIVPT expr { synDebug "expr-11"; createFunctionCallExprn "_/." [$1; $3] }
-expr: expr PUISS expr { synDebug "expr-12"; createFunctionCallExprn "_^" [$1; $3] }
-expr: expr LOGICALOR expr { synDebug "expr-13"; createFunctionCallExprn "_||" [$1; $3] }
-expr: expr LOGICALAND expr { synDebug "expr-14"; createFunctionCallExprn "_&&" [$1; $3] }
-expr: expr DEUXDEUXPOINTS expr { synDebug "expr-15"; createFunctionCallExprn "_::" [$1; $3] }
-expr: NOT expr { synDebug "expr-16"; createFunctionCallExprn "_not" [$2]  }
-expr: LAMBDA lambdaExpr { synDebug "expr-17"; LAMBDAEXPR (newId(),$2) }
+expr: expr INF expr { synDebug "expr-1"; createIdCallExpr "_<" [$1; $3] }
+expr: expr SUP expr {  synDebug "expr-2"; createIdCallExpr "_>" [$1; $3] }
+expr: expr EGALEGAL expr { synDebug "expr-3"; createIdCallExpr "_==" [$1; $3] }
+expr: expr NOTEGAL expr { synDebug "expr-4"; createIdCallExpr "_!=" [$1; $3] }
+expr: expr INFEGAL expr { synDebug "expr-5"; createIdCallExpr "_<=" [$1; $3] }
+expr: expr SUPEGAL expr { synDebug "expr-6"; createIdCallExpr "_>=" [$1; $3] }
+expr: expr INFPT expr { synDebug "expr-1"; createIdCallExpr "_<." [$1; $3] }
+expr: expr SUPPT expr {  synDebug "expr-2"; createIdCallExpr "_>." [$1; $3] }
+expr: expr EGALEGALPT expr { synDebug "expr-3"; createIdCallExpr "_==." [$1; $3] }
+expr: expr NOTEGALPT expr { synDebug "expr-4"; createIdCallExpr "_!=." [$1; $3] }
+expr: expr INFEGALPT expr { synDebug "expr-5"; createIdCallExpr "_<=." [$1; $3] }
+expr: expr SUPEGALPT expr { synDebug "expr-6"; createIdCallExpr "_>=." [$1; $3] }
+expr: expr PLUS expr { synDebug "expr-7"; createIdCallExpr "_+" [$1; $3] }
+expr: expr MINUS expr { synDebug "expr-8"; createIdCallExpr "_-" [$1; $3] }
+expr: expr PLUSPT expr { synDebug "expr-7"; createIdCallExpr "_+." [$1; $3] }
+expr: expr MINUSPT expr { synDebug "expr-8"; createIdCallExpr "_-." [$1; $3] }
+expr: expr MUL expr { synDebug "expr-9"; createIdCallExpr "_*" [$1; $3] }
+expr: expr MOD expr { synDebug "expr-10"; createIdCallExpr "_mod" [$1; $3] }
+expr: expr DIV expr { synDebug "expr-11"; createIdCallExpr "_/" [$1; $3] }
+expr: expr MULPT expr { synDebug "expr-9"; createIdCallExpr "_*." [$1; $3] }
+expr: expr DIVPT expr { synDebug "expr-11"; createIdCallExpr "_/." [$1; $3] }
+expr: expr PUISS expr { synDebug "expr-12"; createIdCallExpr "_^" [$1; $3] }
+expr: expr LOGICALOR expr { synDebug "expr-13"; createIdCallExpr "_||" [$1; $3] }
+expr: expr LOGICALAND expr { synDebug "expr-14"; createIdCallExpr "_&&" [$1; $3] }
+expr: expr DEUXDEUXPOINTS expr { synDebug "expr-15"; createIdCallExpr "_::" [$1; $3] }
+expr: NOT expr { synDebug "expr-16"; createIdCallExpr "_not" [$2]  }
+expr: LAMBDA lambdaExpr { synDebug "expr-17"; $2 }
 expr: LET assigns IN exprProtected { synDebug "expr-18"; LETEXPR (newId(),$2,$4) }
 expr: MATCH expr WITH matchExprs { synDebug "expr-19"; MATCHEXPR (newId(),$2,$4) }
 expr: MATCH IN LIST expr WITH matchExprs { synDebug "expr-20"; MATCHINLISTEXPR (newId(),$4,$6) }
 expr: MATCH IN ARRAY expr WITH matchExprs { synDebug "expr-20"; MATCHINARRAYEXPR (newId(),$4,$6) }
 expr: exprProtected PTDEUXPOINTS typeDefProtected { synDebug "expr-21"; TYPEACCESSEXPR (newId(),$1,$3) }
-expr: IF expr THEN expr ELSE exprProtected { synDebug "expr-22"; createFunctionCallExprn "_if" [$2; $4; $6] }
-expr: expr PT CROO expr CROF { synDebug "expr-23"; createFunctionCallExprn "_get" [$1; $4] }
+expr: IF expr THEN expr ELSE exprProtected { synDebug "expr-22"; createIdCallExpr "_if" [$2; $4; $6] }
+expr: expr PT CROO expr CROF { synDebug "expr-23"; createIdCallExpr "_get" [$1; $4] }
 expr: exprProtected { synDebug "expr-24"; $1 }
-expr: objectDef { synDebug "expr-25"; OBJEXPR (newId(),$1) }
-expr: TRANSITION transition { synDebug "expr-26"; TRANSITIONEXPR (newId(),$2) }
-expr: CAPID exprProtected { VARIANTEXPR ($1,$2) }
+expr: objectDef { synDebug "expr-25"; OBJEXPR $1 }
+expr: TRANSITION transition { synDebug "expr-26"; TRANSITIONEXPR $2 }
+expr: CAPID exprProtected { VARIANTEXPR (newId(),$1,$2) }
 
 exprProtected: PARO expr DEUXPOINTS typeDef PARF { synDebug "exprProtected-1"; TYPEVERIFICATIONEXPR (newId(),$2,$4) }
 exprProtected: PARO expr DEUXPOINTSSUP typeDef PARF { synDebug "exprProtected-2"; NARROWTYPEEXPR (newId(),$2,$4)  }
 exprProtected: PARO expr DEUXPOINTSINF typeDef PARF { synDebug "exprProtected-3"; GENERALISETYPEEXPR (newId(),$2,$4)  }
-exprProtected: PARO expr exprProtectedList PARF { synDebug "exprProtected-4"; FUNCTIONCALLEXPR (newId(),$2,$3) }
+exprProtected: PARO expr exprProtectedList PARF { synDebug "exprProtected-4"; createFunctionCallExpr $2 $3 }
 exprProtected: INTVALUE { synDebug "exprProtected-5"; INTEXPR $1 }
 exprProtected: FLOATVALUE { synDebug "exprProtected-6"; FLOATEXPR $1 }
 exprProtected: STRINGVALUE { synDebug "exprProtected-7"; STRINGEXPR $1 }
@@ -121,8 +124,8 @@ exprProtected: ID { synDebug "exprProtected-9"; IDEXPR (newId(),$1) }
 exprProtected: ACOO actionListPtVirg ACOF { synDebug "exprProtected-10"; ACTIONEXPR (newId(),$2) }
 exprProtected: CROO exprListPtVirg CROF { synDebug "exprProtected-11"; LISTEXPR (newId(),$2) } 
 exprProtected: CROO CROF { synDebug "exprProtected-12"; LISTEXPR (newId(),[]) }
-exprProtected: CROO expr PTPT expr CROF { synDebug "exprProtected-13"; INTERVALEXPR (newId(),$2,$4) }
-exprProtected: CROO expr PTVIRG expr PTPT expr CROF { synDebug "exprProtected-14"; INTERVALSTEPEXPR (newId(),$2,$4,$6) }
+exprProtected: CROO expr PTPT expr CROF { synDebug "exprProtected-13"; INTERVALEXPR ($2,$4) }
+exprProtected: CROO expr PTVIRG expr PTPT expr CROF { synDebug "exprProtected-14"; INTERVALSTEPEXPR ($2,$4,$6) }
 exprProtected: NOD { synDebug "exprProtected-15"; NODEXPR }
 exprProtected: PARO exprVirgList PARF { synDebug "exprProtected-16"; PAIREXPR (newId(),$2) }
 exprProtected: CROO exprProtected PIPE pattern IN expr CROF { synDebug "exprProtected-17"; LISTCOMPREHENSIONEXPR (newId(),$2,$4,$6) }
@@ -140,7 +143,7 @@ transition: objectPatterns IMPLY exprProtected { EXPRTRANS ($1,$3) }
 transition: objectPatterns PTEXCFLECHD exprProtected { ACTIONTRANS ($1,$3) (* Should return an object ! *) }
 
 typeDef: variant variants { VARIANTTYPE ($1::$2) }
-typeDef: typeDefProtected FLECHD typeDef { FUNCTIONTTYPE ($1,$3) }
+typeDef: typeDefProtected FLECHD typeDef { FUNCTIONTYPE ($1,$3) }
 typeDef: typeDefProtected { $1 }
 
 typeDefProtected: NOD { NODTYPE }
@@ -156,7 +159,6 @@ typeDefProtected: PARO ID typeDefList PARF { NAMEDTYPE ($2,$3) }
 typeDefProtected: OBJECT { OBJECTTYPE }
 typeDefProtected: TRANSITION { TRANSITIONTYPE }
 typeDefProtected: PARO typeDef PARF { $2 }
-typeDefProtected: INTERFACE { INTERFACE }
 
 typeDefList: typeDefProtected typeDefList { $1::$2 }
 typeDefList: typeDefProtected  { [$1] }
@@ -169,13 +171,13 @@ variants: { [] }
 typeDefVirgList: typeDef VIRG typeDefVirgList { $1::$3 }
 typeDefVirgList: typeDef VIRG typeDef { [$1; $3] } 
 
-lambdaExpr: patterns FLECHD exprProtected { ($1,$3) }
+lambdaExpr: patterns FLECHD exprProtected { createLambdaExpr $1 $3 }
 
 matchExprs: lambdaExpr PIPE matchExprs { $1::$3 }
 matchExprs: lambdaExpr { [ $1 ] }
 
-assigns: pattern patterns EGAL expr AND assigns { ($1,$2,$4)::$6 }
-assigns: pattern patterns EGAL expr { [($1,$2,$4)] }
+assigns: pattern patterns EGAL expr AND assigns { ($1,(createLambdaExpr $2 $4))::$6 }
+assigns: pattern patterns EGAL expr { [($1,(createLambdaExpr $2 $4))] }
 
 exprListPtVirg: expr PTVIRG exprListPtVirg { $1::$3 }
 exprListPtVirg: expr { [$1] } 
@@ -196,6 +198,7 @@ patternListVirg: patternProtected { [$1] }
 
 pattern: pattern DEUXDEUXPOINTS pattern { CONSPATTERN (newId(),$1,$3) }
 pattern: patternProtected { $1 }
+pattern: CAPID patternProtected { VARIANTPATTERN (newId(),$1,$2) }
 
 patternProtected: INTVALUE { INTPATTERN $1 }
 patternProtected: FLOATVALUE { FLOATPATTERN $1 }
@@ -217,9 +220,9 @@ patternObjectDefinitions: patternObjectDefinition PTVIRG patternObjectDefinition
 patternObjectDefinitions: patternObjectDefinition PTVIRG { [ $1 ] }
 patternObjectDefinitions: patternObjectDefinition { [ $1 ] }
 
-patternObjectDefinition: ID EGAL pattern { VALUEOBJPATTERN ($1,$3) }
-patternObjectDefinition: ID { ATTRIBUTEOBJPATTERN $1 }
-patternObjectDefinition: ID DEUXPOINTS typeDef { TYPEOBJPATTERN ($1,$3) }
+patternObjectDefinition: ID EGAL pattern { VALUEATTRIBUTEPATTERN ($1,$3) }
+patternObjectDefinition: ID { PRESENTATTRIBUTEPATTERN $1 }
+patternObjectDefinition: ID DEUXPOINTS typeDef { TYPEATTRIBUTEPATTERN ($1,$3) }
 
 objectPatterns: objectPattern objectPatterns { $1::$2 }
 objectPatterns: objectPattern { [ $1 ] }
