@@ -2,60 +2,80 @@
 open ListReference
 
 type cType = 
-	INT |
-	FLOAT |
-	STRING |
-	BOOL |
-	ACTION |
-	GENERIC of int |
-	NOD |
-	LIST of cType |
-	ARRAY of cType |
-	PAIR of cType list |
-	NAMED of (string*(cType list)) | 
-	VARIANT of (string*cType) list |
-	FUNCTION of cType*cType |
-	OBJECT |
-	TRANSITION
+	T_INT |
+	T_FLOAT |
+	T_STRING |
+	T_BOOL |
+	T_ACTION |
+	T_GENERIC of int |
+	T_NOD |
+	T_LIST of cType |
+	T_ARRAY of cType |
+	T_PAIR of cType list |
+	T_NAMED of (string*(cType list)) | 
+	T_VARIANT of (string*cType) list |
+	T_FUNCTION of cType*cType |
+	T_OBJECT |
+	T_TRANSITION
+;;
+
+type intermediateValue = 
+	IV_NOD |
+	IV_ERROR |
+	IV_INT of int |
+	IV_FLOAT of float |
+	IV_STRING of string |
+	IV_REF of int |
+	IV_ARRAY of (intermediateValue array) |
+	IV_LIST of (intermediateValue list) |
+	IV_VARIANT of string*intermediateValue |
+	IV_PAIR of (intermediateValue list) |
+	IV_OBJECT of (string*intermediateValue) list | 
+	IV_LAMBDA of (int*intermediateLang) |
+	IV_EXTERNAL of (intermediateValue -> intermediateValue) |
+	IV_INTERNAL of internalFunction |
+	IV_ACTIONS of (intermediateAction list)
+and internalFunction = 
+	IF_ALTERNATIVEONERROR
+and intermediateAction =
+	IA_DEFINE of (int*intermediateLang) |
+	IA_SET of (int*intermediateLang)
+and intermediateLang =
+	IL_VALUE of intermediateValue |
+	IL_CALL of (intermediateLang*intermediateLang) | 
+	IL_LET of (int*intermediateValue*intermediateValue)
 ;;
 
 type exprNode = 
 	FUNCTIONCALLEXPR of int*exprNode*exprNode |
 	LAMBDAEXPR of int*patternNode*exprNode |
+	FUNCTIONEXPR of int*(exprNode list) |
 	LETEXPR of int*((patternNode*exprNode) list)*exprNode |	
-	MATCHEXPR of int*exprNode*(exprNode list) |
-	MATCHINLISTEXPR of int*exprNode*(exprNode list) |
-	MATCHINARRAYEXPR of int*exprNode*(exprNode list) |
 	NARROWTYPEEXPR of int*exprNode*typeNode |
 	GENERALISETYPEEXPR of int*exprNode*typeNode | 
 	TYPEACCESSEXPR of int*exprNode*typeNode |
 	TYPEVERIFICATIONEXPR of int*exprNode*typeNode |
-	INTEXPR of int |
-	FLOATEXPR of float |
-	STRINGEXPR of string |
-	BOOLEXPR of bool |
+	INTEXPR of int*int |
+	FLOATEXPR of int*float |
+	STRINGEXPR of int*string |
+	BOOLEXPR of int*bool |
 	IDEXPR of int*string | 
 	ACTIONEXPR of int*(actionNode list) |
 	LISTEXPR of int*(exprNode list) |
-	INTERVALEXPR of exprNode*exprNode | 
-	INTERVALSTEPEXPR of exprNode*exprNode*exprNode |
-	NODEXPR |
+	NODEXPR of int |
+	ERROREXPR of int |
 	PAIREXPR of int*(exprNode list) |
-	LISTCOMPREHENSIONEXPR of int*exprNode*patternNode*exprNode |
 	ARRAYEXPR of int*(exprNode list) |
-	OBJEXPR of objectNode |
-	TRANSITIONEXPR of transitionNode | 
-	PROMISEEXPR of ((exprNode ref)*runtime) |
-	NATIVEEXPR of (cType*(runtime -> exprNode -> exprNode)) |
-	INSTANCIATEDLAMBDAEXPR of (int*runtime*patternNode*exprNode) | 
-	TBDEXPR |
+	OBJEXPR of int*objectNode |
+	TRANSITIONEXPR of int*transitionNode |
+	NATIVEEXPR of (int*cType*intermediateLang) |
 	VARIANTEXPR of (int*string*exprNode)
 and patternNode = 
 	CONSPATTERN of int*patternNode*patternNode |
-	INTPATTERN of int |
-	FLOATPATTERN of float |
-	STRINGPATTERN of string |
-	BOOLPATTERN of bool | 
+	INTPATTERN of int*int |
+	FLOATPATTERN of int*float |
+	STRINGPATTERN of int*string |
+	BOOLPATTERN of int*bool | 
 	LISTPATTERN of int*(patternNode list) | 
 	RENAMINGPATTERN of int*patternNode*string |
 	WILDCARDPATTERN  of int |
@@ -83,7 +103,6 @@ and actionNode =
 	ASSIGNACTION of string*exprNode |
 	ASSIGNRULEACTION of string*exprNode |
 	ASSIGNOBJECTACTION of string*exprNode |
-	DOACTION of exprNode |
 	EXPRACTION of exprNode |
 	DELETERULEACTION of string  |
 	DELETEOBJECTACTION of string |
@@ -92,43 +111,31 @@ and actionNode =
 	DEFINEEXTERNALACTION of int*string*typeNode |
 	DEFINEOBJECTACTION of string*exprNode |
 	DEFINERULEACTION of string*exprNode |
-	DEFINEINTERFACE of string*string*(string list)*(string list) |
 	IMMEDIATEACTION of exprNode
-and objectNode =
-	SIMPLEOBJECT of ((string*exprNode) list) | 
-	OBJECT of (string*((string*exprNode*attributeInterfacing) list)) |
-	TRANSIENTSIMPLEOBJECT of ((string*exprNode) list) |
-	TRANSIENTOBJECT of (string*((string*exprNode*attributeInterfacing) list)) 
-and attributeInterfacing = 
-	SEND of string |
-	RECEIVE of string |
-	NOINTERFACE
+and objectNode = 
+	OBJECT of ((string*exprNode) list) | 
+	TRANSIENTOBJECT of ((string*exprNode) list)
 and transitionNode =
-	EXPRTRANS of (attributePatternNode list list)*exprNode |
+	EXPRTRANS of (attributePatternNode list list)*(attributePatternNode list) |
 	ACTIONTRANS of ((attributePatternNode list list)*exprNode) 
 and attributePatternNode = 
 	VALUEATTRIBUTEPATTERN of string*patternNode |
 	PRESENTATTRIBUTEPATTERN of string |
 	TYPEATTRIBUTEPATTERN of string*typeNode
-and rule = 
-	{ rule: attributePatternNode list list; exec: exprNode }
-and objectEntry = 
-	{ name: string; mutable objValue: exprNode; locked: Mutex.t}
-and cObject = 
-	{ objId: int; attributes: objectEntry list; mutable changed: bool }
+;;
+
+type objectEntry = 
+	{ name: string; mutable objValue: exprNode; locked: Mutex.t }
 and value = 
-	{ id: string; nodeId: int; mutable tp: cType; mutable value: exprNode }
+	{ id: string; nodeId: int; mutable tp: cType }
 and parentScope = 
 	ROOT |
-	PARENT of env
-and env = 
+	PARENT of scopeDescription
+and scopeDescription = 
 	{ scope: parentScope; mutable values: value list }
-and runtime = { 
-	objects: cObject listReference; 
-	rules: rule listReference; 
-	env0: env; 
+and env = { 
+	scopes: scopeDescription; 
 	decorations: (int*cType) listReference;
 	genericTypes: (int*cType) listReference;
 	namedTypes: (string*cType*(cType list)) listReference;
 };;
-

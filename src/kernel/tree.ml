@@ -4,11 +4,11 @@ open CartesianDataModel
 
 let rec exprEqual expr1 expr2 = 
 	match (expr1,expr2) with
-		(NODEXPR,NODEXPR) -> true |
-		(INTEXPR i1,INTEXPR i2) -> i1 == i2 |
-		(FLOATEXPR f1,FLOATEXPR f2) -> f1 == f2 |
-		(STRINGEXPR s1,STRINGEXPR s2) -> (String.compare s1 s2) == 0 |
-		(BOOLEXPR b1,BOOLEXPR b2) -> b1 == b2 |
+		(NODEXPR _,NODEXPR _) -> true |
+		(INTEXPR (_,i1),INTEXPR (_,i2)) -> i1 == i2 |
+		(FLOATEXPR (_,f1),FLOATEXPR (_,f2)) -> f1 == f2 |
+		(STRINGEXPR (_,s1),STRINGEXPR (_,s2)) -> (String.compare s1 s2) == 0 |
+		(BOOLEXPR (_,b1),BOOLEXPR (_,b2)) -> b1 == b2 |
 		(LISTEXPR (_,l1),LISTEXPR (_,l2)) -> not (List.exists2 (fun x y -> not (exprEqual x y)) l1 l2) |
 		(ARRAYEXPR (_,l1),ARRAYEXPR (_,l2)) -> not (List.exists2 (fun x y -> not (exprEqual x y)) l1 l2) |
 		(PAIREXPR (_,l1),PAIREXPR (_,l2)) -> not (List.exists2 (fun x y -> not (exprEqual x y)) l1 l2) |
@@ -22,40 +22,33 @@ let rec exprToString expr =
 		LAMBDAEXPR (_,pattern,expr) -> "lambda "^(patternToString pattern)^" -> "^(exprToString expr) |
 		LETEXPR (_,assigns,expr) -> "let "^(concatAndInsert " and " 
 			(List.map (fun (param,expr) -> (patternToString param)^" = "^(exprToString expr)) assigns))^" in "^(exprToString expr) |
-		MATCHEXPR (_,expr,alternatives) -> "match "^(exprToString expr)^" with "^(concatAndInsert " | " (List.map exprToString alternatives)) |
-		MATCHINLISTEXPR (_,expr,alternatives) -> "match in list "^(exprToString expr)^" with "^(concatAndInsert " | " (List.map exprToString alternatives)) |
-		MATCHINARRAYEXPR (_,expr,alternatives) -> "match in array "^(exprToString expr)^" with "^(concatAndInsert " | " (List.map exprToString alternatives)) |
 		TYPEACCESSEXPR (_,expr,tp) -> (exprToString expr)^".:"^(typeToString tp) |
 		TYPEVERIFICATIONEXPR (_,expr,tp) -> "("^(exprToString expr)^": "^(typeToString tp)^")" |
-		INTEXPR i -> (Printf.sprintf "%d" i) |
-		FLOATEXPR f -> (Printf.sprintf "%f" f) |
-		STRINGEXPR s -> (Printf.sprintf "\"%s\"" s) |
-		BOOLEXPR b -> if b then "true" else "false" |
+		INTEXPR (_,i) -> (Printf.sprintf "%d" i) |
+		FLOATEXPR (_,f) -> (Printf.sprintf "%f" f) |
+		STRINGEXPR (_,s) -> (Printf.sprintf "\"%s\"" s) |
+		BOOLEXPR (_,b) -> if b then "true" else "false" |
 		IDEXPR (_,id) -> id |
 		ACTIONEXPR (_,a) -> (concatAndInsert "; " (List.map actionToString a)) |
 		LISTEXPR (_,lst) -> "["^(concatAndInsert "; " (List.map exprToString lst))^"]" |
-		INTERVALEXPR (start,ending) -> "["^(exprToString start)^" .. "^(exprToString ending)^"]" |
-		INTERVALSTEPEXPR (value1,value2,lastValue) -> "["^(exprToString value1)^"; "^(exprToString value2)^" .. "^(exprToString lastValue)^"]" |
-		NODEXPR -> "nod" |
+		NODEXPR _ -> "nod" |
 		PAIREXPR (_,exprs) -> "("^(concatAndInsert ", " (List.map exprToString exprs))^")" |
 		ARRAYEXPR (_,exprs) -> "[|"^(concatAndInsert "; " (List.map exprToString exprs))^"|]" |
-		LISTCOMPREHENSIONEXPR (_,expr,pattern,set) -> "["^(exprToString expr)^" | "^(patternToString pattern)^" in "^(exprToString set) |
-		OBJEXPR (obj) -> objectToString obj |
-		TRANSITIONEXPR (transition) -> transitionToString transition |
+		OBJEXPR (_,obj) -> objectToString obj |
+		TRANSITIONEXPR (_,transition) -> transitionToString transition |
 		NARROWTYPEEXPR (_,expr,typeExpr) -> "("^(exprToString expr)^" :> "^(typeToString typeExpr)^")" | 
 		GENERALISETYPEEXPR (_,expr,typeExpr) -> "("^(exprToString expr)^" :< "^(typeToString typeExpr)^")" |
-		PROMISEEXPR (expr,_) -> exprToString !expr |
-		NATIVEEXPR expr -> "native" |
-		INSTANCIATEDLAMBDAEXPR (_,_,pattern,expr) -> "internalLambda "^(patternToString pattern)^" -> "^(exprToString expr) |
-		TBDEXPR -> "not defined"
+		NATIVEEXPR expr -> "native" | 
+		ERROREXPR _ -> "error" |
+		FUNCTIONEXPR (_,lambdas) -> (concatAndInsert " | " (List.map exprToString lambdas))
 and patternToString pattern = 
 	match pattern with
 		VARIANTPATTERN (_,id,pattern) -> id^" "^(patternToString pattern) |
-		INTPATTERN i -> (Printf.sprintf "%d" i) |
+		INTPATTERN (_,i) -> (Printf.sprintf "%d" i) |
 		CONSPATTERN (_,car,cdr) -> (patternToString car)^"::"^(patternToString cdr) |
-		FLOATPATTERN f -> (Printf.sprintf "%f" f) |
-		STRINGPATTERN s -> (Printf.sprintf "\"%s\"" s) |
-		BOOLPATTERN b -> if b then "true" else "false" |
+		FLOATPATTERN (_,f) -> (Printf.sprintf "%f" f) |
+		STRINGPATTERN (_,s) -> (Printf.sprintf "\"%s\"" s) |
+		BOOLPATTERN (_,b) -> if b then "true" else "false" |
 		LISTPATTERN (_,lst) -> "["^(concatAndInsert "; " (List.map patternToString lst))^"]" |
 		RENAMINGPATTERN (_,pt,id) -> (patternToString pt)^" as "^id |
 		WILDCARDPATTERN _ -> "_" |
@@ -84,7 +77,6 @@ and actionToString act =
 	match act with
 		IMMEDIATEACTION expr -> "NOW "^(exprToString expr) |
 		ASSIGNACTION (id,expr) -> id^"<- "^(exprToString expr) |
-		DOACTION expr -> "do "^(exprToString expr) |
 		EXPRACTION expr -> (exprToString expr) |
 		ASSIGNRULEACTION (id,expr) -> "rule "^id^" <- "^(exprToString expr) |
 		ASSIGNOBJECTACTION (id,expr) -> "object "^id^" <- "^(exprToString expr) | 
@@ -94,26 +86,16 @@ and actionToString act =
 		DEFINEACTION (_,id,expr) -> "define "^id^" = "^(exprToString expr) | 
 		DEFINEEXTERNALACTION (_,id,tp) -> "define external "^id^" : "^(typeToString tp) | 
 		DEFINEOBJECTACTION (id,expr) -> "define object "^id^" = "^(exprToString expr) | 
-		DEFINERULEACTION (id,expr) -> "define rule "^id^" = "^(exprToString expr) | 
-		DEFINEINTERFACE (id,driver,ins,outs) -> "define interface "^id^" = {< "^driver^" | "^(List.fold_left (fun str inElement -> str^" << "^inElement) "" ins)^" "^(List.fold_left (fun str outElement -> str^" >> "^outElement) "" outs) 
+		DEFINERULEACTION (id,expr) -> "define rule "^id^" = "^(exprToString expr)
 and objectToString obj = 
 	match obj with
-		SIMPLEOBJECT attributes -> 
+		OBJECT attributes -> 
 			"{|"^(concatAndInsert "; " (List.map (fun (att,expr) -> att^"= "^(exprToString expr)) attributes))^"|}" |
-		TRANSIENTSIMPLEOBJECT attributes -> 
-			"{~"^(concatAndInsert "; " (List.map (fun (att,expr) -> att^"= "^(exprToString expr)) attributes))^"~}" |
-		OBJECT (driverId,attributes) -> 
-			"{|"^driverId^" <> "^(concatAndInsert "; " (List.map (fun (att,expr,interface) -> att^"= "^(exprToString expr)^" "^(attributeInterfacingToString interface)) attributes))^"|}" | 
-		TRANSIENTOBJECT (driverId,attributes) -> 
-			"{~"^driverId^" <> "^(concatAndInsert "; " (List.map (fun (att,expr,interface) -> att^"= "^(exprToString expr)^" "^(attributeInterfacingToString interface)) attributes))^"~}"
-and attributeInterfacingToString description = 
-	match description with
-		SEND id -> ">> "^id |
-		RECEIVE id -> "<< "^id |
-		NOINTERFACE -> "" 
+		TRANSIENTOBJECT attributes -> 
+			"{~"^(concatAndInsert "; " (List.map (fun (att,expr) -> att^"= "^(exprToString expr)) attributes))^"~}"
 and transitionToString transition = 
 	match transition with
-		EXPRTRANS (objPatterns,expr) -> (concatAndInsert " " (List.map (fun x -> "{"^(concatAndInsert "; " (List.map attributePatternToString x))^"}") objPatterns))^" => "^(exprToString expr) |
+		EXPRTRANS (objPatterns,eqPattern) -> (concatAndInsert " " (List.map (fun x -> "{"^(concatAndInsert "; " (List.map attributePatternToString x))^"}") objPatterns))^" => {"^(concatAndInsert "; " (List.map attributePatternToString eqPattern))^" }" |
 		ACTIONTRANS (objPatterns,expr) -> (concatAndInsert " " (List.map (fun x -> "{"^(concatAndInsert "; " (List.map attributePatternToString x))^"}") objPatterns))^" !-> "^(exprToString expr)
 and attributePatternToString att = 
 	match att with
@@ -153,7 +135,7 @@ let exprToLambda expr =
 exception ExpressionIsNotInt of string;;
 let exprToInt expr =
 	match expr with
-		INTEXPR i -> i |
+		INTEXPR (_,i) -> i |
 		_ -> raise (ExpressionIsNotInt (exprToString expr))
 ;;
 
@@ -167,14 +149,14 @@ let exprToPairsAsList expr =
 exception ExpressionIsNotFloat of string;;
 let exprToFloat expr = 
 	match expr with
-		FLOATEXPR f -> f |
+		FLOATEXPR (_,f) -> f |
 		_ -> raise (ExpressionIsNotFloat (exprToString expr))
 ;;
 
 exception ExpressionIsNotBool of string;;
 let exprToBool expr = 
 	match expr with
-		BOOLEXPR b -> b |
+		BOOLEXPR (_,b) -> b |
 		_ -> raise (ExpressionIsNotBool (exprToString expr))
 ;;
 
@@ -184,3 +166,43 @@ let variantToExpr id0 expr =
 		VARIANTEXPR (_,id,expr) when String.compare id0 id == 0 -> expr |
 		_ -> raise (ExpressionIsNotCorrespondingVariant (exprToString expr))
 ;; 
+
+exception ExpressionIsNotObject of string;;
+let exprToObject expr = 
+	match expr with
+		OBJEXPR (_,obj) -> obj |
+		_ -> raise (ExpressionIsNotObject (exprToString expr))
+;;
+
+exception ExpressionIsNotTransition of string;;
+let exprToTransition expr = 
+	match expr with
+		TRANSITIONEXPR (_,transition) -> transition |
+		_ -> raise (ExpressionIsNotTransition (exprToString expr))
+
+let exprToId expr = 
+	match expr with
+		FUNCTIONCALLEXPR (nd,_,_) -> nd |
+		LAMBDAEXPR (nd,_,_) -> nd |
+		FUNCTIONEXPR (nd,_) -> nd |
+		LETEXPR (nd,_,_) -> nd |
+		NARROWTYPEEXPR (nd,_,_) -> nd |
+		GENERALISETYPEEXPR (nd,_,_) -> nd |
+		TYPEACCESSEXPR (nd,_,_) -> nd |
+		TYPEVERIFICATIONEXPR (nd,_,_) -> nd |
+		INTEXPR (nd,_) -> nd |
+		FLOATEXPR (nd,_) -> nd |
+		STRINGEXPR (nd,_) -> nd |
+		BOOLEXPR (nd,_) -> nd |
+		IDEXPR (nd,_) -> nd |
+		ACTIONEXPR (nd,_) -> nd |
+		LISTEXPR (nd,_) -> nd |
+		NODEXPR nd -> nd | 
+		ERROREXPR nd -> nd |
+		PAIREXPR (nd,_) -> nd |
+		ARRAYEXPR (nd,_) -> nd |
+		OBJEXPR (nd,_) -> nd |
+		TRANSITIONEXPR (nd,_) -> nd | 
+		NATIVEEXPR (nd,_,_) -> nd |
+		VARIANTEXPR (nd,_,_) -> nd
+;;

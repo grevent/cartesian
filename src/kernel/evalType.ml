@@ -1,283 +1,242 @@
 
 open Tree 
 open CartesianDataModel
-open Runtime
+open Env
 open Type
 
 exception PairElementsWithSameType;;
 exception TypeNotInPair;;
+exception IdAlreadyDefined;;
 
 let rec createFunctionType types resultType =
 	match types with
 		[] -> resultType |
-		tp::otherTypes -> FUNCTION (tp,(createFunctionType otherTypes resultType))
+		tp::otherTypes -> T_FUNCTION (tp,(createFunctionType otherTypes resultType))
 ;;
-	
-let rec evalMatchType runtime (patterns,expr) =
-	let runtime1 = newScope runtime in
-	let patternTypes = List.map (evalPatternType runtime1) patterns in
-	let exprType = evalExprType runtime1 expr in
+
+let rec evalMatchType env (patterns,expr) =
+	let env1 = newScope env in
+	let patternTypes = List.map (evalPatternType env1) patterns in
+	let exprType = evalExprType env1 expr in
 	let tp = createFunctionType patternTypes exprType in
-	let realResult = reduceGenerics runtime1 tp in
+	let realResult = reduceGenerics env1 tp in
 	realResult
-and evalExprType runtime expr = 
+and evalExprType env expr = 
 	match expr with
 		FUNCTIONCALLEXPR (nd,fn,param) -> 
-			let fnType = evalExprType runtime fn in
-			let paramType = evalExprType runtime param in
+			let fnType = evalExprType env fn in
+			let paramType = evalExprType env param in
 			let resultType = newGeneric() in
-			let tp = FUNCTION(paramType,resultType) in
-			let _ = unification runtime tp fnType in
-			let realResult = reduceGenerics runtime resultType in
-			addDecoration runtime nd realResult;
+			let tp = T_FUNCTION(paramType,resultType) in
+			let _ = unification env tp fnType in
+			let realResult = reduceGenerics env resultType in
+			addDecoration env nd realResult;
 			realResult |
 		LAMBDAEXPR (nd,pattern,expr) ->
-			let runtime1 = newScope runtime in
-			let patternType = evalPatternType runtime1 pattern in
-			let exprType = evalExprType runtime1 expr in
-			let resultType = FUNCTION(patternType,exprType) in
-			let realResult = reduceGenerics runtime resultType in
-			addDecoration runtime nd realResult;
+			let env1 = newScope env in
+			let patternType = evalPatternType env1 pattern in
+			let exprType = evalExprType env1 expr in
+			let resultType = T_FUNCTION(patternType,exprType) in
+			let realResult = reduceGenerics env resultType in
+			addDecoration env nd realResult;
 			realResult | 
 		LETEXPR (nd,assigns,expr) -> 
-			let runtime1 = newScope runtime in
-			let patternTypes = List.map (fun (pattern,expr) -> evalPatternType runtime1 pattern) assigns in
+			let env1 = newScope env in
+			let patternTypes = List.map (fun (pattern,expr) -> evalPatternType env1 pattern) assigns in
 			List.iter2 
 				(fun patternType (_,expr) -> 
-					let tmpType = evalExprType runtime1 expr in
-					let _ = unification runtime1 tmpType patternType in
+					let tmpType = evalExprType env1 expr in
+					let _ = unification env1 tmpType patternType in
 					ignore 0)
 				patternTypes
 				assigns; 
-			let realResult = evalExprType runtime1 expr in
-			addDecoration runtime nd realResult;
-			realResult |
-		MATCHEXPR (nd,expr,lambdas) -> 
-			let exprType = evalExprType runtime expr in
-			let resultType = newGeneric() in
-			let lambdaType = FUNCTION(exprType,resultType) in
-			let lambdasTypes = List.map (evalExprType runtime) lambdas in  
-			let _ = List.fold_left (unification runtime) lambdaType lambdasTypes in
-			let realResult = reduceGenerics runtime resultType in
-			addDecoration runtime nd realResult;
-			realResult |
-		MATCHINLISTEXPR (nd,expr,lambdas) -> 
-			let exprListType = evalExprType runtime expr in 
-			let exprType = newGeneric() in
-			ignore (unification runtime (LIST exprType) exprListType);
-			let resultType = newGeneric() in
-			let lambdaType = FUNCTION(exprType,resultType) in
-			let lambdasTypes = List.map (evalExprType runtime) lambdas in
-			let _ = List.fold_left (unification runtime) lambdaType lambdasTypes in
-			let realResult = LIST (reduceGenerics runtime resultType) in
-			addDecoration runtime nd realResult;
-			realResult |
-		MATCHINARRAYEXPR (nd,expr,lambdas) -> 
-			let exprListType = evalExprType runtime expr in 
-			let exprType = newGeneric() in
-			ignore (unification runtime (ARRAY exprType) exprListType);
-			let resultType = newGeneric() in
-			let lambdaType = FUNCTION(exprType,resultType) in
-			let lambdasTypes = List.map (evalExprType runtime) lambdas in
-			let _ = List.fold_left (unification runtime) lambdaType lambdasTypes in
-			let realResult = ARRAY (reduceGenerics runtime resultType) in
-			addDecoration runtime nd realResult;
+			let realResult = evalExprType env1 expr in
+			addDecoration env nd realResult;
 			realResult |
 		TYPEACCESSEXPR (nd,expr,typeNode) -> 
-			let exprType = evalExprType runtime expr in
+			let exprType = evalExprType env expr in
 			let types = getTypesFromPair exprType in
-			if not (verifyUniqueness runtime types) then
+			if not (verifyUniqueness env types) then
 				raise PairElementsWithSameType;
-			let (_,typeType) = evalTypeType runtime [] typeNode in
+			let (_,typeType) = evalTypeType env [] typeNode in
 			if not (List.fold_left (fun result expr -> 
 				if result then 
 					result 
 				else 
 					begin  
-						try ignore (testUnification runtime expr typeType); true with
+						try ignore (testUnification env expr typeType); true with
 							TypesNotCompatible -> false
 					end;) false types)
 			then
 				raise TypeNotInPair;
-			addDecoration runtime nd typeType;
+			addDecoration env nd typeType;
 			typeType |
 		NARROWTYPEEXPR (nd,expr,typeNode) -> (* typenode should be less general, i.e., is a new defined named type *)
-			let exprType = evalExprType runtime expr in
-			let (_,typeType) = evalTypeType runtime [] typeNode in
-			let resultType = subtypeUnification runtime typeType exprType in
-			addDecoration runtime nd resultType;
+			let exprType = evalExprType env expr in
+			let (_,typeType) = evalTypeType env [] typeNode in
+			let resultType = subtypeUnification env typeType exprType in
+			addDecoration env nd resultType;
 			resultType |
 		GENERALISETYPEEXPR (nd,expr,typeNode) -> (* typenode should be a more general type, i.e., a float for an expr of realPartOfComplex *)
-			let exprType = evalExprType runtime expr in 
-			let (_,typeType) = evalTypeType runtime [] typeNode in
-			let resultType = subtypeUnification runtime exprType typeType in
-			addDecoration runtime nd resultType;
+			let exprType = evalExprType env expr in 
+			let (_,typeType) = evalTypeType env [] typeNode in
+			let resultType = subtypeUnification env exprType typeType in
+			addDecoration env nd resultType;
 			resultType |
-		INTEXPR _ -> 
-			INT |
-		FLOATEXPR _ -> 
-			FLOAT |
-		STRINGEXPR _ -> 
-			STRING |
-		BOOLEXPR _ -> 
-			BOOL |
+		INTEXPR (nd,_) -> 
+			addDecoration env nd T_INT;
+			T_INT |
+		FLOATEXPR (nd,_) ->
+			addDecoration env nd T_FLOAT;
+			T_FLOAT |
+		STRINGEXPR (nd,_) -> 
+			addDecoration env nd T_STRING;
+			T_STRING |
+		BOOLEXPR (nd,_) -> 
+			addDecoration env nd T_BOOL;
+			T_BOOL |
 		IDEXPR (nd,name) -> 
-			let vl = getIdValue runtime name in
-			addDecoration runtime nd vl.tp;
+			let vl = getIdValue env name in
+			addDecoration env nd vl.tp;
 			vl.tp |
 		ACTIONEXPR (nd,actions) -> 
-			List.iter (fun action -> evalActionType runtime action) actions;
-			addDecoration runtime nd ACTION;
-			ACTION |
+			List.iter (fun action -> evalActionType env action) actions;
+			addDecoration env nd T_ACTION;
+			T_ACTION |
 		LISTEXPR (nd,exprs) -> 
-			let resultType = List.fold_left (fun resultType expr -> (unification runtime resultType (evalExprType runtime expr))) (newGeneric()) exprs in
-			addDecoration runtime nd (LIST resultType);
-			(LIST resultType) |
-		INTERVALEXPR (expr1,expr2) ->
-			let tp1 = evalExprType runtime expr1 in
-			let tp2 = evalExprType runtime expr2 in
-			ignore (unification runtime tp1 INT);
-			ignore (unification runtime tp2 INT);
-			(LIST INT) |
-		INTERVALSTEPEXPR (expr1,expr2,expr3) -> 
-			let tp1 = evalExprType runtime expr1 in
-			let tp2 = evalExprType runtime expr2 in
-			let tp3 = evalExprType runtime expr3 in
-			ignore (unification runtime tp1 INT);
-			ignore (unification runtime tp2 INT);
-			ignore (unification runtime tp3 INT);
-			(LIST INT) |
-		NODEXPR -> 
-			NOD |
+			let resultType = List.fold_left (fun resultType expr -> (unification env resultType (evalExprType env expr))) (newGeneric()) exprs in
+			addDecoration env nd (T_LIST resultType);
+			(T_LIST resultType) |
+		NODEXPR nd -> 
+			addDecoration env nd T_NOD;
+			T_NOD |
 		PAIREXPR (nd,exprs) ->
-			let exprsType = List.map (evalExprType runtime) exprs in
-			addDecoration runtime nd (PAIR exprsType);
-			PAIR exprsType |
-		LISTCOMPREHENSIONEXPR (nd,exprInList,pattern,exprValue) -> 
-			let exprType = evalExprType runtime exprValue in
-			let singleValueType = newGeneric() in
-			ignore (unification runtime (LIST singleValueType) exprType);			
-			let runtime1 = newScope runtime in
-			let patternType = evalPatternType runtime1 pattern in
-			ignore (unification runtime1 patternType singleValueType);
-			let exprInListType = evalExprType runtime1 exprInList in
-			addDecoration runtime nd (LIST exprInListType);
-			LIST exprInListType | 
+			let exprsType = List.map (evalExprType env) exprs in
+			addDecoration env nd (T_PAIR exprsType);
+			T_PAIR exprsType |
 		ARRAYEXPR (nd,exprs) -> 
-			let resultType = List.fold_left (fun resultType expr -> (unification runtime resultType (evalExprType runtime expr))) (newGeneric()) exprs in
-			addDecoration runtime nd (ARRAY resultType);
-			(ARRAY resultType) |
-		OBJEXPR obj -> 
-			evalObjectType runtime obj;
-			OBJECT |
-		TRANSITIONEXPR trans -> 
-			evalTransitionExpr runtime trans;
-			TRANSITION |
+			let resultType = List.fold_left (fun resultType expr -> (unification env resultType (evalExprType env expr))) (newGeneric()) exprs in
+			addDecoration env nd (T_ARRAY resultType);
+			(T_ARRAY resultType) |
+		OBJEXPR (nd,obj) -> 
+			addDecoration env nd T_OBJECT;
+			evalObjectType env obj;
+			T_OBJECT |
+		TRANSITIONEXPR (nd,trans) -> 
+			addDecoration env nd T_TRANSITION;
+			evalTransitionExpr env trans;
+			T_TRANSITION |
 		TYPEVERIFICATIONEXPR (nd,expr,tpExpr) -> 
-			let exprType = evalExprType runtime expr in
-			let (_,typeType) = evalTypeType runtime [] tpExpr in
-			let resultType = unification runtime typeType exprType in
-			addDecoration runtime nd resultType;
+			let exprType = evalExprType env expr in
+			let (_,typeType) = evalTypeType env [] tpExpr in
+			let resultType = unification env typeType exprType in
+			addDecoration env nd resultType;
 			resultType |
-		PROMISEEXPR (expr,newRuntime) -> 
-			evalExprType newRuntime !expr |
-		NATIVEEXPR _ -> 
-			newGeneric() |
-		INSTANCIATEDLAMBDAEXPR (nd,localRuntime,param,expr) -> 
-			let tp = evalExprType localRuntime (LAMBDAEXPR ((-1),param,expr)) in 
-			addDecoration runtime nd tp;
+		NATIVEEXPR (nd,tp,fn) -> 
+			addDecoration env nd tp;
 			tp |
-		TBDEXPR -> 
-			newGeneric() |
 		VARIANTEXPR (nd,id,vl) -> 	
-			let vlType = evalExprType runtime vl in
-			let (variantType,tp) = getTypeForVariant runtime id in
-			let _ = unification runtime tp vlType in
-			addDecoration runtime nd variantType;
-			variantType 			
-and evalPatternType runtime pattern =
+			let vlType = evalExprType env vl in
+			let (variantType,tp) = getTypeForVariant env id in
+			let _ = unification env tp vlType in
+			addDecoration env nd variantType;
+			variantType |
+		ERROREXPR nd -> 
+			let tmp = newGeneric() in
+			addDecoration env nd tmp;
+			tmp |
+		FUNCTIONEXPR (nd,lambdas) -> 
+			let types = List.map (evalExprType env) lambdas in
+			let resultType = List.fold_left (unification env) (newGeneric()) types in
+			addDecoration env nd resultType;
+			resultType
+and evalPatternType env pattern =
 	match pattern with
 		CONSPATTERN (nd,carPattern,cdrPattern) -> 
-			let carType = evalPatternType runtime carPattern in
-			let cdrType = evalPatternType runtime cdrPattern in
-			let resultType = unification runtime (LIST carType) cdrType in
-			addDecoration runtime nd resultType;
+			let carType = evalPatternType env carPattern in
+			let cdrType = evalPatternType env cdrPattern in
+			let resultType = unification env (T_LIST carType) cdrType in
+			addDecoration env nd resultType;
 			resultType | 
-		INTPATTERN _ -> 
-			INT |
-		FLOATPATTERN _ -> 
-			FLOAT |
-		STRINGPATTERN _ -> 
-			STRING | 
-		BOOLPATTERN _ -> 
-			BOOL |
+		INTPATTERN (nd,_) -> 
+			addDecoration env nd T_INT;
+			T_INT |
+		FLOATPATTERN (nd,_) -> 
+			addDecoration env nd T_FLOAT;
+			T_FLOAT |
+		STRINGPATTERN (nd,_) -> 
+			addDecoration env nd T_STRING;
+			T_STRING | 
+		BOOLPATTERN (nd,_) -> 
+			addDecoration env nd T_BOOL;
+			T_BOOL |
 		LISTPATTERN (nd,lst) -> 
-			let types = List.map (evalPatternType runtime) lst in 
-			let singleType = List.fold_left (unification runtime) (newGeneric()) types in 
-			addDecoration runtime nd (LIST singleType);
-			(LIST singleType) |
+			let types = List.map (evalPatternType env) lst in 
+			let singleType = List.fold_left (unification env) (newGeneric()) types in 
+			addDecoration env nd (T_LIST singleType);
+			(T_LIST singleType) |
 		RENAMINGPATTERN (nd,pattern,id) -> 
-			let patternType = evalPatternType runtime pattern in
+			let patternType = evalPatternType env pattern in
 			let idType = newGeneric() in 
-			addId runtime id nd idType NODEXPR;
-			let resultType = unification runtime idType patternType in
-			addDecoration runtime nd resultType;
+			addId env id nd idType;
+			let resultType = unification env idType patternType in
+			addDecoration env nd resultType;
 			resultType | 
 		WILDCARDPATTERN nd -> 
 			let resultType = newGeneric() in
-			addDecoration runtime nd resultType;
+			addDecoration env nd resultType;
 			resultType |
 		PAIRPATTERN (nd,patterns) -> 
-			let patternTypes = List.map (evalPatternType runtime) patterns in
-			addDecoration runtime nd (PAIR patternTypes);
-			(PAIR patternTypes) | 
+			let patternTypes = List.map (evalPatternType env) patterns in
+			addDecoration env nd (T_PAIR patternTypes);
+			(T_PAIR patternTypes) | 
 		IDPATTERN (nd,id) -> 
 			(try
-				(getIdValueCurrentLevel runtime id).tp
+				(getIdValueCurrentLevel env id).tp
 			with
 				IdNotDeclared -> 
 					let tp = newGeneric() in
-					addId runtime id nd tp NODEXPR;
+					addId env id nd tp;
 					tp) | 
 		WHEREPATTERN (nd,pattern,expr) -> 
-			let patternType = evalPatternType runtime pattern in
-			let exprType = evalExprType runtime expr in
-			ignore (unification runtime BOOL exprType);
-			addDecoration runtime nd patternType;
+			let patternType = evalPatternType env pattern in
+			let exprType = evalExprType env expr in
+			ignore (unification env T_BOOL exprType);
+			addDecoration env nd patternType;
 			patternType | 
 		ARRAYPATTERN (nd,lst) -> 
-			let types = List.map (evalPatternType runtime) lst in 
-			let singleType = List.fold_left (unification runtime) (newGeneric()) types in 
-			addDecoration runtime nd (LIST singleType);
-			(ARRAY singleType) |
+			let types = List.map (evalPatternType env) lst in 
+			let singleType = List.fold_left (unification env) (newGeneric()) types in 
+			addDecoration env nd (T_LIST singleType);
+			(T_ARRAY singleType) |
 		TYPEDPATTERN (nd,pattern,tp) -> 
-			let patternType = evalPatternType runtime pattern in
-			let (_,typeType) = evalTypeType runtime [] tp in
-			let resultType = unification runtime patternType typeType in
-			addDecoration runtime nd resultType;
+			let patternType = evalPatternType env pattern in
+			let (_,typeType) = evalTypeType env [] tp in
+			let resultType = unification env patternType typeType in
+			addDecoration env nd resultType;
 			resultType |
 		VARIANTPATTERN (nd,id,pattern) -> 
-			let patternType = evalPatternType runtime pattern in
-			let (fullType,subType) = getTypeForVariant runtime id in
-			let _ = unification runtime subType patternType in
-			addDecoration runtime nd fullType;
+			let patternType = evalPatternType env pattern in
+			let (fullType,subType) = getTypeForVariant env id in
+			let _ = unification env subType patternType in
+			addDecoration env nd fullType;
 			fullType 
-and evalTypeType runtime genericTypes tp =
+and evalTypeType env genericTypes tp =
 	match tp with
 		NODTYPE -> 
-			(genericTypes,NOD) |
+			(genericTypes,T_NOD) |
 		INTTYPE -> 
-			(genericTypes,INT) |
+			(genericTypes,T_INT) |
 		FLOATTYPE -> 
-			(genericTypes,FLOAT) |
+			(genericTypes,T_FLOAT) |
 		STRINGTYPE -> 
-			(genericTypes,STRING) |
+			(genericTypes,T_STRING) |
 		ARRAYTYPE tp -> 
-			let (_,evaluatedTp) = evalTypeType runtime [] tp in
-			(genericTypes,(ARRAY evaluatedTp)) |
+			let (_,evaluatedTp) = evalTypeType env [] tp in
+			(genericTypes,(T_ARRAY evaluatedTp)) |
 		LISTTYPE tp -> 
-			let (_,evaluatedTp) = evalTypeType runtime [] tp in
-			(genericTypes,(LIST evaluatedTp)) |
+			let (_,evaluatedTp) = evalTypeType env [] tp in
+			(genericTypes,(T_LIST evaluatedTp)) |
 		GENTYPE id -> 
 			(try
 				(genericTypes,(ListTools.assoc (fun x -> (String.compare x id) == 0) genericTypes))
@@ -286,45 +245,41 @@ and evalTypeType runtime genericTypes tp =
 					let resultType = newGeneric() in
 					(((id,resultType)::genericTypes),resultType)) |
 		PAIRTYPE types -> 
-			let (newGenericTypes,types) = ListTools.mapWithState (evalTypeType runtime) genericTypes types in
-			(newGenericTypes,(PAIR types)) |
+			let (newGenericTypes,types) = ListTools.mapWithState (evalTypeType env) genericTypes types in
+			(newGenericTypes,(T_PAIR types)) |
 		NAMEDTYPE (id,types) ->
-			let (newGenericTypes,types) = ListTools.mapWithState (evalTypeType runtime) genericTypes types in
-			(genericTypes,(NAMED (id,types))) |
+			let (newGenericTypes,types) = ListTools.mapWithState (evalTypeType env) genericTypes types in
+			(genericTypes,(T_NAMED (id,types))) |
 		VARIANTTYPE variants -> 
-			let (newGenericTypes,variantTypes) = ListTools.mapWithState (fun currentState (id,typeDescription) -> let (nextState,tp) = (evalTypeType runtime currentState typeDescription) in (nextState,(id,tp))) genericTypes variants in 
-			(newGenericTypes,(VARIANT variantTypes)) |  
+			let (newGenericTypes,variantTypes) = ListTools.mapWithState (fun currentState (id,typeDescription) -> let (nextState,tp) = (evalTypeType env currentState typeDescription) in (nextState,(id,tp))) genericTypes variants in 
+			(newGenericTypes,(T_VARIANT variantTypes)) |  
 		FUNCTIONTYPE (paramTypeExpr,resultTypeExpr) -> 
-			let (genericTypes1,tp1) = evalTypeType runtime genericTypes paramTypeExpr in
-			let (genericTypes2,tp2) = evalTypeType runtime genericTypes1 resultTypeExpr in
-			(genericTypes2,(FUNCTION (tp1,tp2))) |
+			let (genericTypes1,tp1) = evalTypeType env genericTypes paramTypeExpr in
+			let (genericTypes2,tp2) = evalTypeType env genericTypes1 resultTypeExpr in
+			(genericTypes2,(T_FUNCTION (tp1,tp2))) |
 		OBJECTTYPE -> 
-			(genericTypes,OBJECT) |
+			(genericTypes,T_OBJECT) |
 		TRANSITIONTYPE ->
-			(genericTypes,TRANSITION)
-and evalActionType runtime action =
+			(genericTypes,T_TRANSITION)
+and evalActionType env action =
 	match action with
 		IMMEDIATEACTION expr -> 
-			let tp = evalExprType runtime expr in
-			let _ = unification runtime ACTION tp in
+			let tp = evalExprType env expr in
+			let _ = unification env T_ACTION tp in
 			ignore 0 | 
 		ASSIGNACTION (id,expr) -> 
-			ignore (evalExprType runtime expr); |
+			ignore (evalExprType env expr); |
 		ASSIGNRULEACTION (id,expr) -> 
-			let tp = evalExprType runtime expr in
-			let _ = unification runtime TRANSITION tp in
+			let tp = evalExprType env expr in
+			let _ = unification env T_TRANSITION tp in
 			ignore 0 |
 		ASSIGNOBJECTACTION (id,expr) -> 
-			let tp = evalExprType runtime expr in
-			let _ = unification runtime OBJECT tp in
+			let tp = evalExprType env expr in
+			let _ = unification env T_OBJECT tp in
 			ignore 0 |
 		EXPRACTION expr -> 
-			let tp = evalExprType runtime expr in
-			let _ = unification runtime ACTION tp in
-			ignore 0 |
-		DOACTION expr -> 
-			let tp = evalExprType runtime expr in
-			let _ = unification runtime (LIST ACTION) tp in
+			let tp = evalExprType env expr in
+			let _ = unification env (T_LIST T_ACTION) tp in
 			ignore 0 |
 		DELETERULEACTION id -> 
 			ignore 0 |
@@ -333,58 +288,57 @@ and evalActionType runtime action =
 		DEFINETYPEACTION (id,paramIds,typeExpr) -> 
 			let generics = List.map (fun id -> (id,newGeneric())) paramIds in
 			let realTypes = List.map (fun (_,tp) -> tp) generics in
-			let (_,tp) = evalTypeType runtime generics typeExpr in
-			addType runtime id tp realTypes |
+			let (_,tp) = evalTypeType env generics typeExpr in
+			addType env id tp realTypes |
 		DEFINEACTION (nd,id,expr) -> 
-			let patternType = evalPatternType runtime (IDPATTERN (nd,id)) in
-			let exprType = evalExprType runtime expr in
-			ignore (unification runtime patternType exprType); |
+			(try 
+				ignore (getIdValueRoot env id).tp;
+				raise IdAlreadyDefined
+			with 
+				IdNotDeclared -> 
+					let tp = newGeneric() in 
+					addIdToRoot env id nd tp;
+					let exprType = evalExprType env expr in
+					ignore (unification env tp exprType);); |
 		DEFINEEXTERNALACTION (nd,id,typeExpr) -> 
-			let (_,tp1) = evalTypeType runtime [] typeExpr in
-			let tp2 = evalPatternType runtime (IDPATTERN (nd,id)) in
-			ignore (unification runtime tp1 tp2); |
+			let (_,tp1) = evalTypeType env [] typeExpr in
+			let tp2 = evalPatternType env (IDPATTERN (nd,id)) in
+			ignore (unification env tp1 tp2); |
 		DEFINEOBJECTACTION (id,expr) -> 
-			let tp = evalExprType runtime expr in
-			let _ = unification runtime OBJECT tp in
+			let tp = evalExprType env expr in
+			let _ = unification env T_OBJECT tp in
 			ignore 0 |
 		DEFINERULEACTION (id,expr) -> 
-			let tp = evalExprType runtime expr in 
-			let _ = unification runtime TRANSITION tp in
-			ignore 0 |
-		DEFINEINTERFACE (id,driverId,ins,outs) -> 
-			ignore 0
-and evalObjectType runtime obj =
+			let tp = evalExprType env expr in 
+			let _ = unification env T_TRANSITION tp in
+			ignore 0 
+and evalObjectType env obj =
 	match obj with
-		SIMPLEOBJECT atts -> 
-			List.iter (fun (_,expr) -> ignore (evalExprType runtime expr)) atts |
-		OBJECT (interfaceId,atts) -> 
-			List.iter (fun (_,expr,_) -> ignore (evalExprType runtime expr)) atts |
-		TRANSIENTSIMPLEOBJECT atts -> 
-			List.iter (fun (_,expr) -> ignore (evalExprType runtime expr)) atts |
-		TRANSIENTOBJECT (interfaceId,atts) -> 
-			List.iter (fun (_,expr,_) -> ignore (evalExprType runtime expr)) atts
-and evalTransitionExpr runtime trans = 
+		OBJECT atts -> 
+			List.iter (fun (_,expr) -> ignore (evalExprType env expr)) atts |
+		TRANSIENTOBJECT atts -> 
+			List.iter (fun (_,expr) -> ignore (evalExprType env expr)) atts
+and evalTransitionExpr env trans = 
 	match trans with
-		EXPRTRANS (objs,equivalentExpr) -> 
-			let runtime1 = newScope runtime in
-			List.iter (List.iter (evalObjectAttributePattern runtime1)) objs;
-			let tp = evalExprType runtime1 equivalentExpr in
-			let _ = unification runtime1 OBJECT tp in
+		EXPRTRANS (objs,equivalentPattern) -> 
+			let env1 = newScope env in
+			List.iter (List.iter (evalObjectAttributePattern env1)) objs;
+			List.iter (evalObjectAttributePattern env1) equivalentPattern; 
 			ignore 0 |
 		ACTIONTRANS (objs,actionExpr) -> 
-			let runtime1 = newScope runtime in
-			List.iter (List.iter (evalObjectAttributePattern runtime1)) objs;
-			let tp = evalExprType runtime1 actionExpr in
-			let _ = unification runtime1 ACTION tp in
+			let env1 = newScope env in
+			List.iter (List.iter (evalObjectAttributePattern env1)) objs;
+			let tp = evalExprType env1 actionExpr in
+			let _ = unification env1 T_ACTION tp in
 			ignore 0 
-and evalObjectAttributePattern runtime att = 
+and evalObjectAttributePattern env att = 
 	match att with
 		VALUEATTRIBUTEPATTERN (id,pattern) -> 
-			let _ = evalPatternType runtime pattern in
+			let _ = evalPatternType env pattern in
 			ignore 0 |
 		PRESENTATTRIBUTEPATTERN id -> 
 			ignore 0 |
 		TYPEATTRIBUTEPATTERN (id,tp) -> 
-			let _ = evalTypeType runtime [] tp in
+			let _ = evalTypeType env [] tp in
 			ignore 0
 ;;

@@ -65,6 +65,22 @@ let rec firstWorking fn lst =
 			raise Not_found
 ;;
 
+let firstWorkingPos fn lst =
+	let rec helper c lst = 
+		match lst with
+			car::cdr -> 
+				(try 
+					ignore (fn car);
+					c
+				with 
+					_ -> helper (c+1) cdr) |
+			[] -> 
+				raise Not_found
+	in
+	helper 0 lst
+;;
+				
+
 let rec allWorking fn lst = 
 	match lst with
 		car::cdr -> 

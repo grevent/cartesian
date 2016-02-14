@@ -2,11 +2,10 @@
 open Debug
 open Ledit
 open CartesianDataModel
-open Runtime
-open Object
-open EvalTree
+open Env
 open EvalType
 open Type
+open Tree
 
 let rec read_line() = 
 	let tmp = input_char stdin in
@@ -64,23 +63,21 @@ let cli prompt parser lexer evaluer =
 	done;
 ;;
 
-let exec runtime tree = 
-	let tp = evalExprType runtime tree in
-	ignore (unification runtime ACTION tp);
-	let expr = evalExpr runtime tree in
-(*	let actions = exprToActions expr in
-	List.iter (evalAction runtime) actions; *)
+let exec env tree = 
+	let tp = evalExprType env tree in
+	ignore (unification env T_ACTION tp);
+	(* let expr = evalExpr [] env tree in *)
 	ignore 0
 ;;  
 
 let cartesianCLI () =
-	let runtime = newRuntime() in
+	let env = newEnv() in
 	
 	print_string "\tcartesian system v0.1";
 	print_newline();
 	print_newline();
 
 	while true do
-		cli ">" CartesianSyntax.command CartesianLex.lexer (exec runtime);
+		cli ">" CartesianSyntax.command CartesianLex.lexer (exec env);
 	done;
 ;;

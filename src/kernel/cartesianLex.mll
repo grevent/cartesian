@@ -21,6 +21,7 @@ let allchar = escaped | unicode | char
 	| "/" { Debug.lexDebug "DIV"; CartesianSyntax.DIV }
 	| "^" { Debug.lexDebug "PUISS"; CartesianSyntax.PUISS }
 	| "<" { Debug.lexDebug "INF"; CartesianSyntax.INF }
+	| "error" { Debug.lexDebug "ERROR"; CartesianSyntax.ERROR }
 	| ">" { Debug.lexDebug "SUP"; CartesianSyntax.SUP }
     | "==" { Debug.lexDebug "EGALEGAL"; CartesianSyntax.EGALEGAL }
     | "!=" { Debug.lexDebug "NOTEGAL"; CartesianSyntax.NOTEGAL }
