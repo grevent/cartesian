@@ -59,40 +59,30 @@ and patternToString pattern =
 		TYPEDPATTERN (_,pattern,tp) -> "("^(patternToString pattern)^": "^(typeToString tp)^")"
 and typeToString tp = 
 	match tp with
-		NODTYPE -> "nod" |
-		INTTYPE -> "int" |
-		FLOATTYPE -> "float" |
-		STRINGTYPE -> "string" |
-		ARRAYTYPE t -> (typeToString t)^" array" |
-		LISTTYPE t -> (typeToString t)^" list" |
-		GENTYPE st -> "'"^st |
-		PAIRTYPE lst -> "("^(concatAndInsert " " (List.map typeToString lst))^")" |
-		NAMEDTYPE (st,[]) -> st |
-		NAMEDTYPE (st,types) -> "("^st^" "^(List.fold_left (fun currentState tp -> currentState^" "^(typeToString tp)) "" types)^")" |
-		OBJECTTYPE -> "object" |
-		TRANSITIONTYPE -> "transition" |
-		VARIANTTYPE lst -> (concatAndInsert " | " (List.map (fun (variant,tp) -> variant^" "^(typeToString tp)) lst)) |
-		FUNCTIONTYPE (param,result) -> (typeToString param)^" -> "^(typeToString result) 
+		NODTYPE _ -> "nod" |
+		INTTYPE _ -> "int" |
+		FLOATTYPE _ -> "float" |
+		STRINGTYPE _ -> "string" |
+		ARRAYTYPE (_,t) -> (typeToString t)^" array" |
+		LISTTYPE (_,t) -> (typeToString t)^" list" |
+		GENTYPE (_,st) -> "'"^st |
+		PAIRTYPE (_,lst) -> "("^(concatAndInsert " " (List.map typeToString lst))^")" |
+		NAMEDTYPE (_,st,[]) -> st |
+		NAMEDTYPE (_,st,types) -> "("^st^" "^(List.fold_left (fun currentState tp -> currentState^" "^(typeToString tp)) "" types)^")" |
+		OBJECTTYPE _ -> "object" |
+		TRANSITIONTYPE _ -> "transition" |
+		VARIANTTYPE (_,lst) -> (concatAndInsert " | " (List.map (fun (variant,tp) -> variant^" "^(typeToString tp)) lst)) |
+		FUNCTIONTYPE (_,param,result) -> (typeToString param)^" -> "^(typeToString result) 
 and actionToString act = 
 	match act with
-		IMMEDIATEACTION expr -> "NOW "^(exprToString expr) |
 		ASSIGNACTION (id,expr) -> id^"<- "^(exprToString expr) |
 		EXPRACTION expr -> (exprToString expr) |
-		ASSIGNRULEACTION (id,expr) -> "rule "^id^" <- "^(exprToString expr) |
-		ASSIGNOBJECTACTION (id,expr) -> "object "^id^" <- "^(exprToString expr) | 
-		DELETERULEACTION id -> "delete rule "^id |
-		DELETEOBJECTACTION id -> "delete object "^id |
 		DEFINETYPEACTION (id,typeParams,tp) -> "define type"^(List.fold_left (fun current id -> current^" "^id) "" typeParams)^" "^id^" = "^(typeToString tp) | 
-		DEFINEACTION (_,id,expr) -> "define "^id^" = "^(exprToString expr) | 
-		DEFINEEXTERNALACTION (_,id,tp) -> "define external "^id^" : "^(typeToString tp) | 
-		DEFINEOBJECTACTION (id,expr) -> "define object "^id^" = "^(exprToString expr) | 
-		DEFINERULEACTION (id,expr) -> "define rule "^id^" = "^(exprToString expr)
+		DEFINEACTION (_,id,expr) -> "define "^id^" = "^(exprToString expr)
 and objectToString obj = 
 	match obj with
 		OBJECT attributes -> 
-			"{|"^(concatAndInsert "; " (List.map (fun (att,expr) -> att^"= "^(exprToString expr)) attributes))^"|}" |
-		TRANSIENTOBJECT attributes -> 
-			"{~"^(concatAndInsert "; " (List.map (fun (att,expr) -> att^"= "^(exprToString expr)) attributes))^"~}"
+			"{|"^(concatAndInsert "; " (List.map (fun (att,expr) -> att^"= "^(exprToString expr)) attributes))^"|}"
 and transitionToString transition = 
 	match transition with
 		EXPRTRANS (objPatterns,eqPattern) -> (concatAndInsert " " (List.map (fun x -> "{"^(concatAndInsert "; " (List.map attributePatternToString x))^"}") objPatterns))^" => {"^(concatAndInsert "; " (List.map attributePatternToString eqPattern))^" }" |
@@ -205,4 +195,21 @@ let exprToId expr =
 		TRANSITIONEXPR (nd,_) -> nd | 
 		NATIVEEXPR (nd,_,_) -> nd |
 		VARIANTEXPR (nd,_,_) -> nd
+;;
+
+let typeToId tp = 
+	match tp with
+		NODTYPE nd -> nd |
+		INTTYPE nd -> nd |
+		FLOATTYPE nd -> nd |
+		STRINGTYPE nd -> nd |
+		ARRAYTYPE (nd,_) -> nd |
+		LISTTYPE (nd,_) -> nd |
+		GENTYPE (nd,_) -> nd |
+		PAIRTYPE (nd,_) -> nd |
+		NAMEDTYPE (nd,_,_) -> nd |
+		VARIANTTYPE (nd,_) -> nd |
+		FUNCTIONTYPE (nd,_,_) -> nd |
+		OBJECTTYPE nd -> nd |
+		TRANSITIONTYPE nd -> nd
 ;;

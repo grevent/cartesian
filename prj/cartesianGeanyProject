@@ -23,21 +23,20 @@ long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=4
-FILE_NAME_0=55;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fcli%2FcartesianCLI.ml;0;4
-FILE_NAME_1=25;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2Ftype.ml;0;4
-FILE_NAME_2=181;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2FevalTree.ml;0;4
-FILE_NAME_3=405;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fcommon%2FlistReference.ml;0;4
-FILE_NAME_4=0;None;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2FcartesianSyntax.mly;0;4
-FILE_NAME_5=759;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2Fobject.ml;0;4
-FILE_NAME_6=233;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fcartesian.ml;0;4
-FILE_NAME_7=1;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2Ftransition.ml;0;4
-FILE_NAME_8=197;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2Fenv.ml;0;4
-FILE_NAME_9=11814;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2FevalType.ml;0;4
-FILE_NAME_10=1918;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2FcartesianDataModel.ml;0;4
-FILE_NAME_11=904;None;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2FcartesianLex.mll;0;4
-FILE_NAME_12=8015;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2Ftree.ml;0;4
-FILE_NAME_13=1406;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fcommon%2FlistTools.ml;0;4
+current_page=3
+FILE_NAME_0=83;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fcli%2FcartesianCLI.ml;0;4
+FILE_NAME_1=5306;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2Ftype.ml;0;4
+FILE_NAME_2=405;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fcommon%2FlistReference.ml;0;4
+FILE_NAME_3=5666;None;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2FcartesianSyntax.mly;0;4
+FILE_NAME_4=233;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fcartesian.ml;0;4
+FILE_NAME_5=1;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2Ftransition.ml;0;4
+FILE_NAME_6=2864;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2Fenv.ml;0;4
+FILE_NAME_7=1467;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2FcartesianDataModel.ml;0;4
+FILE_NAME_8=1109;None;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2FcartesianLex.mll;0;4
+FILE_NAME_9=4656;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2Ftree.ml;0;4
+FILE_NAME_10=1749;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fcommon%2FlistTools.ml;0;4
+FILE_NAME_11=11666;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2FevalType.ml;0;4
+FILE_NAME_12=5041;CAML;0;EUTF-8;1;1;0;%2Fhome%2Fchristophe%2Fdev%2Fcartesian%2Fsrc%2Fkernel%2FevalTree.ml;0;4
 
 [VTE]
 last_dir=/home/christophe

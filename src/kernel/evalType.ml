@@ -98,6 +98,7 @@ and evalExprType env expr =
 		IDEXPR (nd,name) -> 
 			let vl = getIdValue env name in
 			addDecoration env nd vl.tp;
+			addIdDefs env name vl.nodeId;
 			vl.tp |
 		ACTIONEXPR (nd,actions) -> 
 			List.iter (fun action -> evalActionType env action) actions;
@@ -179,6 +180,7 @@ and evalPatternType env pattern =
 			let patternType = evalPatternType env pattern in
 			let idType = newGeneric() in 
 			addId env id nd idType;
+			addIdDefs env id nd;
 			let resultType = unification env idType patternType in
 			addDecoration env nd resultType;
 			resultType | 
@@ -197,6 +199,7 @@ and evalPatternType env pattern =
 				IdNotDeclared -> 
 					let tp = newGeneric() in
 					addId env id nd tp;
+					addIdDefs env id nd;
 					tp) | 
 		WHEREPATTERN (nd,pattern,expr) -> 
 			let patternType = evalPatternType env pattern in

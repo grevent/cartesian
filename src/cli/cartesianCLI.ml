@@ -4,6 +4,7 @@ open Ledit
 open CartesianDataModel
 open Env
 open EvalType
+open EvalTree
 open Type
 open Tree
 
@@ -66,12 +67,13 @@ let cli prompt parser lexer evaluer =
 let exec env tree = 
 	let tp = evalExprType env tree in
 	ignore (unification env T_ACTION tp);
-	(* let expr = evalExpr [] env tree in *)
+	let code = evalExpr [] env tree in
 	ignore 0
 ;;  
 
 let cartesianCLI () =
-	let env = newEnv() in
+	let env0 = newEnv() in
+	let env = standardEnv env0 in
 	
 	print_string "\tcartesian system v0.1";
 	print_newline();

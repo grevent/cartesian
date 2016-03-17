@@ -25,25 +25,43 @@ type intermediateValue =
 	IV_INT of int |
 	IV_FLOAT of float |
 	IV_STRING of string |
-	IV_REF of int |
+	IV_BOOL of bool |
 	IV_ARRAY of (intermediateValue array) |
 	IV_LIST of (intermediateValue list) |
-	IV_VARIANT of string*intermediateValue |
+	IV_TAGGED of string*intermediateValue |
 	IV_PAIR of (intermediateValue list) |
-	IV_OBJECT of (string*intermediateValue) list | 
-	IV_LAMBDA of (int*intermediateLang) |
-	IV_EXTERNAL of (intermediateValue -> intermediateValue) |
+	IV_LAMBDA of (int*intermediateExpr) |
+	IV_EXTERNAL of string |
 	IV_INTERNAL of internalFunction |
-	IV_ACTIONS of (intermediateAction list)
+	IV_ACTIONS of (intermediateAction list) |
+	IV_REF of int |
+	IV_OBJECT of ((string*intermediateValue) list) |
+	IV_LOGICAL of intermediateLogical
 and internalFunction = 
-	IF_ALTERNATIVEONERROR
+	IF_ALTERNATIVEONERROR |
+	IF_IF |
+	IF_COMPAREINT |
+	IF_COMPAREBOOL |
+	IF_COMPAREFLOAT |
+	IF_COMPARESTRING |
+	IF_CAR |
+	IF_CDR |
+	IF_COMPARE |
+	IF_STOPONERROR |
+	IF_PAIRACCESS
 and intermediateAction =
-	IA_DEFINE of (int*intermediateLang) |
-	IA_SET of (int*intermediateLang)
-and intermediateLang =
+	IA_DEFINE of int |
+	IA_SET of (int*intermediateActionAdapter) |
+	IA_COMPUTED of (intermediateExpr) 
+and intermediateActionAdapter =
+	IAD_INJECT of (int*intermediateActionAdapter) |
+	IAD_EXPR of intermediateExpr
+and intermediateExpr =
 	IL_VALUE of intermediateValue |
-	IL_CALL of (intermediateLang*intermediateLang) | 
-	IL_LET of (int*intermediateValue*intermediateValue)
+	IL_CALL of (intermediateExpr*intermediateExpr) | 
+	IL_LET of (int*intermediateExpr*intermediateExpr)
+and intermediateLogical
+	IR_
 ;;
 
 type exprNode = 
@@ -68,7 +86,7 @@ type exprNode =
 	ARRAYEXPR of int*(exprNode list) |
 	OBJEXPR of int*objectNode |
 	TRANSITIONEXPR of int*transitionNode |
-	NATIVEEXPR of (int*cType*intermediateLang) |
+	NATIVEEXPR of (int*cType*string) |
 	VARIANTEXPR of (int*string*exprNode)
 and patternNode = 
 	CONSPATTERN of int*patternNode*patternNode |
@@ -86,35 +104,26 @@ and patternNode =
 	TYPEDPATTERN of int*patternNode*typeNode |
 	VARIANTPATTERN of int*string*patternNode
 and typeNode = 
-	NODTYPE |
-	INTTYPE |
-	FLOATTYPE |
-	STRINGTYPE |
-	ARRAYTYPE of typeNode |
-	LISTTYPE of typeNode |
-	GENTYPE of string |
-	PAIRTYPE of (typeNode list) |
-	NAMEDTYPE of string*(typeNode list) |
-	VARIANTTYPE of ((string*typeNode) list) |
-	FUNCTIONTYPE of (typeNode*typeNode) |
-	OBJECTTYPE |
-	TRANSITIONTYPE 
+	NODTYPE of int |
+	INTTYPE of int |
+	FLOATTYPE of int |
+	STRINGTYPE of int |
+	ARRAYTYPE of int*typeNode |
+	LISTTYPE of int*typeNode |
+	GENTYPE of int*string |
+	PAIRTYPE of int*(typeNode list) |
+	NAMEDTYPE of int*string*(typeNode list) |
+	VARIANTTYPE of int*((string*typeNode) list) |
+	FUNCTIONTYPE of int*typeNode*typeNode |
+	OBJECTTYPE of int |
+	TRANSITIONTYPE of int 
 and actionNode =
 	ASSIGNACTION of string*exprNode |
-	ASSIGNRULEACTION of string*exprNode |
-	ASSIGNOBJECTACTION of string*exprNode |
 	EXPRACTION of exprNode |
-	DELETERULEACTION of string  |
-	DELETEOBJECTACTION of string |
 	DEFINETYPEACTION of string*(string list)*typeNode |
-	DEFINEACTION of int*string*exprNode |
-	DEFINEEXTERNALACTION of int*string*typeNode |
-	DEFINEOBJECTACTION of string*exprNode |
-	DEFINERULEACTION of string*exprNode |
-	IMMEDIATEACTION of exprNode
+	DEFINEACTION of int*string*exprNode
 and objectNode = 
-	OBJECT of ((string*exprNode) list) | 
-	TRANSIENTOBJECT of ((string*exprNode) list)
+	OBJECT of ((string*exprNode) list) 
 and transitionNode =
 	EXPRTRANS of (attributePatternNode list list)*(attributePatternNode list) |
 	ACTIONTRANS of ((attributePatternNode list list)*exprNode) 
@@ -124,10 +133,14 @@ and attributePatternNode =
 	TYPEATTRIBUTEPATTERN of string*typeNode
 ;;
 
-type objectEntry = 
+(* type objectEntry = 
 	{ name: string; mutable objValue: exprNode; locked: Mutex.t }
 and value = 
-	{ id: string; nodeId: int; mutable tp: cType }
+	{ id: string; nodeId: int; mutable tp: cType  }
+*)
+	
+type value = 
+	{ id: string; nodeId: int; mutable tp: cType  }
 and parentScope = 
 	ROOT |
 	PARENT of scopeDescription
@@ -138,4 +151,5 @@ and env = {
 	decorations: (int*cType) listReference;
 	genericTypes: (int*cType) listReference;
 	namedTypes: (string*cType*(cType list)) listReference;
+	idDefs: (string*(int*bool)) listReference; (* the int represents the id of the definition... *)
 };;

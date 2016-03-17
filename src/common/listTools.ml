@@ -80,7 +80,6 @@ let firstWorkingPos fn lst =
 	helper 0 lst
 ;;
 				
-
 let rec allWorking fn lst = 
 	match lst with
 		car::cdr -> 
@@ -91,4 +90,12 @@ let rec allWorking fn lst =
 				allWorking fn cdr) |
 		[] -> 
 			[]
+;;
+
+let fold_left_i fn start lst = 
+	let acc = ref start in 
+	for i = 0 to (List.length lst) - 1 do
+		acc := fn !acc i (List.nth lst i);
+	done;
+	!acc
 ;;

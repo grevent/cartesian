@@ -55,17 +55,10 @@
 command: expr COMMANDEND { synDebug "command-1"; $1 }
 
 action: ID FLECHG expr { synDebug "action-1"; ASSIGNACTION ($1,$3) }
-action: RULE ID FLECHG expr { ASSIGNRULEACTION ($2,$4) }
-action: OBJECT ID FLECHG expr { ASSIGNOBJECTACTION ($2,$4) }
-action: DELETE RULE ID { DELETERULEACTION $3 }
-action: DELETE OBJECT ID { DELETEOBJECTACTION $3 }
 action: DEFINE TYPE genIdList ID EGAL typeDefProtected { DEFINETYPEACTION ($4,$3,$6) }
 action: DEFINE ID patterns EGAL exprProtected { synDebug "action-9"; DEFINEACTION (newId(),$2,(createLambdaExpr $3 $5)) }
 action: DEFINE EXTERNAL ID DEUXPOINTS typeDefProtected {DEFINEEXTERNALACTION (newId(),$3,$5) }
-action: DEFINE OBJECT ID EGAL exprProtected { DEFINEOBJECTACTION ($3,$5) }
-action: DEFINE RULE ID EGAL exprProtected { DEFINERULEACTION ($3,$5) }
 action: exprProtected { synDebug "action-3"; EXPRACTION $1 }
-action: NOW exprProtected { IMMEDIATEACTION $2 } 
 
 actionListPtVirg: action PTVIRG actionListPtVirg { synDebug "actionListPtVirg-1"; $1::$3 }
 actionListPtVirg: action { synDebug "actionListPtVirg-2"; [$1]}
@@ -107,7 +100,7 @@ expr: IF expr THEN expr ELSE exprProtected { synDebug "expr-22"; createIdCallExp
 expr: expr PT CROO expr CROF { synDebug "expr-23"; createIdCallExpr "_get" [$1; $4] }
 expr: exprProtected { synDebug "expr-24"; $1 }
 expr: objectDef { synDebug "expr-25"; OBJEXPR (newId(),$1) }
-expr: TRANSITION transition { synDebug "expr-26"; TRANSITIONEXPR (newId(),$2) }
+expr: TRANSITION exprVirgList DEUXPOINTS transition { synDebug "expr-26"; TRANSITIONEXPR (newId(),$2,$4) }
 expr: CAPID exprProtected { VARIANTEXPR (newId(),$1,$2) }
 
 exprProtected: PARO expr DEUXPOINTS typeDef PARF { synDebug "exprProtected-1"; TYPEVERIFICATIONEXPR (newId(),$2,$4) }
@@ -134,7 +127,6 @@ exprVirgList: expr VIRG exprVirgList { $1::$3 }
 exprVirgList: expr { [ $1 ] }
 
 objectDef: ACOOPIPE objectDefinitions PIPEACOF { OBJECT $2 }
-objectDef: ACOOTILDE objectDefinitions TILDEACOF { TRANSIENTOBJECT $2 }
 
 transition: objectPatterns IMPLY objectPattern { EXPRTRANS ($1,$3) (* Should return an object... *) } 
 transition: objectPatterns PTEXCFLECHD exprProtected { ACTIONTRANS ($1,$3) (* Should return an action, with the variables... ! *) }
