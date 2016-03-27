@@ -98,7 +98,7 @@ and evalExprType env expr =
 		IDEXPR (nd,name) -> 
 			let vl = getIdValue env name in
 			addDecoration env nd vl.tp;
-			addIdDefs env name vl.nodeId;
+			addIdDef env name vl.nodeId false;
 			vl.tp |
 		ACTIONEXPR (nd,actions) -> 
 			List.iter (fun action -> evalActionType env action) actions;
@@ -119,23 +119,12 @@ and evalExprType env expr =
 			let resultType = List.fold_left (fun resultType expr -> (unification env resultType (evalExprType env expr))) (newGeneric()) exprs in
 			addDecoration env nd (T_ARRAY resultType);
 			(T_ARRAY resultType) |
-		OBJEXPR (nd,obj) -> 
-			addDecoration env nd T_OBJECT;
-			evalObjectType env obj;
-			T_OBJECT |
-		TRANSITIONEXPR (nd,trans) -> 
-			addDecoration env nd T_TRANSITION;
-			evalTransitionExpr env trans;
-			T_TRANSITION |
 		TYPEVERIFICATIONEXPR (nd,expr,tpExpr) -> 
 			let exprType = evalExprType env expr in
 			let (_,typeType) = evalTypeType env [] tpExpr in
 			let resultType = unification env typeType exprType in
 			addDecoration env nd resultType;
 			resultType |
-		NATIVEEXPR (nd,tp,fn) -> 
-			addDecoration env nd tp;
-			tp |
 		VARIANTEXPR (nd,id,vl) -> 	
 			let vlType = evalExprType env vl in
 			let (variantType,tp) = getTypeForVariant env id in
@@ -180,7 +169,7 @@ and evalPatternType env pattern =
 			let patternType = evalPatternType env pattern in
 			let idType = newGeneric() in 
 			addId env id nd idType;
-			addIdDefs env id nd;
+			addIdDef env id nd false;
 			let resultType = unification env idType patternType in
 			addDecoration env nd resultType;
 			resultType | 
@@ -199,7 +188,7 @@ and evalPatternType env pattern =
 				IdNotDeclared -> 
 					let tp = newGeneric() in
 					addId env id nd tp;
-					addIdDefs env id nd;
+					addIdDef env id nd false;
 					tp) | 
 		WHEREPATTERN (nd,pattern,expr) -> 
 			let patternType = evalPatternType env pattern in
@@ -226,67 +215,47 @@ and evalPatternType env pattern =
 			fullType 
 and evalTypeType env genericTypes tp =
 	match tp with
-		NODTYPE -> 
+		NODTYPE nd -> 
 			(genericTypes,T_NOD) |
-		INTTYPE -> 
+		INTTYPE nd -> 
 			(genericTypes,T_INT) |
-		FLOATTYPE -> 
+		FLOATTYPE nd -> 
 			(genericTypes,T_FLOAT) |
-		STRINGTYPE -> 
+		STRINGTYPE nd -> 
 			(genericTypes,T_STRING) |
-		ARRAYTYPE tp -> 
+		ARRAYTYPE (nd,tp) -> 
 			let (_,evaluatedTp) = evalTypeType env [] tp in
 			(genericTypes,(T_ARRAY evaluatedTp)) |
-		LISTTYPE tp -> 
+		LISTTYPE (nd,tp) -> 
 			let (_,evaluatedTp) = evalTypeType env [] tp in
 			(genericTypes,(T_LIST evaluatedTp)) |
-		GENTYPE id -> 
+		GENTYPE (nd,id) -> 
 			(try
 				(genericTypes,(ListTools.assoc (fun x -> (String.compare x id) == 0) genericTypes))
 			with
 				Not_found -> 
 					let resultType = newGeneric() in
 					(((id,resultType)::genericTypes),resultType)) |
-		PAIRTYPE types -> 
+		PAIRTYPE (nd,types) -> 
 			let (newGenericTypes,types) = ListTools.mapWithState (evalTypeType env) genericTypes types in
 			(newGenericTypes,(T_PAIR types)) |
-		NAMEDTYPE (id,types) ->
+		NAMEDTYPE (nd,id,types) ->
 			let (newGenericTypes,types) = ListTools.mapWithState (evalTypeType env) genericTypes types in
 			(genericTypes,(T_NAMED (id,types))) |
-		VARIANTTYPE variants -> 
+		VARIANTTYPE (nd,variants) -> 
 			let (newGenericTypes,variantTypes) = ListTools.mapWithState (fun currentState (id,typeDescription) -> let (nextState,tp) = (evalTypeType env currentState typeDescription) in (nextState,(id,tp))) genericTypes variants in 
 			(newGenericTypes,(T_VARIANT variantTypes)) |  
-		FUNCTIONTYPE (paramTypeExpr,resultTypeExpr) -> 
+		FUNCTIONTYPE (nd,paramTypeExpr,resultTypeExpr) -> 
 			let (genericTypes1,tp1) = evalTypeType env genericTypes paramTypeExpr in
 			let (genericTypes2,tp2) = evalTypeType env genericTypes1 resultTypeExpr in
-			(genericTypes2,(T_FUNCTION (tp1,tp2))) |
-		OBJECTTYPE -> 
-			(genericTypes,T_OBJECT) |
-		TRANSITIONTYPE ->
-			(genericTypes,T_TRANSITION)
+			(genericTypes2,(T_FUNCTION (tp1,tp2)))
 and evalActionType env action =
 	match action with
-		IMMEDIATEACTION expr -> 
-			let tp = evalExprType env expr in
-			let _ = unification env T_ACTION tp in
-			ignore 0 | 
 		ASSIGNACTION (id,expr) -> 
 			ignore (evalExprType env expr); |
-		ASSIGNRULEACTION (id,expr) -> 
-			let tp = evalExprType env expr in
-			let _ = unification env T_TRANSITION tp in
-			ignore 0 |
-		ASSIGNOBJECTACTION (id,expr) -> 
-			let tp = evalExprType env expr in
-			let _ = unification env T_OBJECT tp in
-			ignore 0 |
 		EXPRACTION expr -> 
 			let tp = evalExprType env expr in
 			let _ = unification env (T_LIST T_ACTION) tp in
-			ignore 0 |
-		DELETERULEACTION id -> 
-			ignore 0 |
-		DELETEOBJECTACTION id -> 
 			ignore 0 |
 		DEFINETYPEACTION (id,paramIds,typeExpr) -> 
 			let generics = List.map (fun id -> (id,newGeneric())) paramIds in
@@ -302,46 +271,5 @@ and evalActionType env action =
 					let tp = newGeneric() in 
 					addIdToRoot env id nd tp;
 					let exprType = evalExprType env expr in
-					ignore (unification env tp exprType);); |
-		DEFINEEXTERNALACTION (nd,id,typeExpr) -> 
-			let (_,tp1) = evalTypeType env [] typeExpr in
-			let tp2 = evalPatternType env (IDPATTERN (nd,id)) in
-			ignore (unification env tp1 tp2); |
-		DEFINEOBJECTACTION (id,expr) -> 
-			let tp = evalExprType env expr in
-			let _ = unification env T_OBJECT tp in
-			ignore 0 |
-		DEFINERULEACTION (id,expr) -> 
-			let tp = evalExprType env expr in 
-			let _ = unification env T_TRANSITION tp in
-			ignore 0 
-and evalObjectType env obj =
-	match obj with
-		OBJECT atts -> 
-			List.iter (fun (_,expr) -> ignore (evalExprType env expr)) atts |
-		TRANSIENTOBJECT atts -> 
-			List.iter (fun (_,expr) -> ignore (evalExprType env expr)) atts
-and evalTransitionExpr env trans = 
-	match trans with
-		EXPRTRANS (objs,equivalentPattern) -> 
-			let env1 = newScope env in
-			List.iter (List.iter (evalObjectAttributePattern env1)) objs;
-			List.iter (evalObjectAttributePattern env1) equivalentPattern; 
-			ignore 0 |
-		ACTIONTRANS (objs,actionExpr) -> 
-			let env1 = newScope env in
-			List.iter (List.iter (evalObjectAttributePattern env1)) objs;
-			let tp = evalExprType env1 actionExpr in
-			let _ = unification env1 T_ACTION tp in
-			ignore 0 
-and evalObjectAttributePattern env att = 
-	match att with
-		VALUEATTRIBUTEPATTERN (id,pattern) -> 
-			let _ = evalPatternType env pattern in
-			ignore 0 |
-		PRESENTATTRIBUTEPATTERN id -> 
-			ignore 0 |
-		TYPEATTRIBUTEPATTERN (id,tp) -> 
-			let _ = evalTypeType env [] tp in
-			ignore 0
+					ignore (unification env tp exprType););
 ;;

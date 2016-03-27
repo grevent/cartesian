@@ -47,10 +47,6 @@ let rec recursiveReduceGenerics env alreadyTested tp =
 			(alreadyTested,T_ACTION) |
 		T_NOD -> 
 			(alreadyTested,T_NOD) |
-		T_OBJECT ->
-			(alreadyTested,T_OBJECT) |
-		T_TRANSITION -> 
-			(alreadyTested,T_TRANSITION) |
 		T_NAMED (id,params) -> 
 			let (newAlreadyTested,newTypes) = ListTools.mapWithState (recursiveReduceGenerics env) alreadyTested params in
 			(newAlreadyTested,T_NAMED (id,newTypes)) |
@@ -172,9 +168,7 @@ let rec recursiveRenameGenerics alreadyRenamed renameFn tp =
 		T_FUNCTION (paramType,resultType) -> 
 			let (renamed,newParamType) = recursiveRenameGenerics alreadyRenamed renameFn paramType in
 			let (renamed,newResultType) = recursiveRenameGenerics renamed renameFn resultType in
-			(renamed,T_FUNCTION (newParamType,newResultType)) |
-		T_OBJECT -> (alreadyRenamed,T_OBJECT) |
-		T_TRANSITION -> (alreadyRenamed,T_TRANSITION)
+			(renamed,T_FUNCTION (newParamType,newResultType))
 ;;
 					
 let renameGenerics tp = 

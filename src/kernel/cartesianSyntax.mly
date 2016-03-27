@@ -17,7 +17,7 @@
 %token DO DEUXPOINTS LAMBDA LET IN MATCH IF
 %token THEN ELSE CROO CROF PARO PARF INT CROOPIPE PIPECROF
 %token QUOTE NOD ALL POSSIBLE EGAL AND VIRG AS
-%token SOULIGNE PTPTPT PTDEUXPOINTS
+%token SOULIGNE PTPTPT PTDEUXPOINTS INCLUDE
 %token PLUS MINUS MUL DIV PUISS INF SUP EGALEGAL NOTEGAL INFEGAL SUPEGAL PIPE
 %token DEUXDEUXPOINTS PT PTPT WITH MOD NOT LOGICALOR LOGICALAND
 %token LIST GENID TYPEDEF USE EXTERNAL DEUXPOINTSSUP DEUXPOINTSINF
@@ -43,22 +43,21 @@
 %left PT
 %left NOT
       
-%type <CartesianDataModel.exprNode> command
-%type <CartesianDataModel.objectNode> objectDef
-%type <CartesianDataModel.attributePatternNode list list> objectPatterns 
+%type <CartesianDataModel.actionNode> command
 %type <CartesianDataModel.exprNode list> exprProtectedList
 								 
 %start command
        
 %%
   
-command: expr COMMANDEND { synDebug "command-1"; $1 }
+command: action COMMANDEND { synDebug "command-1"; $1 }
 
 action: ID FLECHG expr { synDebug "action-1"; ASSIGNACTION ($1,$3) }
 action: DEFINE TYPE genIdList ID EGAL typeDefProtected { DEFINETYPEACTION ($4,$3,$6) }
 action: DEFINE ID patterns EGAL exprProtected { synDebug "action-9"; DEFINEACTION (newId(),$2,(createLambdaExpr $3 $5)) }
 action: DEFINE EXTERNAL ID DEUXPOINTS typeDefProtected {DEFINEEXTERNALACTION (newId(),$3,$5) }
 action: exprProtected { synDebug "action-3"; EXPRACTION $1 }
+action: USE ID { USEACTION (newId(),$2) }
 
 actionListPtVirg: action PTVIRG actionListPtVirg { synDebug "actionListPtVirg-1"; $1::$3 }
 actionListPtVirg: action { synDebug "actionListPtVirg-2"; [$1]}
@@ -99,8 +98,6 @@ expr: exprProtected PTDEUXPOINTS typeDefProtected { synDebug "expr-21"; TYPEACCE
 expr: IF expr THEN expr ELSE exprProtected { synDebug "expr-22"; createIdCallExpr "_if" [$2; $4; $6] }
 expr: expr PT CROO expr CROF { synDebug "expr-23"; createIdCallExpr "_get" [$1; $4] }
 expr: exprProtected { synDebug "expr-24"; $1 }
-expr: objectDef { synDebug "expr-25"; OBJEXPR (newId(),$1) }
-expr: TRANSITION exprVirgList DEUXPOINTS transition { synDebug "expr-26"; TRANSITIONEXPR (newId(),$2,$4) }
 expr: CAPID exprProtected { VARIANTEXPR (newId(),$1,$2) }
 
 exprProtected: PARO expr DEUXPOINTS typeDef PARF { synDebug "exprProtected-1"; TYPEVERIFICATIONEXPR (newId(),$2,$4) }
@@ -126,27 +123,20 @@ exprProtected: ERROR { synDebug "exprProtected-19"; ERROREXPR (newId()) }
 exprVirgList: expr VIRG exprVirgList { $1::$3 }
 exprVirgList: expr { [ $1 ] }
 
-objectDef: ACOOPIPE objectDefinitions PIPEACOF { OBJECT $2 }
-
-transition: objectPatterns IMPLY objectPattern { EXPRTRANS ($1,$3) (* Should return an object... *) } 
-transition: objectPatterns PTEXCFLECHD exprProtected { ACTIONTRANS ($1,$3) (* Should return an action, with the variables... ! *) }
-
-typeDef: variant variants { VARIANTTYPE ($1::$2) }
-typeDef: typeDefProtected FLECHD typeDef { FUNCTIONTYPE ($1,$3) }
+typeDef: variant variants { VARIANTTYPE (newId(),($1::$2)) }
+typeDef: typeDefProtected FLECHD typeDef { FUNCTIONTYPE (newId(),$1,$3) }
 typeDef: typeDefProtected { $1 }
 
-typeDefProtected: NOD { NODTYPE }
-typeDefProtected: INT { INTTYPE }
-typeDefProtected: FLOAT { FLOATTYPE }
-typeDefProtected: STRING { STRINGTYPE }
-typeDefProtected: CROOPIPE typeDef PIPECROF { ARRAYTYPE $2 }
-typeDefProtected: CROO typeDef CROF { LISTTYPE $2 }
-typeDefProtected: GENID { GENTYPE $1 }
-typeDefProtected: PARO typeDefVirgList PARF  { PAIRTYPE $2 }
-typeDefProtected: ID { NAMEDTYPE ($1,[]) }
-typeDefProtected: PARO ID typeDefList PARF { NAMEDTYPE ($2,$3) }
-typeDefProtected: OBJECT { OBJECTTYPE }
-typeDefProtected: TRANSITION { TRANSITIONTYPE }
+typeDefProtected: NOD { NODTYPE (newId()) }
+typeDefProtected: INT { INTTYPE (newId()) }
+typeDefProtected: FLOAT { FLOATTYPE (newId()) }
+typeDefProtected: STRING { STRINGTYPE (newId()) }
+typeDefProtected: CROOPIPE typeDef PIPECROF { ARRAYTYPE (newId(),$2) }
+typeDefProtected: CROO typeDef CROF { LISTTYPE (newId(),$2) }
+typeDefProtected: GENID { GENTYPE (newId(),$1) }
+typeDefProtected: PARO typeDefVirgList PARF  { PAIRTYPE (newId(),$2) }
+typeDefProtected: ID { NAMEDTYPE (newId(),$1,[]) }
+typeDefProtected: PARO ID typeDefList PARF { NAMEDTYPE (newId(),$2,$3) }
 typeDefProtected: PARO typeDef PARF { $2 }
 
 typeDefList: typeDefProtected typeDefList { $1::$2 }
@@ -171,9 +161,6 @@ assigns: pattern patterns EGAL expr { [($1,(createLambdaExpr $2 $4))] }
 exprListPtVirg: expr PTVIRG exprListPtVirg { $1::$3 }
 exprListPtVirg: expr { [$1] } 
 
-objectDefinitions: ID EGAL expr PTVIRG objectDefinitions { ($1,$3)::$5 }
-objectDefinitions: { [ ] }
-
 patterns: patternProtected patterns { $1::$2 }
 patterns: { [] }
 
@@ -197,19 +184,6 @@ patternProtected: ID { IDPATTERN (newId(),$1) }
 patternProtected: patternProtected WHERE exprProtected { WHEREPATTERN (newId(),$1,$3) }
 patternProtected: CROOPIPE patternListPtVirg PIPECROF { ARRAYPATTERN (newId(),$2) }
 patternProtected: PARO pattern DEUXPOINTS typeDef PARF { TYPEDPATTERN (newId(),$2,$4) }
-
-objectPattern: ACOO patternObjectDefinitions ACOF { $2 }
-
-patternObjectDefinitions: patternObjectDefinition PTVIRG patternObjectDefinitions { $1::$3 }
-patternObjectDefinitions: patternObjectDefinition PTVIRG { [ $1 ] }
-patternObjectDefinitions: patternObjectDefinition { [ $1 ] }
-
-patternObjectDefinition: ID EGAL pattern { VALUEATTRIBUTEPATTERN ($1,$3) }
-patternObjectDefinition: ID { PRESENTATTRIBUTEPATTERN $1 }
-patternObjectDefinition: ID DEUXPOINTS typeDef { TYPEATTRIBUTEPATTERN ($1,$3) }
-
-objectPatterns: objectPattern objectPatterns { $1::$2 }
-objectPatterns: objectPattern { [ $1 ] }
 
 exprProtectedList: exprProtected exprProtectedList { $1::$2 }
 exprProtectedList: exprProtected { [ $1 ] }

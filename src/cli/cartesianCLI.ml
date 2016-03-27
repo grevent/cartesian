@@ -65,15 +65,14 @@ let cli prompt parser lexer evaluer =
 ;;
 
 let exec env tree = 
-	let tp = evalExprType env tree in
-	ignore (unification env T_ACTION tp);
-	let code = evalExpr [] env tree in
+	evalActionType env tree;
+	let code = evalAction env tree in
 	ignore 0
 ;;  
 
 let cartesianCLI () =
 	let env0 = newEnv() in
-	let env = standardEnv env0 in
+	let env = InitLib.standardEnv env0 in
 	
 	print_string "\tcartesian system v0.1";
 	print_newline();

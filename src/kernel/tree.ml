@@ -34,11 +34,8 @@ let rec exprToString expr =
 		NODEXPR _ -> "nod" |
 		PAIREXPR (_,exprs) -> "("^(concatAndInsert ", " (List.map exprToString exprs))^")" |
 		ARRAYEXPR (_,exprs) -> "[|"^(concatAndInsert "; " (List.map exprToString exprs))^"|]" |
-		OBJEXPR (_,obj) -> objectToString obj |
-		TRANSITIONEXPR (_,transition) -> transitionToString transition |
 		NARROWTYPEEXPR (_,expr,typeExpr) -> "("^(exprToString expr)^" :> "^(typeToString typeExpr)^")" | 
 		GENERALISETYPEEXPR (_,expr,typeExpr) -> "("^(exprToString expr)^" :< "^(typeToString typeExpr)^")" |
-		NATIVEEXPR expr -> "native" | 
 		ERROREXPR _ -> "error" |
 		FUNCTIONEXPR (_,lambdas) -> (concatAndInsert " | " (List.map exprToString lambdas))
 and patternToString pattern = 
@@ -69,8 +66,6 @@ and typeToString tp =
 		PAIRTYPE (_,lst) -> "("^(concatAndInsert " " (List.map typeToString lst))^")" |
 		NAMEDTYPE (_,st,[]) -> st |
 		NAMEDTYPE (_,st,types) -> "("^st^" "^(List.fold_left (fun currentState tp -> currentState^" "^(typeToString tp)) "" types)^")" |
-		OBJECTTYPE _ -> "object" |
-		TRANSITIONTYPE _ -> "transition" |
 		VARIANTTYPE (_,lst) -> (concatAndInsert " | " (List.map (fun (variant,tp) -> variant^" "^(typeToString tp)) lst)) |
 		FUNCTIONTYPE (_,param,result) -> (typeToString param)^" -> "^(typeToString result) 
 and actionToString act = 
@@ -78,20 +73,9 @@ and actionToString act =
 		ASSIGNACTION (id,expr) -> id^"<- "^(exprToString expr) |
 		EXPRACTION expr -> (exprToString expr) |
 		DEFINETYPEACTION (id,typeParams,tp) -> "define type"^(List.fold_left (fun current id -> current^" "^id) "" typeParams)^" "^id^" = "^(typeToString tp) | 
-		DEFINEACTION (_,id,expr) -> "define "^id^" = "^(exprToString expr)
-and objectToString obj = 
-	match obj with
-		OBJECT attributes -> 
-			"{|"^(concatAndInsert "; " (List.map (fun (att,expr) -> att^"= "^(exprToString expr)) attributes))^"|}"
-and transitionToString transition = 
-	match transition with
-		EXPRTRANS (objPatterns,eqPattern) -> (concatAndInsert " " (List.map (fun x -> "{"^(concatAndInsert "; " (List.map attributePatternToString x))^"}") objPatterns))^" => {"^(concatAndInsert "; " (List.map attributePatternToString eqPattern))^" }" |
-		ACTIONTRANS (objPatterns,expr) -> (concatAndInsert " " (List.map (fun x -> "{"^(concatAndInsert "; " (List.map attributePatternToString x))^"}") objPatterns))^" !-> "^(exprToString expr)
-and attributePatternToString att = 
-	match att with
-		VALUEATTRIBUTEPATTERN (id,pattern) -> id^"= "^(patternToString pattern) |
-		PRESENTATTRIBUTEPATTERN id -> id |
-		TYPEATTRIBUTEPATTERN (id,tp) -> id^": "^(typeToString tp)
+		DEFINEACTION (_,id,expr) -> "define "^id^" = "^(exprToString expr) |
+		DEFINEEXTERNALACTION (_,id,tp) -> "define external "^id^" : "^(typeToString tp) |
+		USEACTION (_,str) -> "use "^str
 ;;
  
 exception ExpressionIsNotActionList of string;;
@@ -157,19 +141,6 @@ let variantToExpr id0 expr =
 		_ -> raise (ExpressionIsNotCorrespondingVariant (exprToString expr))
 ;; 
 
-exception ExpressionIsNotObject of string;;
-let exprToObject expr = 
-	match expr with
-		OBJEXPR (_,obj) -> obj |
-		_ -> raise (ExpressionIsNotObject (exprToString expr))
-;;
-
-exception ExpressionIsNotTransition of string;;
-let exprToTransition expr = 
-	match expr with
-		TRANSITIONEXPR (_,transition) -> transition |
-		_ -> raise (ExpressionIsNotTransition (exprToString expr))
-
 let exprToId expr = 
 	match expr with
 		FUNCTIONCALLEXPR (nd,_,_) -> nd |
@@ -191,9 +162,6 @@ let exprToId expr =
 		ERROREXPR nd -> nd |
 		PAIREXPR (nd,_) -> nd |
 		ARRAYEXPR (nd,_) -> nd |
-		OBJEXPR (nd,_) -> nd |
-		TRANSITIONEXPR (nd,_) -> nd | 
-		NATIVEEXPR (nd,_,_) -> nd |
 		VARIANTEXPR (nd,_,_) -> nd
 ;;
 
@@ -209,7 +177,5 @@ let typeToId tp =
 		PAIRTYPE (nd,_) -> nd |
 		NAMEDTYPE (nd,_,_) -> nd |
 		VARIANTTYPE (nd,_) -> nd |
-		FUNCTIONTYPE (nd,_,_) -> nd |
-		OBJECTTYPE nd -> nd |
-		TRANSITIONTYPE nd -> nd
+		FUNCTIONTYPE (nd,_,_) -> nd
 ;;

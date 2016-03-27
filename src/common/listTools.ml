@@ -99,3 +99,17 @@ let fold_left_i fn start lst =
 	done;
 	!acc
 ;;
+
+let fusion cmp lst1 lst2 = 
+	let rec helper lst1 lst2 = 
+		match (lst1,lst2) with
+			([],[]) -> [] |
+			(_,[]) -> lst1 |
+			([],_) -> lst2 |
+			(car1::cdr1,car2::cdr2) when (cmp car1 car2) < 0 -> car1::(helper cdr1 lst2) |
+			(car1::cdr1,car2::cdr2) when (cmp car1 car2) > 0 -> car2::(helper lst1 cdr2) |
+			(car1::cdr1,car2::cdr2) when (cmp car1 car2) == 0 -> (helper cdr1 lst2) |
+			_ -> []
+	in
+	(helper (List.sort cmp lst1) (List.sort cmp lst2))
+;;

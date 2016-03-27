@@ -86,4 +86,5 @@ let allchar = escaped | unicode | char
     | ['A'-'Z''`']['a'-'z''A'-'Z''_''0'-'9''?']* as ident { Debug.lexDebug (Printf.sprintf "CAPID='%s'" (Lexing.lexeme lexbuf)); CartesianSyntax.CAPID ident }
     | ";;"  { Debug.lexDebug (Printf.sprintf "COMMANDEND"); CartesianSyntax.COMMANDEND } 
     | _ as c { Debug.lexDebug (Printf.sprintf "Error reading '%c'" c); raise LexicalError }
+    | "include" { Debug.lexDebug (Printf.sprintf "INCLUDE"); CartesianSyntax.INCLUDE }
 

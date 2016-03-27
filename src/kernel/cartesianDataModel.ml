@@ -14,9 +14,7 @@ type cType =
 	T_PAIR of cType list |
 	T_NAMED of (string*(cType list)) | 
 	T_VARIANT of (string*cType) list |
-	T_FUNCTION of cType*cType |
-	T_OBJECT |
-	T_TRANSITION
+	T_FUNCTION of cType*cType
 ;;
 
 type intermediateValue = 
@@ -31,12 +29,9 @@ type intermediateValue =
 	IV_TAGGED of string*intermediateValue |
 	IV_PAIR of (intermediateValue list) |
 	IV_LAMBDA of (int*intermediateExpr) |
-	IV_EXTERNAL of string |
 	IV_INTERNAL of internalFunction |
 	IV_ACTIONS of (intermediateAction list) |
-	IV_REF of int |
-	IV_OBJECT of ((string*intermediateValue) list) |
-	IV_LOGICAL of intermediateLogical
+	IV_REF of int
 and internalFunction = 
 	IF_ALTERNATIVEONERROR |
 	IF_IF |
@@ -48,11 +43,17 @@ and internalFunction =
 	IF_CDR |
 	IF_COMPARE |
 	IF_STOPONERROR |
-	IF_PAIRACCESS
+	IF_PAIRACCESS |
+	IF_ISEMPTYLIST |
+	IF_GETVARIANTVAL |
+	IF_GETVARIANTTAG |
+	IF_GETPAIRELEMENT |
+	IF_GETARRAYELEMENT
 and intermediateAction =
-	IA_DEFINE of int |
-	IA_SET of (int*intermediateActionAdapter) |
-	IA_COMPUTED of (intermediateExpr) 
+	IA_DEFINE of string |
+	IA_SET of (string*intermediateActionAdapter) |
+	IA_COMPUTED of (intermediateExpr) |
+	IA_DEFINEEXTERNAL of string 
 and intermediateActionAdapter =
 	IAD_INJECT of (int*intermediateActionAdapter) |
 	IAD_EXPR of intermediateExpr
@@ -60,8 +61,6 @@ and intermediateExpr =
 	IL_VALUE of intermediateValue |
 	IL_CALL of (intermediateExpr*intermediateExpr) | 
 	IL_LET of (int*intermediateExpr*intermediateExpr)
-and intermediateLogical
-	IR_
 ;;
 
 type exprNode = 
@@ -84,9 +83,6 @@ type exprNode =
 	ERROREXPR of int |
 	PAIREXPR of int*(exprNode list) |
 	ARRAYEXPR of int*(exprNode list) |
-	OBJEXPR of int*objectNode |
-	TRANSITIONEXPR of int*transitionNode |
-	NATIVEEXPR of (int*cType*string) |
 	VARIANTEXPR of (int*string*exprNode)
 and patternNode = 
 	CONSPATTERN of int*patternNode*patternNode |
@@ -114,23 +110,14 @@ and typeNode =
 	PAIRTYPE of int*(typeNode list) |
 	NAMEDTYPE of int*string*(typeNode list) |
 	VARIANTTYPE of int*((string*typeNode) list) |
-	FUNCTIONTYPE of int*typeNode*typeNode |
-	OBJECTTYPE of int |
-	TRANSITIONTYPE of int 
+	FUNCTIONTYPE of int*typeNode*typeNode
 and actionNode =
 	ASSIGNACTION of string*exprNode |
 	EXPRACTION of exprNode |
 	DEFINETYPEACTION of string*(string list)*typeNode |
-	DEFINEACTION of int*string*exprNode
-and objectNode = 
-	OBJECT of ((string*exprNode) list) 
-and transitionNode =
-	EXPRTRANS of (attributePatternNode list list)*(attributePatternNode list) |
-	ACTIONTRANS of ((attributePatternNode list list)*exprNode) 
-and attributePatternNode = 
-	VALUEATTRIBUTEPATTERN of string*patternNode |
-	PRESENTATTRIBUTEPATTERN of string |
-	TYPEATTRIBUTEPATTERN of string*typeNode
+	DEFINEACTION of int*string*exprNode |
+	DEFINEEXTERNALACTION of int*string*typeNode |
+	USEACTION of int*string
 ;;
 
 (* type objectEntry = 
