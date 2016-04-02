@@ -1,9 +1,10 @@
 
-let debugOn = true;;
-let lexDebugOn = true;;
-let synDebugOn = true;;
-let stdDebugOn = true;;
+let debugOn = false;;
+let lexDebugOn = false;;
+let synDebugOn = false;;
+let stdDebugOn = false;;
 let debugFun = [ "cartesianCLI_local" ];;
+let typDebugOn = true;;
 
 let genericDebug str = 
   if debugOn then
@@ -27,6 +28,14 @@ let synDebug str =
       Printf.eprintf "SYN: %s" str;
       prerr_newline();
     end;
+;;
+
+let typDebug str = 
+	if typDebugOn then
+		begin
+			Printf.eprintf "TYP: %s" str;
+			prerr_newline();
+		end;
 ;;
 
 let debugStartFun file mthd =
